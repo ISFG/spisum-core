@@ -1,0 +1,3116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model name="ssl:contentModel" xmlns="http://www.alfresco.org/model/dictionary/1.0">
+
+  <!-- Optional meta-data about the model -->
+  <description>SSL Content Model</description>
+  <author>Information Systems Factory Group s.r.o.</author>
+  <version>1.0</version>
+
+  <imports>
+    <!-- Import Alfresco Dictionary Definitions -->
+    <import uri="http://www.alfresco.org/model/dictionary/1.0" prefix="d"/>
+    <!-- Import Alfresco Content Domain Model Definitions -->
+    <import uri="http://www.alfresco.org/model/content/1.0" prefix="cm"/>
+    <!-- Import Alfresco System Model Definitions -->
+    <import uri="http://www.alfresco.org/model/system/1.0" prefix="sys"/>
+  </imports>
+
+  <!-- Custom namespace for the SpisUm -->
+  <namespaces>
+    <namespace uri="http://www.isfg.cz/model/content/1.0" prefix="ssl"/>
+  </namespaces>
+
+  <constraints>
+    <constraint name="ssl:componentTypeConstraint" type="LIST">
+      <parameter name="allowedValues">
+        <list>
+          <value>dorucenka</value>
+          <value>enclosure</value>
+          <value>main</value>
+          <value>meta</value>
+          <value>protokol_overeni_podpisu</value>
+          <value>signature</value>
+        </list>
+      </parameter>
+    </constraint>
+
+    <constraint name="ssl:componentVersionOperationConstraint" type="LIST">
+      <parameter name="allowedValues">
+        <list>
+          <value>add</value>
+          <value>remove</value>
+          <value>update</value>
+        </list>
+      </parameter>
+    </constraint>
+
+    <constraint name="ssl:databoxMessageTypeConstraint" type="LIST">
+      <parameter name="allowedValues">
+        <list>
+          <value>sent</value>
+          <value>recieved</value>
+          <value>created</value>
+        </list>
+      </parameter>
+    </constraint>
+
+    <constraint name="ssl:databoxTypeConstraint" type="LIST">
+      <parameter name="allowedValues">
+        <list>
+          <value>system</value>
+          <value>ovm</value>
+          <value>ovm_notar</value>
+          <value>ovm_exekut</value>
+          <value>ovm_req</value>
+          <value>po</value>
+          <value>po_zak</value>
+          <value>po_req</value>
+          <value>pfo</value>
+          <value>pfo_advok</value>
+          <value>pfo_danpor</value>
+          <value>pfo_insspr</value>
+          <value>fo</value>
+        </list>
+      </parameter>
+    </constraint>
+
+    <constraint name="ssl:deliveryModeConstraint" type="LIST">
+      <parameter name="allowedValues">
+        <list>
+          <value>currier</value>
+          <value>databox</value>
+          <value>email</value>
+          <value>personally</value>
+          <value>post</value>
+          <value>publish</value>
+          <value>publicNotice</value>
+        </list>
+      </parameter>
+    </constraint>
+
+    <constraint name="ssl:fileIsInOutputFoConstraint" type="LIST">
+      <parameter name="allowedValues">
+        <list>
+          <value>yes</value>
+          <value>no</value>
+          <value>impossible</value>
+        </list>
+      </parameter>
+    </constraint>
+
+    <constraint name="ssl:formConstraint" type="LIST">
+      <parameter name="allowedValues">
+        <list>
+          <value>analog</value>
+          <value>digital</value>
+          <value>hybrid</value>
+        </list>
+      </parameter>
+    </constraint>
+
+    <constraint name="ssl:internalStateConstraint" type="LIST">
+      <parameter name="allowedValues">
+        <list>
+          <value>Vytvorena</value>
+          <value>kVypraveni</value>
+          <value>Vypravena</value>
+          <value>Vracena</value>
+          <value>Dorucena</value>
+        </list>
+      </parameter>
+    </constraint>
+
+    <constraint name="ssl:keepFormConstraint" type="LIST">
+      <parameter name="allowedValues">
+        <list>
+          <value>concept</value>
+          <value>original</value>
+          <value>original_inOutputFormat</value>
+        </list>
+      </parameter>
+    </constraint>
+
+    <constraint name="ssl:postItemTypeConstraint" type="LIST">
+      <parameter name="allowedValues">
+        <list>
+          <value>CennePsani</value>
+          <value>CennyBalik</value>
+          <value>ObycejnePsani</value>
+          <value>ObycejnaSlepeckaZasilka</value>
+          <value>ObycejnePsaniStandard</value>
+          <value>DoporucenaZasilkaStandard</value>
+          <value>StandardniBalikDoZahranici</value>
+          <value>CennyBalikDoZahranici</value>
+          <value>DoporucenaZasilka</value>
+          <value>ObycejnaZasilkaDoZahranici</value>
+          <value>DoporucenaZasilkaDoZahranici</value>
+          <value>DoporucenaSlepeckaZasilka</value>
+          <value>ObycejnaSlepeckaZasilkaDoZahranici</value>
+          <value>DoporucenaSlepeckaZasilkaDoZahranici</value>
+          <value>ObchodniPsani</value>
+          <value>ObchodniPsaniDoZahranici</value>
+          <value>ObchodniBalik</value>
+          <value>ObchodniBalikDoZahranici</value>
+          <value>ObycejnyBalik</value>
+          <value>CennePsaniDoZahranici</value>
+          <value>Jina</value>
+        </list>
+      </parameter>
+    </constraint>
+
+    <constraint name="ssl:senderTypeConstraint" type="LIST">
+      <parameter name="allowedValues">
+        <list>
+          <value>individual</value>
+          <value>legal</value>
+          <value>own</value>
+        </list>
+      </parameter>
+    </constraint>
+
+    <constraint name="ssl:settleMethodConstraint" type="LIST">
+      <parameter name="allowedValues">
+        <list>
+          <value>dokumentem</value>
+          <value>postoupenim</value>
+          <value>vzetimNaVedomi</value>
+          <value>zaznamemNaDokumentu</value>
+          <value>jinyZpusob</value>
+        </list>
+      </parameter>
+    </constraint>
+  </constraints>
+
+  <types>
+
+    <!-- SSL PARENT -->
+
+    <type name="ssl:parent">
+      <title>SSL Parent</title>
+      <parent>cm:content</parent>
+      <properties>
+        <property name="ssl:currentOwner">
+          <title>Current Owner</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:nextGroup">
+          <title>Next Group</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:nextOwner">
+          <title>Next Owner</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:nextOwnerDecline">
+          <title>Next Owner Decline</title>
+          <type>d:boolean</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:pid">
+          <title>PID</title>
+          <type>d:text</type>
+          <protected>true</protected>
+          <mandatory>true</mandatory>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:pidRef">
+          <title>PID Record Management ref</title>
+          <type>d:text</type>
+          <protected>true</protected>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:pidArchive">
+          <title>PID archive</title>
+          <type>d:text</type>
+          <protected>true</protected>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:ssid">
+          <title>Reference number</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:ssidNumber">
+          <title>Reference number id</title>
+          <type>d:int</type>
+          <protected>true</protected>
+        </property>
+        <property name="ssl:associationCount">
+          <title>Association Count</title>
+          <type>d:int</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:attachmentsCount">
+          <title>Attachments Count</title>
+          <type>d:int</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:attachmentsType">
+          <title>Attachments Type</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:author">
+          <title>Author</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:author_id">
+          <title>Author Id</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:author_job">
+          <title>Author Job</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:author_name">
+          <title>Author Name</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:author_orgAddress">
+          <title>Author Organization Address</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:author_orgId">
+          <title>Author Organization id</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:author_orgName">
+          <title>Author Organization Name</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:author_orgUnit">
+          <title>Author Organization Unit</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:name">
+          <title>Name</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:createdDate">
+          <title>Created Date</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:borrower">
+          <title>Borrower</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:borrowDate">
+          <title>Borrow Date</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:borrowGroup">
+          <title>Borrow Group</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:borrowReturnDate">
+          <title>Borrow Return Date</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:cancelDate">
+          <title>Cancel Date</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:cancelReason">
+          <title>Cancel Reason</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:CDCount">
+          <title>CD count</title>
+          <type>d:int</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:closureDate">
+          <title>Closure Date</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:componentCounter">
+          <title>Component counter</title>
+          <type>d:int</type>
+        </property>
+        <property name="ssl:componentType">
+          <title>Component Type</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+          <constraints>
+            <constraint ref="ssl:componentTypeConstraint"/>
+          </constraints>
+        </property>
+        <property name="ssl:componentVersion">
+          <title>Component Version</title>
+          <type>d:text</type>
+        </property>
+        <property name="ssl:componentVersionId">
+          <title>Component Version</title>
+          <type>d:noderef</type>
+        </property>
+        <property name="ssl:componentVersionOperation">
+          <title>Component Version Operation</title>
+          <type>d:text</type>
+          <constraints>
+            <constraint ref="ssl:componentVersionOperationConstraint"/>
+          </constraints>
+        </property>
+        <property name="ssl:componentsVersionJSON">
+          <title>Components Version JSON</title>
+          <type>d:any</type>
+        </property>
+        <property name="ssl:customSettleMethod">
+          <title>Custom Settle Method</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:decisionDA">
+          <title>Decision DA</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:deliveryDate">
+          <title>Date of delivery</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:deliveryMode">
+          <title>Delivery mode</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+          <constraints>
+            <constraint ref="ssl:deliveryModeConstraint"/>
+          </constraints>
+        </property>
+        <property name="ssl:description">
+          <title>Description</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:directionMethod">
+          <title>Direction Method</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:discardDate">
+          <title>Discard Date</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:discardReason">
+          <title>Discard Reason</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:discardTo">
+          <title>Discard To</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:dispatchDate">
+          <title>Date of Dispatch</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:dispatchedDate">
+          <title>Dispatched Date</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:emailAddress">
+          <title>E-mail Address</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:eraseDate">
+          <title>Erase Date</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:fileIdentificator">
+          <title>File Identificator</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:fileMark">
+          <title>File Mark</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:filePlan">
+          <title>File Plan</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:forSignatureDate">
+          <title>For Signature Date</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:forSignatureGroup">
+          <title>For Signature Group</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:forSignatureUser">
+          <title>For Signature By User</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:form">
+          <title>Form</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+          <constraints>
+            <constraint ref="ssl:formConstraint"/>
+          </constraints>
+        </property>
+        <property name="ssl:group">
+          <title>Group</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:handoverDate">
+          <title>Handover Date</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:idDA">
+          <title>Id DA</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:isInFile">
+          <title>Is In file</title>
+          <type>d:boolean</type>
+          <default>false</default>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:listCount">
+          <title>List Count</title>
+          <type>d:int</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:listCountAttachments">
+          <title>List Count Attachments</title>
+          <type>d:int</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:location">
+          <title>Location</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:lostDate">
+          <title>Lost Date</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:lostReason">
+          <title>Lost Reason</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:openSheetCount">
+          <title>Open Sheet Count</title>
+          <type>d:int</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:originalDestinationHandover">
+          <title>Original Destination Handover</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:originalDispatchDate">
+          <title>Original Dispatch Date</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:passedFrom">
+          <title>Passed From</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:processor">
+          <title>Processor User</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:processor_id">
+          <title>Processor Id</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:processor_job">
+          <title>Processor Job</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:processor_name">
+          <title>Processor Name</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:processor_orgAddress">
+          <title>Processor Organization Address</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:processor_orgId">
+          <title>Processor Organization id</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:processor_orgName">
+          <title>Processor Organization Name</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:processor_orgUnit">
+          <title>Processor Organization Unit</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:proposalName">
+          <title>Proposal Name</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:reasonForRework">
+          <title>Reason For Rework</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:recipient">
+          <title>Recipient</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:retentionDate">
+          <title>Retention Date</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:retentionMark">
+          <title>Retention Mark</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:retentionMode">
+          <title>Retention Mode</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:retentionPeriod">
+          <title>Retention Period</title>
+          <type>d:int</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:retentionProposal">
+          <title>Retention Proposal</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:returnedForReworkDate">
+          <title>Returned For Rework Date</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:repositoryName">
+          <title>Repository Name</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:sender">
+          <title>Sender</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:sender_contact">
+          <title>Sender Contact</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:sender_job">
+          <title>Sender Job</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:sender_name">
+          <title>Sender Name</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:sender_orgName">
+          <title>Sender Organization Name</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:sender_orgUnit">
+          <title>Sender Organization Unit</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:sender_address">
+          <title>Sender Address</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:senderType">
+          <title>Sender</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+          <constraints>
+            <constraint ref="ssl:senderTypeConstraint"/>
+          </constraints>
+        </property>
+        <property name="ssl:senderIdent">
+          <title>Sender ident</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:senderRegistrationNumber">
+          <title>Sender Registration number</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:senderSSID">
+          <title>Sender Serial Number</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:sendMode">
+          <title>Send Mode</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+          <constraints>
+            <constraint ref="ssl:deliveryModeConstraint"/>
+          </constraints>
+        </property>
+        <property name="ssl:settleDate">
+          <title>Settle date</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:settleMethod">
+          <title>Settle Method</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+          <constraints>
+            <constraint ref="ssl:settleMethodConstraint"/>
+          </constraints>
+        </property>
+        <property name="ssl:settleReason">
+          <title>Settle Reason</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:settleToDate">
+          <title>Settle to Date</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:shipmentCounter">
+          <title>Shipment counter</title>
+          <type>d:int</type>
+        </property>
+        <property name="ssl:shreddingDate">
+          <title>Shredding Date</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:shreddingResolution">
+          <title>Shredding Resolution</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:shreddingYear">
+          <title>Shredding Year</title>
+          <type>d:int</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:signedAuthor">
+          <title>Signed Author</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:signedDate">
+          <title>Signed Date</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:sip">
+          <title>SIP</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:state">
+          <title>State</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:subject">
+          <title>Subject</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:targetRecipient">
+          <title>Target Recipient</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:triggerActionYear">
+          <title>Trigger Action Year</title>
+          <type>d:int</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:toArchiveShreddingDate">
+          <title>To Archive/Shredding Date</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:toRepositoryDate">
+          <title>To Repository Date</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:typeOfDelivery">
+          <title>Type Of Delivery</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:USBCount">
+          <title>USB count</title>
+          <type>d:int</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:volumesCount">
+          <title>Volumes count</title>
+          <type>d:int</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:previousPath">
+          <title>Previous Path</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:previousIsLocked">
+          <title>Previous Is Locked</title>
+          <type>d:boolean</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:previousState">
+          <title>Previous State</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:tClose">
+          <title>tClose</title>
+          <type>d:text</type>
+        </property>
+        <property name="ssl:tSettle">
+          <title>tSettle</title>
+          <type>d:text</type>
+        </property>
+        <property name="ssl:version">
+          <title>Version</title>
+          <type>d:int</type>
+        </property>
+      </properties>
+    </type>
+
+    <!-- SSL MAIN -->
+
+    <type name="ssl:main">
+      <title>Main</title>
+      <parent>ssl:parent</parent>
+      <associations>
+        <child-association name="ssl:shipmentsCreated">
+          <title>Shipments Created</title>
+          <source>
+            <mandatory>true</mandatory>
+            <many>true</many>
+          </source>
+          <target>
+            <class>ssl:shipment</class>
+            <mandatory>false</mandatory>
+            <many>true</many>
+          </target>
+        </child-association>
+        <child-association name="ssl:shipmentsToDispatch">
+          <title>Shipments To Dispatch</title>
+          <source>
+            <mandatory>true</mandatory>
+            <many>true</many>
+          </source>
+          <target>
+            <class>ssl:shipment</class>
+            <mandatory>false</mandatory>
+            <many>true</many>
+          </target>
+        </child-association>
+        <child-association name="ssl:shipmentsDispatched">
+          <title>Shipments Dispatched</title>
+          <source>
+            <mandatory>true</mandatory>
+            <many>true</many>
+          </source>
+          <target>
+            <class>ssl:shipment</class>
+            <mandatory>false</mandatory>
+            <many>true</many>
+          </target>
+        </child-association>
+        <child-association name="ssl:shipmentsReturned">
+          <title>Shipments Returned</title>
+          <source>
+            <mandatory>true</mandatory>
+            <many>true</many>
+          </source>
+          <target>
+            <class>ssl:shipment</class>
+            <mandatory>false</mandatory>
+            <many>true</many>
+          </target>
+        </child-association>
+      </associations>
+    </type>
+
+    <!-- SSL DOCUMENT -->
+
+    <type name="ssl:document">
+      <title>Document</title>
+      <parent>ssl:concept</parent>
+    </type>
+
+    <type name="ssl:takeDocumentForProcessing">
+      <title>Document for processing to take-over</title>
+      <parent>ssl:document</parent>
+    </type>
+
+    <type name="ssl:takeDocumentProcessed">
+      <title>Document processed to take-over</title>
+      <parent>ssl:document</parent>
+    </type>
+
+    <type name="ssl:documentArchived">
+      <title>Archived Document</title>
+      <parent>ssl:document</parent>
+    </type>
+
+    <type name="ssl:documentDestroyed">
+      <title>Destroyed Document</title>
+      <parent>ssl:document</parent>
+    </type>
+
+    <type name="ssl:documentRM">
+      <title>Document Record Management</title>
+      <parent>ssl:parent</parent>
+      <associations>
+        <child-association name="ssl:documentInRepository">
+        <title>Record Management Records</title>
+        <source>
+          <mandatory>true</mandatory>
+          <many>false</many>
+        </source>
+        <target>
+          <class>ssl:parent</class>
+          <mandatory>false</mandatory>
+          <many>false</many>
+        </target>
+      </child-association>
+      </associations>
+    </type>
+
+    <type name="ssl:shredding">
+      <title>Shredding</title>
+      <parent>ssl:parent</parent>
+      <associations>
+        <child-association name="ssl:shreddingObjects">
+          <title>Shredding Objects</title>
+          <source>
+            <mandatory>true</mandatory>
+            <many>true</many>
+          </source>
+          <target>
+            <class>cm:content</class>
+            <mandatory>false</mandatory>
+            <many>true</many>
+          </target>
+        </child-association>
+      </associations>
+    </type>
+
+    <type name="ssl:shreddingProposal">
+      <title>Shredding Proposal</title>
+      <parent>ssl:shredding</parent>
+    </type>
+
+    <type name="ssl:shreddingProtocol">
+      <title>Shredding Protocol</title>
+      <parent>ssl:shreddingProposal</parent>
+    </type>
+
+    <type name="ssl:shreddingAfterErase">
+      <title>Shredding After Erase</title>
+      <parent>ssl:shreddingProtocol</parent>
+    </type>
+
+    <!-- SSL CONCEPT -->
+
+    <type name="ssl:concept">
+      <title>Concept</title>
+      <parent>ssl:main</parent>
+      <properties>
+        <property name="ssl:documentType">
+          <title>Document type</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+      </properties>
+      <associations>
+        <child-association name="ssl:components">
+          <title>Components</title>
+          <source>
+            <mandatory>true</mandatory>
+            <many>true</many>
+          </source>
+          <target>
+            <class>cm:content</class>
+            <mandatory>false</mandatory>
+            <many>true</many>
+          </target>
+        </child-association>
+        <child-association name="ssl:deletedComponents">
+          <title>Deleted Components</title>
+          <source>
+            <mandatory>true</mandatory>
+            <many>true</many>
+          </source>
+          <target>
+            <class>cm:content</class>
+            <mandatory>false</mandatory>
+            <many>true</many>
+          </target>
+        </child-association>
+      </associations>
+    </type>
+
+    <type name="ssl:takeConcept">
+      <title>Concept to take-over</title>
+      <parent>ssl:concept</parent>
+    </type>
+
+    <!-- SSL SHIPMENT -->
+
+    <type name="ssl:shipment">
+      <title>Shipment</title>
+      <parent>ssl:parent</parent>
+      <properties>
+        <property name="ssl:address1">
+          <title>Address 1</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:address2">
+          <title>Address 2</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:address3">
+          <title>Address 3</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:address4">
+          <title>Address 4</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:addressCity">
+          <title>Address City</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:addressState">
+          <title>Address State</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:addressStreet">
+          <title>Address Street</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:addressZip">
+          <title>Address Zip</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:dateFrom">
+          <title>Date From</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:dateTo">
+          <title>Date To</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:itemId">
+          <title>Item id</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:internalState">
+          <title>Internal State</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+          <constraints>
+            <constraint ref="ssl:internalStateConstraint"/>
+          </constraints>
+        </property>
+        <property name="ssl:note">
+          <title>Note</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:postType">
+          <title>Post Type</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:postTypeOther">
+          <title>Post Type Other</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:postItemCashOnDelivery">
+          <title>Post Item Cash On Delivery</title>
+          <type>d:double</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:postItemId">
+          <title>Post Item Id</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:postItemType">
+          <title>Post Item Type</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+          <constraints>
+            <constraint ref="ssl:postItemTypeConstraint"/>
+          </constraints>
+        </property>
+        <property name="ssl:postItemTypeOther">
+          <title>Post Item Type Other</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:postItemNumber">
+          <title>Post Item Number</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:postItemPrice">
+          <title>Post Item Price</title>
+          <type>d:double</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:postItemStatedPrice">
+          <title>Post Item Stated Price</title>
+          <type>d:double</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:postItemWeight">
+          <title>Post Item Weight</title>
+          <type>d:double</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:reasonForReturn">
+          <title>Reason for Return</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:returnedDate">
+          <title>Returned Date</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:shRef">
+          <title>File Ref</title>
+          <type>d:text</type>
+        </property>
+        <property name="ssl:shRefId">
+          <title>File Ref Id</title>
+          <type>d:text</type>
+        </property>
+        <property name="ssl:shComponentsRef">
+          <title>Components Ref</title>
+          <type>d:text</type>
+        </property>
+        <property name="ssl:shFilesSize">
+          <title>Files Size</title>
+          <type>d:double</type>
+        </property>
+        <property name="ssl:toDispatchDate">
+          <title>To Dispatch Date</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:toHands">
+          <title>To Hands</title>
+          <type>d:text</type>
+        </property>
+      </properties>
+      <associations>
+        <child-association name="ssl:shComponents">
+          <title>Components</title>
+          <source>
+            <mandatory>true</mandatory>
+            <many>true</many>
+          </source>
+          <target>
+            <class>cm:content</class>
+            <mandatory>false</mandatory>
+            <many>true</many>
+          </target>
+        </child-association>
+      </associations>
+    </type>
+
+    <type name="ssl:shipmentEmail">
+      <title>Shipment Email</title>
+      <parent>ssl:shipment</parent>
+      <properties>
+        <property name="ssl:shEmailBody">
+          <title>Email body</title>
+          <type>d:text</type>
+        </property>
+      </properties>
+    </type>
+
+    <type name="ssl:shipmentDatabox">
+      <title>Shipment Databox</title>
+      <parent>ssl:shipment</parent>
+      <properties>
+        <property name="ssl:allowSubstDelivery">
+          <title>Allow Subst Delivery</title>
+          <type>d:boolean</type>
+        </property>
+        <property name="ssl:legalTitleLaw">
+          <title>Legal Title Law</title>
+          <type>d:int</type>
+        </property>
+        <property name="ssl:legalTitlePar">
+          <title>Legal Title Par</title>
+          <type>d:int</type>
+        </property>
+        <property name="ssl:legalTitlePoint">
+          <title>Legal Title Point</title>
+          <type>d:text</type>
+        </property>
+        <property name="ssl:legalTitleSect">
+          <title>Legal Title Sect</title>
+          <type>d:text</type>
+        </property>
+        <property name="ssl:legalTitleYear">
+          <title>Legal Title Year</title>
+          <type>d:int</type>
+        </property>
+        <property name="ssl:personalDelivery">
+          <title>Personal Delivery</title>
+          <type>d:boolean</type>
+        </property>
+      </properties>
+    </type>
+
+    <type name="ssl:shipmentPersonally">
+      <title>Shipment Personally</title>
+      <parent>ssl:shipment</parent>
+    </type>
+
+    <type name="ssl:shipmentPost">
+      <title>Shipment Post</title>
+      <parent>ssl:shipment</parent>
+    </type>
+
+    <type name="ssl:shipmentPublish">
+      <title>Shipment Publish</title>
+      <parent>ssl:shipment</parent>
+    </type>
+
+    <!-- SSL FILE -->
+
+    <type name="ssl:file">
+      <title>File</title>
+      <parent>ssl:main</parent>
+      <associations>
+        <child-association name="ssl:documents">
+          <title>Documents</title>
+          <source>
+            <mandatory>true</mandatory>
+            <many>false</many>
+          </source>
+          <target>
+            <class>ssl:document</class>
+            <mandatory>false</mandatory>
+            <many>true</many>
+          </target>
+        </child-association>
+      </associations>
+    </type>
+
+    <type name="ssl:takeFileOpen">
+      <title>Open file to take-over</title>
+      <parent>ssl:file</parent>
+    </type>
+
+    <type name="ssl:takeFileClosed">
+      <title>Closed file to take-over</title>
+      <parent>ssl:file</parent>
+    </type>
+
+    <type name="ssl:fileArchived">
+      <title>Archived File</title>
+      <parent>ssl:file</parent>
+    </type>
+
+    <type name="ssl:fileDestroyed">
+      <title>Destroyed File</title>
+      <parent>ssl:file</parent>
+    </type>
+
+    <type name="ssl:fileRM">
+      <title>File Record Management</title>
+      <parent>ssl:parent</parent>
+      <associations>
+        <child-association name="ssl:fileInRepository">
+        <title>Record Management Records</title>
+        <source>
+          <mandatory>true</mandatory>
+          <many>false</many>
+        </source>
+        <target>
+          <class>ssl:parent</class>
+          <mandatory>false</mandatory>
+          <many>false</many>
+        </target>
+      </child-association>
+      </associations>
+    </type>
+
+    <!-- SSL COMPONENT -->
+
+    <type name="ssl:component">
+      <title>Component</title>
+      <parent>cm:content</parent>
+      <mandatory-aspects>
+        <aspect>ssl:originInfo</aspect>
+      </mandatory-aspects>
+    </type>
+
+    <!-- DATA FOLDER -->
+
+    <type name="ssl:dataFolder">
+      <title>Data Folder</title>
+      <parent>cm:folder</parent>
+      <properties>
+        <property name="ssl:timestampText">
+          <title>Timestamp text</title>
+          <type>d:text</type>
+        </property>
+      </properties>
+    </type>
+
+    <!-- SSL EMAIL as COMPONENT -->
+
+    <type name="ssl:emailComponent">
+      <title>Email component</title>
+      <parent>ssl:email</parent>
+    </type>
+
+    <!-- SSL EMAIL -->
+
+    <type name="ssl:email">
+      <title>Email</title>
+      <parent>ssl:parent</parent>
+      <properties>
+        <property name="ssl:emailAttachmentsCount">
+          <title>Attachment Count</title>
+          <type>d:int</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:emailDeliveryDate">
+          <title>Delivery Date</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:emailMessageId">
+          <title>Message Id</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:emailNotRegisteredReason">
+          <title>Not registered reason</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:emailRecipient">
+          <title>Recipient email address</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:emailRecipientName">
+          <title>Recipient name</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:emailSender">
+          <title>Sender's email address</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:emailSenderName">
+          <title>Sender's email address</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:emailSubject">
+          <title>Subject</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+      </properties>
+
+      <associations>
+        <child-association name="ssl:emailAttachments">
+          <title>Emails Attachments </title>
+          <source>
+            <mandatory>true</mandatory>
+            <many>false</many>
+          </source>
+          <target>
+            <class>cm:content</class>
+            <mandatory>false</mandatory>
+            <many>true</many>
+          </target>
+        </child-association>
+      </associations>
+    </type>
+
+    <!-- SSL DATA BOX as COMPONENT -->
+
+    <type name="ssl:databoxComponent">
+      <title>Databox component</title>
+      <parent>ssl:databox</parent>
+    </type>
+
+    <!-- SSL DATA BOX -->
+
+    <type name="ssl:databox">
+      <title>Databox</title>
+      <parent>ssl:parent</parent>
+      <properties>
+        <property name="ssl:databoxAcceptanceTime">
+          <title>Acceptance Time</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:databoxAllowSubstDelivery">
+          <title>Allow Subst Delivery</title>
+          <type>d:boolean</type>
+          <default>false</default>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:databoxAttachmentsCount">
+          <title>Attachment Count</title>
+          <type>d:int</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:databoxDeliveryDate">
+          <title>Delivery Date</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:databoxLegalTitlePar">
+          <title>Legal Title - par</title>
+          <type>d:text</type>
+        </property>
+        <property name="ssl:databoxLegalTitlePoint">
+          <title>Legal Title - point</title>
+          <type>d:text</type>
+        </property>
+        <property name="ssl:databoxLegalTitleSect">
+          <title>Legal Title - sect</title>
+          <type>d:text</type>
+        </property>
+        <property name="ssl:databoxLegalTitleLaw">
+          <title>Legal Title - law</title>
+          <type>d:text</type>
+        </property>
+        <property name="ssl:databoxLegalTitleYear">
+          <title>Legal Title - year</title>
+          <type>d:text</type>
+        </property>
+        <property name="ssl:databoxMessageState">
+          <title>Message state</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+          <constraints>
+            <constraint ref="ssl:databoxTypeConstraint"/>
+          </constraints>
+        </property>
+        <property name="ssl:databoxMessageType">
+          <title>Message type</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+          <constraints>
+            <constraint ref="ssl:databoxMessageTypeConstraint"/>
+          </constraints>
+        </property>
+        <property name="ssl:databoxNotRegisteredReason">
+          <title>Not registered</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:databoxPersonalDelivery">
+          <title>Personal Delivery</title>
+          <type>d:boolean</type>
+          <default>false</default>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:databoxRecipient">
+          <title>Recipient DataBox Id</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:databoxRecipientUid">
+          <title>Recipient User Id</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:databoxRecipientAddress">
+          <title>Recipient Address</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:databoxRecipientDocumentIdent">
+          <title>Recipient document ident</title>
+          <type>d:text</type>
+        </property>
+        <property name="ssl:databoxRecipientDocumentRefNumber">
+          <title>Recipient document ref number</title>
+          <type>d:text</type>
+        </property>
+        <property name="ssl:databoxRecipientDataBoxType">
+          <title>Recipient Databox type</title>
+          <type>d:text</type>
+          <constraints>
+            <constraint ref="ssl:databoxTypeConstraint"/>
+          </constraints>
+        </property>
+        <property name="ssl:databoxRecipientName">
+          <title>Recipient Name</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:databoxSender">
+          <title>Senders DataBox ID</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:databoxSenderAddress">
+          <title>Sender's Address</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:databoxSenderDataBoxType">
+          <title>Sender's Databox type</title>
+          <type>d:text</type>
+          <constraints>
+            <constraint ref="ssl:databoxTypeConstraint"/>
+          </constraints>
+        </property>
+        <property name="ssl:databoxSenderIdent">
+          <title>Sender's document ident</title>
+          <type>d:text</type>
+        </property>
+        <property name="ssl:databoxSenderName">
+          <title>Sender's Identity (Name)</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:databoxSenderRefNumber">
+          <title>Sender's document ref number</title>
+          <type>d:text</type>
+        </property>
+        <property name="ssl:databoxSubject">
+          <title>Subject (Annotation)</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:databoxToHands">
+          <title>To Hands</title>
+          <type>d:text</type>
+        </property>
+      </properties>
+
+      <associations>
+        <child-association name="ssl:databoxAttachments">
+          <title>DataBox Attachments</title>
+          <source>
+            <mandatory>true</mandatory>
+            <many>false</many>
+          </source>
+          <target>
+            <class>cm:content</class>
+            <mandatory>false</mandatory>
+            <many>true</many>
+          </target>
+        </child-association>
+      </associations>
+
+      <mandatory-aspects>
+        <aspect>ssl:originInfo</aspect>
+      </mandatory-aspects>
+    </type>
+  </types>
+
+  <!-- GLOBAL ASPECTS -->
+
+  <aspects>
+    <aspect name="ssl:pid_counter">
+      <title>PID Counter</title>
+      <properties>
+        <property name="ssl:pid_counter_value">
+          <title>PID Counter Value</title>
+          <type>d:int</type>
+        </property>
+      </properties>
+    </aspect>
+    <aspect name="ssl:pid_concept_counter">
+      <title>PID Counter</title>
+      <properties>
+        <property name="ssl:pid_concept_counter_value">
+          <title>PID Concept Counter Value</title>
+          <type>d:int</type>
+        </property>
+      </properties>
+    </aspect>
+    <aspect name="ssl:pid_shreddingProposal_counter">
+      <title>PID ShreddingProposal</title>
+      <properties>
+        <property name="ssl:pid_shreddingProposal_counter_value">
+          <title>PID ShreddingProposal Counter Value</title>
+          <type>d:int</type>
+        </property>
+      </properties>
+    </aspect>
+    <aspect name="ssl:ssid_counter">
+      <title>SSID Counter</title>
+      <properties>
+        <property name="ssl:ssid_counter_value">
+          <title>SSID Counter Value</title>
+          <type>d:int</type>
+        </property>
+      </properties>
+    </aspect>
+    <aspect name="ssl:originInfo">
+      <title>Original Info</title>
+      <properties>
+        <property name="ssl:fileName">
+          <title>Original name of the file</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+      </properties>
+    </aspect>
+    <aspect name="ssl:reference">
+      <title>Reference</title>
+      <properties>
+        <property name="ssl:ref">
+          <title>NodeId reference</title>
+          <type>d:noderef</type>
+          <protected>true</protected>
+        </property>
+        <property name="ssl:takeRef">
+          <title>NodeId reference</title>
+          <type>d:noderef</type>
+          <protected>true</protected>
+        </property>
+        <property name="ssl:waitingRef">
+          <title>NodeId reference</title>
+          <type>d:noderef</type>
+          <protected>true</protected>
+        </property>
+      </properties>
+    </aspect>
+    <aspect name="ssl:componentInfo">
+      <title>Component Info</title>
+      <properties>
+        <property name="ssl:assessmentMoment">
+          <title>Assessment Moment</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:autorChangeOfDataFormat">
+          <title>Autor Change Of Data Format</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:certValidity">
+          <title>Certification Validity</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:certValidityPath">
+          <title>Certification Validity Path</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:crlNumber">
+          <title>CRL number</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:companyImplementingDataFormat">
+          <title>Company Implementing Data Format</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:dateCompleteVerificationItem">
+          <title>Date Complete Verification Item</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:dmFinalVersion">
+          <title>dm Final Version</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:fileIsReadable">
+          <title>Is Readable</title>
+          <type>d:boolean</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:fileIsInOutputFormat">
+          <title>Is in output format</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+          <constraints>
+            <constraint ref="ssl:fileIsInOutputFoConstraint"/>
+          </constraints>
+        </property>
+        <property name="ssl:fileIsSigned">
+          <title>Is signed</title>
+          <type>d:boolean</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:imprintFile">
+          <title>Imprint File</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:holder_contact">
+          <title>Holder Contact</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:holder_name">
+          <title>Holder Name</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:holder_orgName">
+          <title>Holder Organization Name</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:holder_orgUnit">
+          <title>Holder Organization Unit</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:holder_job">
+          <title>Holder Job</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:holder_orgAddress">
+          <title>Holder Organization Address</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:holder_address">
+          <title>Holder Address</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:isSealed">
+          <title>Is Sealed</title>
+          <type>d:boolean</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:isSign">
+          <title>Is Sealed</title>
+          <type>d:boolean</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:keepForm">
+          <title>Keep Form</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+          <constraints>
+            <constraint ref="ssl:keepFormConstraint"/>
+          </constraints>
+        </property>
+        <property name="ssl:finalVersion">
+          <title>Is Final Version</title>
+          <type>d:boolean</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:linkRendering">
+          <title>Link Rendering</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:linkOriginalComponent">
+          <title>Link Original Component</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:originalDataFormat">
+          <title>Original Data Format</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:publisher_address">
+          <title>Publisher Address</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:publisher_contact">
+          <title>Publisher Contact</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:publisher_name">
+          <title>Publisher Name</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:publisher_orgName">
+          <title>Verifier Organization Name</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:publisher_orgUnit">
+          <title>Publisher Organization Unit</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:publisher_job">
+          <title>Publisher Job</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:publisher_orgAddress">
+          <title>Publisher Organization Address</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:qualifiedCertType">
+          <title>qualifiedCertType</title>
+          <type>d:text</type>
+        </property>
+        <property name="ssl:revocationState">
+          <title>Revocation State</title>
+          <type>d:boolean</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:securityType">
+          <title>Security Type</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:serialNumber">
+          <title>Serial number</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:usedAlgorithm">
+          <title>Used Algorithm</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:usedTime">
+          <title>Used Time</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:validityFrom">
+          <title>Validity From</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:validityTo">
+          <title>Validity To</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:validitySafetyElement">
+          <title>Validity Safety of Element</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:validitySafetyCert">
+          <title>Validity Safety of Certificat</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:validitySafetyCertRevocation">
+          <title>Validity Safety of Certificat Revocation</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:verifier">
+          <title>Verifier</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:verifier_id">
+          <title>Verifier Id</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:verifier_job">
+          <title>Verifier Job</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:verifier_name">
+          <title>Verifier Name</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:verifier_orgAddress">
+          <title>Verifier Organization Address</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:verifier_orgId">
+          <title>Verifier Organization id</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:verifier_orgName">
+          <title>Verifier Organization Name</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:verifier_orgUnit">
+          <title>Verifier Organization Unit</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:verificationTime">
+          <title>Verification Time</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+      </properties>
+    </aspect>
+    <aspect name="ssl:userInfo">
+      <title>User Info</title>
+      <properties>
+        <property name="ssl:user_id">
+          <title>User Id</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:user_job">
+          <title>User Job</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:user_name">
+          <title>User Name</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:user_orgAddress">
+          <title>User Organization Address</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:user_orgId">
+          <title>User Organization id</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:user_orgName">
+          <title>User Organization Name</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:user_orgUnit">
+          <title>User Organization Unit</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+      </properties>
+    </aspect>
+  </aspects>
+</model>

@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UserSecretsId>2f629ce7-03fe-451f-9681-d5dfbda6b012</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Cronos" Version="0.7.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.9.10" />
+    <PackageReference Include="Serilog.AspNetCore" Version="3.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ISFG.Alfresco.Api\ISFG.Alfresco.Api.csproj" />
+    <ProjectReference Include="..\ISFG.Data\ISFG.Data.csproj" />
+    <ProjectReference Include="..\ISFG.Pdf\ISFG.Pdf.csproj" />
+    <ProjectReference Include="..\ISFG.Signer.Client\ISFG.Signer.Client.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,1233 @@
+[
+  {
+    "Body": {
+      "Description": "Mailroom",
+      "Id": "Mailroom",
+      "Title": "Podatelna",
+      "Visibility": "PRIVATE"
+    },
+    "Childs": [
+      {
+        "Body": {
+          "Name": "DataBox",
+          "NodeType": "cm:folder",
+          "Properties": {
+            "cm:title": "Datové schránky",
+            "cm:description": "Contains DataBox messages"
+          }
+        },
+        "Childs": [
+          {
+            "Body": {
+              "Name": "Archived",
+              "NodeType": "cm:folder",
+              "Properties": {
+                "cm:title": "Archivované",
+                "cm:description": "Contains archived DataBox messages"
+              }
+            }
+          },
+          {
+            "Body": {
+              "Name": "NotRegistered",
+              "NodeType": "cm:folder",
+              "Properties": {
+                "cm:title": "Neregistrované",
+                "cm:description": "Contains not registered DataBox messages"
+              }
+            },
+            "Permissions": [
+              {
+                "Id": "GROUP_ESSL_Admin",
+                "Role": "SiteManager"
+              },
+              {
+                "Id": "GROUP_Mailroom",
+                "Role": "Coordinator"
+              }
+            ],
+            "ReturnInNodesInfo": true
+          },
+          {
+            "Body": {
+              "Name": "Unprocessed",
+              "NodeType": "ssl:dataFolder",
+              "Properties": {
+                "cm:title": "Nezpracované",
+                "cm:description": "Contains unprocessed DataBox messages"
+              }
+            },
+            "Permissions": [
+              {
+                "Id": "GROUP_ESSL_Admin",
+                "Role": "SiteManager"
+              },
+              {
+                "Id": "GROUP_Mailroom",
+                "Role": "Coordinator"
+              },
+              {
+                "Id": "GROUP_DATABOX",
+                "Role": "Coordinator"
+              }
+            ],
+            "ReturnInNodesInfo": true
+          }
+        ]
+      },
+      {
+        "Body": {
+          "Name": "MailBox",
+          "NodeType": "cm:folder",
+          "Properties": {
+            "cm:title": "E-mailové schránky",
+            "cm:description": "Contains MailBox messages"
+          }
+        },
+        "Childs": [
+          {
+            "Body": {
+              "Name": "Archived",
+              "NodeType": "cm:folder",
+              "Properties": {
+                "cm:title": "Archivované",
+                "cm:description": "Contains archived MailBox messages"
+              }
+            }
+          },
+          {
+            "Body": {
+              "Name": "NotRegistered",
+              "NodeType": "cm:folder",
+              "Properties": {
+                "cm:title": "Neregistrované",
+                "cm:description": "Contains not registered MailBox messages"
+              }
+            },
+            "Permissions": [
+              {
+                "Id": "GROUP_ESSL_Admin",
+                "Role": "SiteManager"
+              },
+              {
+                "Id": "GROUP_Mailroom",
+                "Role": "Coordinator"
+              }
+            ],
+            "ReturnInNodesInfo": true
+          },
+          {
+            "Body": {
+              "Name": "Unprocessed",
+              "NodeType": "ssl:dataFolder",
+              "Properties": {
+                "cm:title": "Nezpracované",
+                "cm:description": "Contains unprocessed MailBox messages"
+              }
+            },
+            "Permissions": [
+              {
+                "Id": "GROUP_ESSL_Admin",
+                "Role": "SiteManager"
+              },
+              {
+                "Id": "GROUP_Mailroom",
+                "Role": "Coordinator"
+              },
+              {
+                "Id": "GROUP_EMAILBOX",
+                "Role": "Coordinator"
+              }
+            ],
+            "ReturnInNodesInfo": true
+          }
+        ]
+      },
+      {
+        "Body": {
+          "Name": "Unfinished",
+          "NodeType": "cm:folder",
+          "Properties": {
+            "cm:title": "Rozpracované",
+            "cm:description": "Contains Unfinished documents"
+          }
+        },
+        "Permissions": [
+          {
+            "Id": "GROUP_ESSL_Admin",
+            "Role": "SiteManager"
+          },
+          {
+            "Id": "GROUP_Mailroom",
+            "Role": "Contributor"
+          }
+        ],
+        "ReturnInNodesInfo": true
+      }
+    ],
+    "Permissions": [
+      {
+        "Id": "GROUP_ESSL_Admin",
+        "Role": "SiteManager"
+      },
+      {
+        "Id": "GROUP_Mailroom",
+        "Role": "SiteCollaborator"
+      },
+      {
+        "Id": "GROUP_Spisum",
+        "Role": "SiteConsumer"
+      }
+    ]
+  },
+  {
+    "Body": {
+      "Description": "Evidence",
+      "Id": "Evidence",
+      "Title": "Evidence",
+      "Visibility": "PRIVATE"
+    },
+    "Childs": [
+      {
+        "Body": {
+          "Name": "Documents",
+          "NodeType": "cm:folder",
+          "Properties": {
+            "cm:title": "Dokumenty",
+            "cm:description": "Contains documents"
+          }
+        },
+        "Childs": [
+          {
+            "Body": {
+              "Name": "ForProcessing",
+              "NodeType": "cm:folder",
+              "Properties": {
+                "cm:title": "Nezpracované",
+                "cm:description": "Contains documents for processing"
+              }
+            },
+            "Childs": [
+              {
+                "Body": {
+                  "Name": "ForSignature",
+                  "NodeType": "cm:folder",
+                  "Properties": {
+                    "cm:title": "K podepsání",
+                    "cm:description": "Contains documents for signature"
+                  }
+                },
+                "Permissions": [
+                  {
+                    "Id": "GROUP_ESSL_Admin",
+                    "Role": "SiteManager"
+                  },
+                  {
+                    "Id": "GROUP_Spisum",
+                    "Role": "Contributor"
+                  }
+                ],
+                "ReturnInNodesInfo": true
+              },
+              {
+                "Body": {
+                  "Name": "ToAprove",
+                  "NodeType": "cm:folder",
+                  "Properties": {
+                    "cm:title": "Ke schválení",
+                    "cm:description": "Contains documents to aprove"
+                  }
+                },
+                "Permissions": [
+                  {
+                    "Id": "GROUP_ESSL_Admin",
+                    "Role": "SiteManager"
+                  },
+                  {
+                    "Id": "GROUP_Spisum",
+                    "Role": "Contributor"
+                  }
+                ],
+                "ReturnInNodesInfo": true
+              },
+              {
+                "Body": {
+                  "Name": "WaitingForTakeOver",
+                  "NodeType": "cm:folder",
+                  "Properties": {
+                    "cm:title": "Čeká na převzetí",
+                    "cm:description": "Contains documents waiting for take-over"
+                  }
+                },
+                "Permissions": [
+                  {
+                    "Id": "GROUP_ESSL_Admin",
+                    "Role": "SiteManager"
+                  },
+                  {
+                    "Id": "GROUP_Spisum",
+                    "Role": "Contributor"
+                  }
+                ],
+                "ReturnInNodesInfo": true
+              }
+            ],
+            "Permissions": [
+              {
+                "Id": "GROUP_ESSL_Admin",
+                "Role": "SiteManager"
+              },
+              {
+                "Id": "GROUP_Spisum",
+                "Role": "Contributor"
+              }
+            ],
+            "ReturnInNodesInfo": true
+          },
+          {
+            "Body": {
+              "Name": "Processed",
+              "NodeType": "cm:folder",
+              "Properties": {
+                "cm:title": "Zpracované",
+                "cm:description": "Contains processed documents"
+              }
+            },
+            "Childs": [
+              {
+                "Body": {
+                  "Name": "WaitingForTakeOver",
+                  "NodeType": "cm:folder",
+                  "Properties": {
+                    "cm:title": "Čeká na převzetí",
+                    "cm:description": "Contains documents waiting for take-over"
+                  }
+                },
+                "Permissions": [
+                  {
+                    "Id": "GROUP_ESSL_Admin",
+                    "Role": "SiteManager"
+                  },
+                  {
+                    "Id": "GROUP_Spisum",
+                    "Role": "Contributor"
+                  }
+                ],
+                "ReturnInNodesInfo": true
+              }
+            ],
+            "Permissions": [
+              {
+                "Id": "GROUP_ESSL_Admin",
+                "Role": "SiteManager"
+              },
+              {
+                "Id": "GROUP_Spisum",
+                "Role": "Contributor"
+              }
+            ],
+            "ReturnInNodesInfo": true
+          }
+        ],
+        "Permissions": [
+          {
+            "Id": "GROUP_ESSL_Admin",
+            "Role": "SiteManager"
+          },
+          {
+            "Id": "GROUP_Spisum",
+            "Role": "Contributor"
+          }
+        ],
+        "ReturnInNodesInfo": true
+      },
+      {
+        "Body": {
+          "Name": "Cancelled",
+          "NodeType": "cm:folder",
+          "Properties": {
+            "cm:title": "Stornované",
+            "cm:description": "Contains Cancelled Files/Documents"
+          }
+        },
+        "Permissions": [
+          {
+            "Id": "GROUP_ESSL_Admin",
+            "Role": "SiteManager"
+          },
+          {
+            "Id": "GROUP_Spisum",
+            "Role": "Contributor"
+          }
+        ],
+        "ReturnInNodesInfo": true
+      },
+      {
+        "Body": {
+          "Name": "Concepts",
+          "NodeType": "cm:folder",
+          "Properties": {
+            "cm:title": "Koncepty",
+            "cm:description": "Contains Concepts"
+          }
+        },
+        "Childs": [
+          {
+            "Body": {
+              "Name": "WaitingForTakeOver",
+              "NodeType": "cm:folder",
+              "Properties": {
+                "cm:title": "Čeká na převzetí",
+                "cm:description": "Contains concepts waiting for take-over"
+              }
+            },
+            "Permissions": [
+              {
+                "Id": "GROUP_ESSL_Admin",
+                "Role": "SiteManager"
+              },
+              {
+                "Id": "GROUP_Spisum",
+                "Role": "Contributor"
+              }
+            ],
+            "ReturnInNodesInfo": true
+          }
+        ],
+        "Permissions": [
+          {
+            "Id": "GROUP_ESSL_Admin",
+            "Role": "SiteManager"
+          },
+          {
+            "Id": "GROUP_Spisum",
+            "Role": "Contributor"
+          }
+        ],
+        "ReturnInNodesInfo": true
+      },
+      {
+        "Body": {
+          "Name": "Files",
+          "NodeType": "cm:folder",
+          "Properties": {
+            "cm:title": "Spisy",
+            "cm:description": "Contains Files"
+          }
+        },
+        "Childs": [
+          {
+            "Body": {
+              "Name": "Documents",
+              "NodeType": "cm:folder",
+              "Properties": {
+                "cm:title": "Dokumenty",
+                "cm:description": "Contains documents in files"
+              }
+            },
+            "Childs": [
+              {
+                "Body": {
+                  "Name": "Cancelled",
+                  "NodeType": "cm:folder",
+                  "Properties": {
+                    "cm:title": "Stornované",
+                    "cm:description": "Contains cancelled documents in files"
+                  }
+                },
+                "Permissions": [
+                  {
+                    "Id": "GROUP_ESSL_Admin",
+                    "Role": "SiteManager"
+                  },
+                  {
+                    "Id": "GROUP_Spisum",
+                    "Role": "Contributor"
+                  }
+                ],
+                "ReturnInNodesInfo": true
+              },
+              {
+                "Body": {
+                  "Name": "ForProcessing",
+                  "NodeType": "cm:folder",
+                  "Properties": {
+                    "cm:title": "Ke zpracování",
+                    "cm:description": "Contains documents in files for processing"
+                  }
+                },
+                "Childs": [
+                  {
+                    "Body": {
+                      "Name": "ForSignature",
+                      "NodeType": "cm:folder",
+                      "Properties": {
+                        "cm:title": "K podepsání",
+                        "cm:description": "Contains documents for signature"
+                      }
+                    },
+                    "Permissions": [
+                      {
+                        "Id": "GROUP_ESSL_Admin",
+                        "Role": "SiteManager"
+                      },
+                      {
+                        "Id": "GROUP_Spisum",
+                        "Role": "Contributor"
+                      }
+                    ],
+                    "ReturnInNodesInfo": true
+                  },
+                  {
+                    "Body": {
+                      "Name": "ToAprove",
+                      "NodeType": "cm:folder",
+                      "Properties": {
+                        "cm:title": "Ke schválení",
+                        "cm:description": "Contains documents to aprove"
+                      }
+                    },
+                    "Permissions": [
+                      {
+                        "Id": "GROUP_ESSL_Admin",
+                        "Role": "SiteManager"
+                      },
+                      {
+                        "Id": "GROUP_Spisum",
+                        "Role": "Contributor"
+                      }
+                    ],
+                    "ReturnInNodesInfo": true
+                  }
+                ],
+                "Permissions": [
+                  {
+                    "Id": "GROUP_ESSL_Admin",
+                    "Role": "SiteManager"
+                  },
+                  {
+                    "Id": "GROUP_Spisum",
+                    "Role": "Contributor"
+                  }
+                ],
+                "ReturnInNodesInfo": true
+              },
+              {
+                "Body": {
+                  "Name": "LostDestroyed",
+                  "NodeType": "cm:folder",
+                  "Properties": {
+                    "cm:title": "Ztracené-zničené",
+                    "cm:description": "Contains Lost/Destroyed documents in files"
+                  }
+                },
+                "Permissions": [
+                  {
+                    "Id": "GROUP_ESSL_Admin",
+                    "Role": "SiteManager"
+                  },
+                  {
+                    "Id": "GROUP_Spisum",
+                    "Role": "Contributor"
+                  }
+                ],
+                "ReturnInNodesInfo": true
+              },
+              {
+                "Body": {
+                  "Name": "Processed",
+                  "NodeType": "cm:folder",
+                  "Properties": {
+                    "cm:title": "Zpraované",
+                    "cm:description": "Contains processed documents in files"
+                  }
+                },
+                "Permissions": [
+                  {
+                    "Id": "GROUP_ESSL_Admin",
+                    "Role": "SiteManager"
+                  },
+                  {
+                    "Id": "GROUP_Spisum",
+                    "Role": "Contributor"
+                  }
+                ],
+                "ReturnInNodesInfo": true
+              }
+            ],
+            "Permissions": [
+              {
+                "Id": "GROUP_ESSL_Admin",
+                "Role": "SiteManager"
+              },
+              {
+                "Id": "GROUP_Spisum",
+                "Role": "Contributor"
+              }
+            ],
+            "ReturnInNodesInfo": true
+          },
+          {
+            "Body": {
+              "Name": "Closed",
+              "NodeType": "cm:folder",
+              "Properties": {
+                "cm:title": "Uzavřené",
+                "cm:description": "Contains closed files"
+              }
+            },
+            "Childs": [
+              {
+                "Body": {
+                  "Name": "WaitingForTakeOver",
+                  "NodeType": "cm:folder",
+                  "Properties": {
+                    "cm:title": "Čeká na převzetí",
+                    "cm:description": "Contains files waiting for take-over"
+                  }
+                },
+                "Permissions": [
+                  {
+                    "Id": "GROUP_ESSL_Admin",
+                    "Role": "SiteManager"
+                  },
+                  {
+                    "Id": "GROUP_Spisum",
+                    "Role": "Contributor"
+                  }
+                ],
+                "ReturnInNodesInfo": true
+              }
+            ],
+            "Permissions": [
+              {
+                "Id": "GROUP_ESSL_Admin",
+                "Role": "SiteManager"
+              },
+              {
+                "Id": "GROUP_Spisum",
+                "Role": "Contributor"
+              }
+            ],
+            "ReturnInNodesInfo": true
+          },
+          {
+            "Body": {
+              "Name": "Open",
+              "NodeType": "cm:folder",
+              "Properties": {
+                "cm:title": "Otevřené",
+                "cm:description": "Contains open files"
+              }
+            },
+            "Childs": [
+              {
+                "Body": {
+                  "Name": "WaitingForTakeOver",
+                  "NodeType": "cm:folder",
+                  "Properties": {
+                    "cm:title": "Čeká na převzetí",
+                    "cm:description": "Contains files for take-over"
+                  }
+                },
+                "Permissions": [
+                  {
+                    "Id": "GROUP_ESSL_Admin",
+                    "Role": "SiteManager"
+                  },
+                  {
+                    "Id": "GROUP_Spisum",
+                    "Role": "Contributor"
+                  }
+                ],
+                "ReturnInNodesInfo": true
+              }
+            ],
+            "Permissions": [
+              {
+                "Id": "GROUP_ESSL_Admin",
+                "Role": "SiteManager"
+              },
+              {
+                "Id": "GROUP_Spisum",
+                "Role": "Contributor"
+              }
+            ],
+            "ReturnInNodesInfo": true
+          }
+        ],
+        "Permissions": [
+          {
+            "Id": "GROUP_ESSL_Admin",
+            "Role": "SiteManager"
+          },
+          {
+            "Id": "GROUP_Spisum",
+            "Role": "Contributor"
+          }
+        ],
+        "ReturnInNodesInfo": true
+      },
+      {
+        "Body": {
+          "Name": "LostDestroyed",
+          "NodeType": "cm:folder",
+          "Properties": {
+            "cm:title": "Ztracené-zničené",
+            "cm:description": "Contains Lost/Destroyed Files/Documents"
+          }
+        },
+        "Permissions": [
+          {
+            "Id": "GROUP_ESSL_Admin",
+            "Role": "SiteManager"
+          },
+          {
+            "Id": "GROUP_Spisum",
+            "Role": "Contributor"
+          }
+        ],
+        "ReturnInNodesInfo": true
+      },
+      {
+        "Body": {
+          "Name": "ToTakeOver",
+          "NodeType": "cm:folder",
+          "Properties": {
+            "cm:title": "K převzetí",
+            "cm:description": "Contains Files/Documents/Concepts to take over"
+          }
+        },
+        "Permissions": [
+          {
+            "Id": "GROUP_ESSL_Admin",
+            "Role": "SiteManager"
+          },
+          {
+            "Id": "GROUP_Spisum",
+            "Role": "Contributor"
+          }
+        ],
+        "ReturnInNodesInfo": true
+      },
+      {
+        "Body": {
+          "Name": "WaitingForTakeOver",
+          "NodeType": "cm:folder",
+          "Properties": {
+            "cm:title": "Čeká na převzetí",
+            "cm:description": "Contains Files/Documents/Concepts waiting for take-over"
+          }
+        },
+        "Permissions": [
+          {
+            "Id": "GROUP_ESSL_Admin",
+            "Role": "SiteManager"
+          },
+          {
+            "Id": "GROUP_Spisum",
+            "Role": "Contributor"
+          }
+        ],
+        "ReturnInNodesInfo": true
+      }
+    ],
+    "GroupStructure": true,
+    "Permissions": [
+      {
+        "Id": "GROUP_ESSL_Admin",
+        "Role": "SiteManager"
+      },
+      {
+        "Id": "GROUP_Spisum",
+        "Role": "SiteConsumer"
+      }
+    ]
+  },
+  {
+    "Body": {
+      "Description": "Dispatch",
+      "Id": "Dispatch",
+      "Title": "Výpravna",
+      "Visibility": "PRIVATE"
+    },
+    "Childs": [
+      {
+        "Body": {
+          "Name": "Created",
+          "NodeType": "cm:folder",
+          "Properties": {
+            "cm:title": "Vytvořena",
+            "cm:description": "Contains created shipments"
+          }
+        },
+        "Permissions": [
+          {
+            "Id": "GROUP_ESSL_Admin",
+            "Role": "SiteManager"
+          },
+          {
+            "Id": "GROUP_Spisum",
+            "Role": "Contributor"
+          }
+        ],
+        "ReturnInNodesInfo": true
+      },
+      {
+        "Body": {
+          "Name": "ToDispatch",
+          "NodeType": "cm:folder",
+          "Properties": {
+            "cm:title": "K vypravení",
+            "cm:description": "Contains shipments to dispatch"
+          }
+        },
+        "Permissions": [
+          {
+            "Id": "GROUP_ESSL_Admin",
+            "Role": "SiteManager"
+          },
+          {
+            "Id": "GROUP_Spisum",
+            "Role": "Contributor"
+          }
+        ],
+        "ReturnInNodesInfo": true
+      },
+      {
+        "Body": {
+          "Name": "Dispatched",
+          "NodeType": "cm:folder",
+          "Properties": {
+            "cm:title": "Vypravené",
+            "cm:description": "Contains dispatched shipments"
+          }
+        },
+        "Permissions": [
+          {
+            "Id": "GROUP_ESSL_Admin",
+            "Role": "SiteManager"
+          },
+          {
+            "Id": "GROUP_Spisum",
+            "Role": "Contributor"
+          }
+        ],
+        "ReturnInNodesInfo": true
+      },
+      {
+        "Body": {
+          "Name": "Returned",
+          "NodeType": "cm:folder",
+          "Properties": {
+            "cm:title": "Vrácené",
+            "cm:description": "Contains returned shipments"
+          }
+        },
+        "Permissions": [
+          {
+            "Id": "GROUP_ESSL_Admin",
+            "Role": "SiteManager"
+          },
+          {
+            "Id": "GROUP_Spisum",
+            "Role": "Contributor"
+          }
+        ],
+        "ReturnInNodesInfo": true
+      }
+    ],
+    "Permissions": [
+      {
+        "Id": "GROUP_Dispatch",
+        "Role": "SiteCollaborator"
+      },
+      {
+        "Id": "GROUP_ESSL_Admin",
+        "Role": "SiteManager"
+      },
+      {
+        "Id": "GROUP_Spisum",
+        "Role": "SiteConsumer"
+      }
+    ]
+  },
+  {
+    "Body": {
+      "Description": "Components",
+      "Id": "Components",
+      "Title": "Komponenty",
+      "Visibility": "PRIVATE"
+    },
+    "Permissions": [
+      {
+        "Id": "GROUP_ESSL_Admin",
+        "Role": "SiteManager"
+      },
+      {
+        "Id": "GROUP_Spisum",
+        "Role": "SiteContributor"
+      }
+    ]
+  },
+  {
+    "Body": {
+      "Description": "Logs",
+      "Id": "Logs",
+      "Title": "Logy",
+      "Visibility": "PRIVATE"
+    },
+    "Childs": [
+      {
+        "Body": {
+          "Name": "Imprint",
+          "NodeType": "cm:folder",
+          "Properties": {
+            "cm:title": "Denní otisk",
+            "cm:description": "Contains daily imprints"
+          }
+        },
+        "Permissions": [
+          {
+            "Id": "GROUP_ESSL_Admin",
+            "Role": "SiteManager"
+          }
+        ]
+      }
+    ],
+    "Permissions": [
+      {
+        "Id": "GROUP_ESSL_Admin",
+        "Role": "SiteManager"
+      }
+    ]
+  },
+  {
+    "Body": {
+      "Description": "Repository",
+      "Id": "Repository",
+      "Title": "Spisovna",
+      "Visibility": "PRIVATE"
+    },
+    "Childs": [
+      {
+        "Body": {
+          "Name": "Documents",
+          "NodeType": "cm:folder",
+          "Properties": {
+            "cm:title": "Dokumenty",
+            "cm:description": "Contains documents"
+          }
+        },
+        "Childs": [
+          {
+            "Body": {
+              "Name": "Archived",
+              "NodeType": "cm:folder",
+              "Properties": {
+                "cm:title": "Archivované",
+                "cm:description": "Contains archived documents"
+              }
+            },
+            "Permissions": [
+              {
+                "Id": "GROUP_ESSL_Admin",
+                "Role": "SiteManager"
+              },
+              {
+                "Id": "GROUP_Repository",
+                "Role": "SiteManager"
+              },
+              {
+                "Id": "GROUP_Spisum",
+                "Role": "SiteConsumer"
+              }
+            ],
+            "ReturnInNodesInfo": true
+          },
+          {
+            "Body": {
+              "Name": "Shredded",
+              "NodeType": "cm:folder",
+              "Properties": {
+                "cm:title": "Skartované",
+                "cm:description": "Contains shredded documents"
+              }
+            },
+            "Permissions": [
+              {
+                "Id": "GROUP_ESSL_Admin",
+                "Role": "SiteManager"
+              },
+              {
+                "Id": "GROUP_Repository",
+                "Role": "SiteManager"
+              },
+              {
+                "Id": "GROUP_Spisum",
+                "Role": "SiteConsumer"
+              }
+            ],
+            "ReturnInNodesInfo": true
+          },
+          {
+            "Body": {
+              "Name": "Rented",
+              "NodeType": "cm:folder",
+              "Properties": {
+                "cm:title": "Zapůjčené",
+                "cm:description": "Contains rented documents"
+              }
+            },
+            "Permissions": [
+              {
+                "Id": "GROUP_ESSL_Admin",
+                "Role": "SiteManager"
+              },
+              {
+                "Id": "GROUP_Repository",
+                "Role": "SiteManager"
+              },
+              {
+                "Id": "GROUP_Spisum",
+                "Role": "SiteConsumer"
+              }
+            ],
+            "ReturnInNodesInfo": true
+          },
+          {
+            "Body": {
+              "Name": "Stored",
+              "NodeType": "cm:folder",
+              "Properties": {
+                "cm:title": "Uložené",
+                "cm:description": "Contains stored documents"
+              }
+            },
+            "Permissions": [
+              {
+                "Id": "GROUP_ESSL_Admin",
+                "Role": "SiteManager"
+              },
+              {
+                "Id": "GROUP_Repository",
+                "Role": "SiteManager"
+              },
+              {
+                "Id": "GROUP_Spisum",
+                "Role": "SiteConsumer"
+              }
+            ],
+            "ReturnInNodesInfo": true
+          }
+        ],
+        "Permissions": [
+          {
+            "Id": "GROUP_ESSL_Admin",
+            "Role": "SiteManager"
+          },
+          {
+            "Id": "GROUP_Repository",
+            "Role": "SiteManager"
+          },
+          {
+            "Id": "GROUP_Spisum",
+            "Role": "SiteConsumer"
+          }
+        ],
+        "ReturnInNodesInfo": true
+      },
+      {
+        "Body": {
+          "Name": "Files",
+          "NodeType": "cm:folder",
+          "Properties": {
+            "cm:title": "Spisy",
+            "cm:description": "Contains files"
+          }
+        },
+        "Childs": [
+          {
+            "Body": {
+              "Name": "Archived",
+              "NodeType": "cm:folder",
+              "Properties": {
+                "cm:title": "Archivované",
+                "cm:description": "Contains archived files"
+              }
+            },
+            "Permissions": [
+              {
+                "Id": "GROUP_ESSL_Admin",
+                "Role": "SiteManager"
+              },
+              {
+                "Id": "GROUP_Repository",
+                "Role": "SiteManager"
+              },
+              {
+                "Id": "GROUP_Spisum",
+                "Role": "SiteConsumer"
+              }
+            ],
+            "ReturnInNodesInfo": true
+          },
+          {
+            "Body": {
+              "Name": "Shredded",
+              "NodeType": "cm:folder",
+              "Properties": {
+                "cm:title": "Skartované",
+                "cm:description": "Contains shredded files"
+              }
+            },
+            "Permissions": [
+              {
+                "Id": "GROUP_ESSL_Admin",
+                "Role": "SiteManager"
+              },
+              {
+                "Id": "GROUP_Repository",
+                "Role": "SiteManager"
+              },
+              {
+                "Id": "GROUP_Spisum",
+                "Role": "SiteConsumer"
+              }
+            ],
+            "ReturnInNodesInfo": true
+          },
+          {
+            "Body": {
+              "Name": "Documents",
+              "NodeType": "cm:folder",
+              "Properties": {
+                "cm:title": "Dokumenty",
+                "cm:description": "Contains documents in files"
+              }
+            },
+            "Permissions": [
+              {
+                "Id": "GROUP_ESSL_Admin",
+                "Role": "SiteManager"
+              },
+              {
+                "Id": "GROUP_Repository",
+                "Role": "SiteManager"
+              },
+              {
+                "Id": "GROUP_Spisum",
+                "Role": "SiteConsumer"
+              }
+            ],
+            "ReturnInNodesInfo": true
+          },
+          {
+            "Body": {
+              "Name": "Rented",
+              "NodeType": "cm:folder",
+              "Properties": {
+                "cm:title": "Zapůjčené",
+                "cm:description": "Contains rented files"
+              }
+            },
+            "Permissions": [
+              {
+                "Id": "GROUP_ESSL_Admin",
+                "Role": "SiteManager"
+              },
+              {
+                "Id": "GROUP_Repository",
+                "Role": "SiteManager"
+              },
+              {
+                "Id": "GROUP_Spisum",
+                "Role": "SiteConsumer"
+              }
+            ],
+            "ReturnInNodesInfo": true
+          },
+          {
+            "Body": {
+              "Name": "Stored",
+              "NodeType": "cm:folder",
+              "Properties": {
+                "cm:title": "Uložené",
+                "cm:description": "Contains stored files"
+              }
+            },
+            "Permissions": [
+              {
+                "Id": "GROUP_ESSL_Admin",
+                "Role": "SiteManager"
+              },
+              {
+                "Id": "GROUP_Repository",
+                "Role": "SiteManager"
+              },
+              {
+                "Id": "GROUP_Spisum",
+                "Role": "SiteConsumer"
+              }
+            ],
+            "ReturnInNodesInfo": true
+          }
+        ],
+        "Permissions": [
+          {
+            "Id": "GROUP_ESSL_Admin",
+            "Role": "SiteManager"
+          },
+          {
+            "Id": "GROUP_Repository",
+            "Role": "SiteManager"
+          },
+          {
+            "Id": "GROUP_Spisum",
+            "Role": "SiteConsumer"
+          }
+        ],
+        "ReturnInNodesInfo": true
+      },
+      {
+        "Body": {
+          "Name": "ShreddingProposal",
+          "NodeType": "cm:folder",
+          "Properties": {
+            "cm:title": "Skartační plán",
+            "cm:description": "Contains shreding proposals"
+          }
+        },
+        "Permissions": [
+          {
+            "Id": "GROUP_ESSL_Admin",
+            "Role": "SiteManager"
+          },
+          {
+            "Id": "GROUP_Repository",
+            "Role": "SiteManager"
+          },
+          {
+            "Id": "GROUP_Spisum",
+            "Role": "SiteConsumer"
+          }
+        ],
+        "ReturnInNodesInfo": true
+      }
+    ],
+    "Permissions": [
+      {
+        "Id": "GROUP_ESSL_Admin",
+        "Role": "SiteManager"
+      },
+      {
+        "Id": "GROUP_Repository",
+        "Role": "SiteManager"
+      },
+      {
+        "Id": "GROUP_Spisum",
+        "Role": "SiteConsumer"
+      }
+    ]
+  }
+]

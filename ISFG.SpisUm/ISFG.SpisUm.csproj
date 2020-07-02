@@ -1,0 +1,127 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
+    <AssemblyName>ISFG.SpisUm</AssemblyName>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>1701;1702;1591</NoWarn>
+    <DocumentationFile>ISFG.SpisUm.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>ISFG.SpisUm.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="obj\**" />
+    <Content Remove="obj\**" />
+    <EmbeddedResource Remove="obj\**" />
+    <None Remove="obj\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="ConfigurationFiles\ContentModels\modelSchema.xsd" />
+    <None Remove="ConfigurationFiles\ContentModels\ssl-model.xml" />
+    <None Remove="ConfigurationFiles\Scripts\PIDConceptGenerator.js" />
+    <None Remove="ConfigurationFiles\Scripts\PIDGenerator.js" />
+    <None Remove="ConfigurationFiles\Scripts\PIDShreddingProposalGenerator.js" />
+    <None Remove="ConfigurationFiles\Scripts\PIDUniqueChecker.js" />
+    <None Remove="ConfigurationFiles\Scripts\SSIDGenerator.js" />
+    <None Remove="ConfigurationFiles\Shipments\ShipmentCreate.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="ConfigurationFiles\ContentModels\modelSchema.xsd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ConfigurationFiles\ContentModels\ssl-model.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ConfigurationFiles\Scripts\PIDShreddingProposalGenerator.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ConfigurationFiles\Scripts\PIDConceptGenerator.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ConfigurationFiles\Scripts\PIDUniqueChecker.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ConfigurationFiles\Scripts\SSIDGenerator.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ConfigurationFiles\Shipments\ShipmentCreate.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation.AspNetCore" Version="8.6.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="4.1.1" />
+    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="3.7.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.9.10" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="RestSharp" Version="106.10.1" />
+    <PackageReference Include="Serilog.AspNetCore" Version="3.2.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ISFG.Alfresco.Api\ISFG.Alfresco.Api.csproj" />
+    <ProjectReference Include="..\ISFG.Common\ISFG.Common.csproj" />
+    <ProjectReference Include="..\ISFG.Databox.Api\ISFG.DataBox.Api.csproj" />
+    <ProjectReference Include="..\ISFG.Data\ISFG.Data.csproj" />
+    <ProjectReference Include="..\ISFG.Email.Api\ISFG.Email.Api.csproj" />
+    <ProjectReference Include="..\ISFG.Emails\ISFG.Emails.csproj" />
+    <ProjectReference Include="..\ISFG.Exceptions\ISFG.Exceptions.csproj" />
+    <ProjectReference Include="..\ISFG.Signer.Client\ISFG.Signer.Client.csproj" />
+    <ProjectReference Include="..\ISFG.SpisUm.ClientSide\ISFG.SpisUm.ClientSide.csproj" />
+    <ProjectReference Include="..\ISFG.Translations\ISFG.Translations.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="ConfigurationFiles\Scripts\PIDGenerator.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+
+  <ItemGroup>
+
+    <Content Update="ConfigurationFiles\CodeLists\CustomSettleMethod.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+
+    <Content Update="ConfigurationFiles\Custom\shreddingPlan.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+
+    <Content Update="ConfigurationFiles\Sites\Sites.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+
+    <Content Update="ConfigurationFiles\Sites\RM.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <None Update="ISFG.SpisUm.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+
+</Project>

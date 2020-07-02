@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="itext7" Version="7.1.11" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <None Update="sRGB_CS_profile.icm">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+        <None Update="FreeSans.ttf">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Inconsolata.ttf">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+    
+    <ItemGroup>
+      <ProjectReference Include="..\ISFG.Common\ISFG.Common.csproj" />
+    </ItemGroup>
+    
+</Project>

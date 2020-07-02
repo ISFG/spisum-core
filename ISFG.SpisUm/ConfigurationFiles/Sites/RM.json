@@ -1,0 +1,76 @@
+{
+  "Body": {
+    "Compliance": "STANDARD",
+    "Description": "Record Management",
+    "Title": "Record Management"
+  },
+  "Childs": [
+    {
+      "Body": {
+        "Name": "Archived",
+        "NodeType": "rma:recordCategory",
+        "Properties": {
+          "cm:title": "Archivované",
+          "cm:description": "Contains archived sip files"
+        }
+      },
+      "Childs": [
+        {
+          "Body": {
+            "Name": "Contents",
+            "NodeType": "rma:recordFolder",
+            "Properties": {
+              "cm:title": "Contents",
+              "cm:description": "Contains archived sip files"
+            }
+          }
+        }
+      ],
+      "ReturnInNodesInfo": true
+    },
+    {
+      "Body": {
+        "Name": "Shredded",
+        "NodeType": "rma:recordCategory",
+        "Properties": {
+          "cm:title": "Skartované",
+          "cm:description": "Contains shredded sip files"
+        }
+      },
+      "Childs": [
+        {
+          "Body": {
+            "Name": "Contents",
+            "NodeType": "rma:recordFolder",
+            "Properties": {
+              "cm:title": "Contents",
+              "cm:description": "Contains shredded sip files"
+            }
+          }
+        }
+      ],
+      "ReturnInNodesInfo": true
+    },
+    {
+      "Body": {
+        "Name": "ShreddingPlan",
+        "NodeType": "rma:recordCategory",
+        "Properties": {
+          "cm:title": "Skartační plán",
+          "cm:description": "Contains shredding plans"
+        }
+      },
+      "ReturnInNodesInfo": true
+    }
+  ],
+  "Permissions": [
+    {
+      "Id": "GROUP_ESSL_Admin",
+      "Role": "SiteManager"
+    },
+    {
+      "Id": "GROUP_Repository",
+      "Role": "SiteManager"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+[
+  {
+    "Id": "GROUP_ESSL_Admin",
+    "DisplayName": "Správce ESSL"
+  },
+  {
+    "Id": "GROUP_Job",
+    "DisplayName": "Pracovní pozice"
+  },
+  {
+    "Id": "GROUP_RM_Methodolog",
+    "DisplayName": "Metodik spisové služby"
+  },
+  {
+    "Id": "GROUP_RM_Manager",
+    "DisplayName": "Metodik spisové služby"
+  }
+]

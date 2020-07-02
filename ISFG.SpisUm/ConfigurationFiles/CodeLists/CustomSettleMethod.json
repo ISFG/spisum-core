@@ -1,0 +1,12 @@
+{
+  "Name": "rmc_CustomSettleMethod",
+  "Title": "Custom Settle Method",
+  "Values": [
+    {
+      "Name": "Nedefinované",
+      "Authorities": [
+        "GROUP_EVERYONE"
+      ]
+    }
+  ]
+}

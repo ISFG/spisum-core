@@ -1,0 +1,10 @@
+﻿<p>Dobrý den,</p>
+<p>v příloze Vám zasíláme soubory ve věci <b>[emailSubject]<b>.</p>
+<p>&nbsp;</p>
+<p>Naše ČJ: [CisloJednaci]</p>
+<p>Naše značka: [SpisovaZnacka]</p>
+<p>Vaše ČJ: [CjOdesilatel]</p>
+<p>Vaše značka: [tEvidencniCislo]</p>
+<p>&nbsp;</p>
+<p>S pozdravem,</p>
+<p>[VlastniKdo]</p>

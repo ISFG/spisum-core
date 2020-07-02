@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="AutoMapper" Version="9.0.0" />
+      <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="7.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ISFG.Alfresco.Api\ISFG.Alfresco.Api.csproj" />
+      <ProjectReference Include="..\ISFG.Databox.Api\ISFG.DataBox.Api.csproj" />
+      <ProjectReference Include="..\ISFG.Data\ISFG.Data.csproj" />
+      <ProjectReference Include="..\ISFG.Email.Api\ISFG.Email.Api.csproj" />
+      <ProjectReference Include="..\ISFG.Pdf\ISFG.Pdf.csproj" />
+      <ProjectReference Include="..\ISFG.Signer.Client\ISFG.Signer.Client.csproj" />
+      <ProjectReference Include="..\ISFG.Translations\ISFG.Translations.csproj" />
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="EntityFrameworkPaginateCore" Version="1.1.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.1.1" />
+    <PackageReference Include="Serilog.Sinks.PostgreSQL" Version="2.1.0" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Folder Include="Configurations" />
+    <Folder Include="Repositories\" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\ISFG.Common\ISFG.Common.csproj" />
+  </ItemGroup>
+
+</Project>

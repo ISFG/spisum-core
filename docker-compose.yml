@@ -1,0 +1,24 @@
+version: '3.4'
+
+services:
+  isfg.spisum:
+    image: spisum-core
+    build:
+      context: .
+      dockerfile: ISFG.SpisUm/Dockerfile
+    environment:
+      - ASPNETCORE_URLS=http://+:5000
+      - ASPNETCORE_LOG=Logs/log.txt
+    ports:
+      - "5000:5000"
+
+  isfg.spisum.jobs:
+    image: spisum-core-jobs
+    build:
+      context: .
+      dockerfile: ISFG.SpisUm.Jobs/Dockerfile
+    environment:
+      - ASPNETCORE_URLS=http://+:5001
+      - ASPNETCORE_LOG=Logs/log-jobs.txt
+    ports:
+      - "5001:5001"

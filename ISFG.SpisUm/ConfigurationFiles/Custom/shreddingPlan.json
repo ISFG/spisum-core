@@ -1,0 +1,122 @@
+[
+  {
+    "Id": "spisum_plan",
+    "Name": "Skartační plán Spisum",
+    "Items": [
+      {
+        "FileMark": "51",
+        "IsCaption": true,
+        "SubjectGroup": "Dokumenty vedoucích útvarů, které nelze zařadit do jiných věcných skupin:"
+      },
+      {
+        "FileMark": "51.1",
+        "ParentFileMark": "51",
+        "SubjectGroup": "Dokumenty starosty (primátora)",
+        "Period": 5,
+        "RetentionMark": "V"
+      },
+      {
+        "FileMark": "51.2",
+        "ParentFileMark": "51",
+        "SubjectGroup": "Dokumenty místostarosty (náměstků)",
+        "Period": 5,
+        "RetentionMark": "V"
+      },
+      {
+        "FileMark": "51.3",
+        "ParentFileMark": "51",
+        "SubjectGroup": "Dokumenty tajemníka",
+        "Period": 5,
+        "RetentionMark": "S"
+      },
+      {
+        "FileMark": "51.4",
+        "ParentFileMark": "51",
+        "SubjectGroup": "Dokumenty vedoucích odborů",
+        "Period": 5,
+        "RetentionMark": "S"
+      },
+      {
+        "FileMark": "52",
+        "IsCaption": true,
+        "SubjectGroup": "Spolupráce se státními orgány a jinými subjekty, které nelze zařadit do jiných věcných skupin"
+      },
+      {
+        "FileMark": "52.1",
+        "ParentFileMark": "52",
+        "SubjectGroup": "Součinnost se správními úřady",
+        "Period": 5,
+        "RetentionMark": "S"
+      },
+      {
+        "FileMark": "52.2",
+        "ParentFileMark": "52",
+        "SubjectGroup": "Součinnost se samosprávnými úřady",
+        "Period": 5,
+        "RetentionMark": "S"
+      },
+      {
+        "FileMark": "52.3",
+        "ParentFileMark": "52",
+        "SubjectGroup": "Členství ve Svazu měst a obcí ČR apod.",
+        "Period": 5,
+        "RetentionMark": "V"
+      },
+      {
+        "FileMark": "52.4",
+        "ParentFileMark": "52",
+        "SubjectGroup": "Členství ve správních radách a dozorčích radách",
+        "Period": 5,
+        "RetentionMark": "A"
+      },
+      {
+        "FileMark": "52.5",
+        "ParentFileMark": "52",
+        "SubjectGroup": "Mikroregiony, přeshraniční spolupráce",
+        "Period": 5,
+        "RetentionMark": "V"
+      },
+      {
+        "FileMark": "52.6",
+        "ParentFileMark": "52",
+        "SubjectGroup": "Kontakty se zastupitelskými úřady",
+        "Period": 5,
+        "RetentionMark": "V"
+      },
+      {
+        "FileMark": "52.7",
+        "IsCaption": true,
+        "SubjectGroup": "Spolupráce sorgány výkonné moci, orgány územních samosprávných celků a jinými orgány:"
+      },
+      {
+        "FileMark": "52.7.1",
+        "ParentFileMark": "52.7",
+        "SubjectGroup": "Součinnost sorgány výkonné moci a jinými orgány",
+        "Period": 5,
+        "RetentionMark": "S"
+      },
+      {
+        "FileMark": "52.7.2",
+        "ParentFileMark": "52.7",
+        "SubjectGroup": "Součinnost sorgány kraje",
+        "Period": 5,
+        "RetentionMark": "S"
+      },
+      {
+        "FileMark": "52.7.3",
+        "ParentFileMark": "52.7",
+        "SubjectGroup": "Spolupráce sorgány jiných obcí (sdružování, svazky obcí)",
+        "Period": 5,
+        "RetentionMark": "V"
+      },
+      {
+        "FileMark": "52.7.4",
+        "ParentFileMark": "52.7",
+        "SubjectGroup": "Spolupráce vrámci EU (mimo programy)",
+        "Period": 5,
+        "RetentionMark": "V",
+        "TriggerActionId": 11
+      }
+    ]
+  }
+]
