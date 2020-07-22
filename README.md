@@ -16,41 +16,15 @@ First you have to deploy project https://github.com/ISFG/alfresco-core, at least
 
 ## How to run application
 
-In file **ISFG.SpisUm/appsettings.json** change URL address to your URL address where you will run the application
+In file **ISFG.SpisUm/appsettings.json** change URL address to your URL address where you will run the application (not important, it's used by Swagger)
 
 ```json
 {
     "Api": {
         "Url": "https://hostname.domain/",
         ...
-    },    
-    "Database": {
-        "Connection": "Server=hostname.domain;Database=spisum;User Id=spisum;Password=spisum;Port=5432"
-    },
-    "DataBoxApi": {
-        "Url": "http://hostname.domain:7777"
-    },
-    "EmailApi": {
-        "Url": "http://hostname.domain:7778"
-    },
-    "Alfresco": {
-        "Url": "http://hostname.domain:8082"
     }
-}    
-```
-
-In file **ISFG.SpisUm.Jobs/appsettings.json** change URL address to your URL address where you will run the application
-
-```json
-{
-    "Alfresco": {
-        "Url": "http://hostname.domain:8080",
-        ...
-    },    
-    "Database": {
-        "Connection": "Server=hostname.domain;Database=spisum;User Id=spisum;Password=spisum;Port=5432"
-   }
-} 
+}
 ```
 
 For signing documents with use of 602 SW you have to set in both scripts following
