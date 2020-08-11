@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using FluentValidation;
 using ISFG.Exceptions.Exceptions;
+using ISFG.SpisUm.ClientSide.Models.Signer;
 
 namespace ISFG.SpisUm.ClientSide.Validators
 {

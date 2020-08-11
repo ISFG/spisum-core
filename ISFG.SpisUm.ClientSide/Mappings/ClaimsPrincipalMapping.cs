@@ -53,6 +53,10 @@ namespace ISFG.SpisUm.ClientSide.Mappings
         private static string GetGroupFromHeader(HttpContext httpContext)
         {
             string group = httpContext?.Request?.Headers[SpisumNames.Headers.Group];
+            
+            if (string.IsNullOrWhiteSpace(group))
+                group = httpContext?.Request?.Query["requestGroup"];
+            
             return group ?? string.Empty;
         }
 

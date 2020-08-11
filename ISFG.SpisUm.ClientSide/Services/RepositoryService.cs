@@ -40,14 +40,14 @@ namespace ISFG.SpisUm.ClientSide.Services
             await _alfrescoHttpClient.CompleteRecord(nodeId);
         }
 
-        public async Task<RecordEntry> CreateDocumentRecord(string folderName, string nodeId)
+        public async Task<RecordEntry> CreateDocumentRecord(string filePlan, string fileMark, string nodeId)
         {
-            return await CreateRecord(folderName, nodeId, SpisumNames.NodeTypes.DocumentRM, SpisumNames.Associations.DocumentInRepository);
+            return await CreateRecord(filePlan, fileMark, nodeId, SpisumNames.NodeTypes.DocumentRM, SpisumNames.Associations.DocumentInRepository);
         }
 
-        public async Task<RecordEntry> CreateFileRecord(string folderName, string nodeId)
+        public async Task<RecordEntry> CreateFileRecord(string filePlan, string fileMark, string nodeId)
         {
-            return await CreateRecord(folderName, nodeId, SpisumNames.NodeTypes.FileRM, SpisumNames.Associations.FileInRepository);
+            return await CreateRecord(filePlan, fileMark, nodeId, SpisumNames.NodeTypes.FileRM, SpisumNames.Associations.FileInRepository);
         }
 
         public async Task CutOff(string nodeId)
@@ -59,17 +59,24 @@ namespace ISFG.SpisUm.ClientSide.Services
             });
         }
 
-        public async Task<NodeEntry> ChangeRetention(string rmNodeId, string retentionMark, string retentionPeriod)
+        public async Task<NodeEntry> ChangeRetention(string rmNodeId, string retentionMark, int retentionPeriod, DateTime? settleDate = null, string fileMark = null)
         {
             try { await UndoCutOff(rmNodeId); } catch { }
 
             await UncompleteRecord(rmNodeId);
 
-            var node = await _alfrescoHttpClient.UpdateNode(rmNodeId, new NodeBodyUpdate()
+            var body = new NodeBodyUpdate()
                 .AddProperty(SpisumNames.Properties.RetentionMark, retentionMark)
                 .AddProperty(SpisumNames.Properties.RetentionMode, $"{retentionMark}/{retentionPeriod}")
-                .AddProperty(SpisumNames.Properties.RetentionPeriod, retentionPeriod)
-                );
+                .AddProperty(SpisumNames.Properties.RetentionPeriod, retentionPeriod);
+
+            if (settleDate != null)
+                body.AddProperty(SpisumNames.Properties.RetentionPeriod, new DateTime(settleDate.Value.Year + 1 + retentionPeriod, 1, 1).ToAlfrescoDateTimeString());
+
+            if (fileMark != null)
+                body.AddProperty(SpisumNames.Properties.FileMark, fileMark);
+
+            var node = await _alfrescoHttpClient.UpdateNode(rmNodeId, body);                
 
             await CompleteRecord(rmNodeId);
 
@@ -77,7 +84,6 @@ namespace ISFG.SpisUm.ClientSide.Services
 
             return node;
         }
-
         public async Task UncompleteRecord(string nodeId)
         {
             await _alfrescoHttpClient.ExecutionQueue(new ExecutionQueue
@@ -116,9 +122,9 @@ namespace ISFG.SpisUm.ClientSide.Services
 
         #region Private Methods
 
-        private async Task<RecordEntry> CreateRecord(string folderName, string nodeId, string nodeType, string assocType)
+        private async Task<RecordEntry> CreateRecord(string filePlan, string fileMark, string nodeId, string nodeType, string assocType)
         {
-            var folderInfo = await GetRMFolder(folderName);
+            var folderInfo = await GetRMFolder(filePlan, fileMark);
             var nodeInfo = await _alfrescoHttpClient.GetNodeInfo(nodeId);
 
             var properties = nodeInfo.Entry.Properties.As<JObject>().ToDictionary();
@@ -130,19 +136,18 @@ namespace ISFG.SpisUm.ClientSide.Services
 
             var shreddingDate = new DateTime(settleDate.Year + 1 + retentionPeriod, 1, 1);
 
-            await _alfrescoHttpClient.UpdateNode(nodeId, new NodeBodyUpdate()
-                .AddProperty(SpisumNames.Properties.ShreddingYear, shreddingDate.Year.ToString()));
-
             var body = new RMNodeBodyCreate
             {
                 Name = nodeInfo?.Entry?.Name,
                 NodeType = nodeType,
                 Properties = new Dictionary<string, string>
                 {
-                    { SpisumNames.Properties.Ref, nodeId },
-                    { SpisumNames.Properties.ShreddingYear, shreddingDate.Year.ToString() }
+                    { SpisumNames.Properties.Ref, nodeId }
                 }
             };
+
+            if (properties.ContainsKey(SpisumNames.Properties.Pid) && properties.ContainsKey(SpisumNames.Properties.PidRef))
+                properties.Remove(SpisumNames.Properties.PidRef);
 
             properties.ForEach(x =>
             {
@@ -194,10 +199,10 @@ namespace ISFG.SpisUm.ClientSide.Services
             return node;
         }
 
-        private async Task<NodeEntry> GetRMFolder(string folderName)
+        private async Task<NodeEntry> GetRMFolder(string fileId, string fileMark)
         {
             return await _alfrescoHttpClient.GetNodeInfo(AlfrescoNames.Aliases.Root, ImmutableList<Parameter>.Empty
-                .Add(new Parameter(AlfrescoNames.Headers.RelativePath, SpisumNames.Paths.RMShreddingPlanFolderContents(folderName), ParameterType.QueryString)));
+                .Add(new Parameter(AlfrescoNames.Headers.RelativePath, SpisumNames.Paths.RMShreddingPlanFolderContents(fileId, fileMark), ParameterType.QueryString)));
         }
 
         #endregion

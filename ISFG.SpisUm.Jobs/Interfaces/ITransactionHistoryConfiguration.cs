@@ -1,10 +1,12 @@
-﻿namespace ISFG.SpisUm.Jobs.Interfaces
+﻿using ISFG.SpisUm.Jobs.Configuration;
+
+namespace ISFG.SpisUm.Jobs.Interfaces
 {
     public interface ITransactionHistoryConfiguration
     {
         #region Properties
 
-        string CronExpression { get; }
+        ScheduleConfiguration Schedule { get; }
         string Name { get; }
         string Originator { get; }
         string Address { get; }

@@ -35,7 +35,9 @@ namespace ISFG.SpisUm.ClientSide.Models
         /// </summary>
         [Required]
         public string Name { get; set; }
-
+        
+        
+        
         #endregion
     }
 }

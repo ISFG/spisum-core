@@ -28,15 +28,10 @@ namespace ISFG.SpisUm.ClientSide.Models.Shipments
         public string AddressCity { get; set; }
         public string AddressZip { get; set; }
         public string AddressState { get; set; }
-
         [Required]
         public string[] PostType { get; set; }
-
         public string PostTypeOther { get; set; }
-
-        [Required]
         public string PostItemType { get; set; }
-
         public string PostItemTypeOther { get; set; }
         public double? PostItemWeight { get; set; }
         public double? PostItemPrice { get; set; }

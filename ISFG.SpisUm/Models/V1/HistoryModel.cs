@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ISFG.Alfresco.Api.Models.CoreApi.CoreApi;
-using ISFG.SpisUm.ClientSide.Models;
+using ISFG.SpisUm.ClientSide.Models.TransactionHistory;
 
 namespace ISFG.SpisUm.Models.V1
 {

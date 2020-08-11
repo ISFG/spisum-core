@@ -6,8 +6,11 @@ using System.Threading.Tasks;
 using ISFG.Alfresco.Api.Interfaces;
 using ISFG.Alfresco.Api.Models;
 using ISFG.Common.Exceptions;
+using ISFG.Common.Wcf.Configurations;
 using ISFG.Pdf.Interfaces;
+using ISFG.Signer.Client.Generated.Signer;
 using ISFG.Signer.Client.Interfaces;
+using ISFG.Signer.Client.Services;
 using ISFG.SpisUm.Jobs.Interfaces;
 using ISFG.SpisUm.Jobs.Models;
 using ISFG.SpisUm.Jobs.Services;
@@ -33,14 +36,13 @@ namespace ISFG.SpisUm.Jobs.Jobs
 
         public AuditLogThumbprintJob(
             IScheduleConfig<AuditLogThumbprintJob> config,
-            ISignerClient signerClient, 
             ITransformTransactionHistory transformTransactionHistory, 
             IPdfService pdfService, 
             IAlfrescoHttpClient alfrescoHttpClient,
             ISignerConfiguration signerConfiguration,
             ITransactionHistoryConfiguration transactionHistoryConfiguration) : base(config.CronExpression, config.TimeZoneInfo)
         {
-            _signerClient = signerClient;
+            _signerClient = new SignerBaseClient(new NoAuthenticationChannelConfig<TSPWebServiceSoap>(signerConfiguration.Base.Uri));
             _transformTransactionHistory = transformTransactionHistory;
             _pdfService = pdfService;
             _alfrescoHttpClient = alfrescoHttpClient;
@@ -73,7 +75,7 @@ namespace ISFG.SpisUm.Jobs.Jobs
             }
             catch (Exception ex) when (ex is HttpClientException httpClientException && httpClientException.HttpStatusCode == HttpStatusCode.Conflict)
             {
-                Log.Warning($"Fingerprint for {transactionHistoryDate:dd.MM.yyyy} already exists.");
+                Log.Warning($"Daily fingerprint for {transactionHistoryDate:dd.MM.yyyy} already exists.");
             }
             catch (Exception ex)
             {

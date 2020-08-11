@@ -88,6 +88,7 @@ namespace ISFG.SpisUm.Controllers.App.V1
             return new Dictionary<string, object>
             {
                 { "Autor", properties.TryGetValueFromProperties<string>(SpisumNames.Properties.Author) },
+                { "BezpecnostiPrvkyOvereno", properties.TryGetValueFromProperties<string>(SpisumNames.Properties.SafetyElementsCheck) },
                 { "CasOvereni", properties.TryGetValueFromProperties<string>(SpisumNames.Properties.VerificationTime) },
                 { "CasPouziti", properties.TryGetValueFromProperties<string>(SpisumNames.Properties.UsedTime) },
                 { "CisloSeznamuCRL", properties.TryGetValueFromProperties<string>(SpisumNames.Properties.CrlNumber) },
@@ -173,6 +174,7 @@ namespace ISFG.SpisUm.Controllers.App.V1
                 { "UkladaciJednotka", properties.TryGetValueFromProperties<string>(SpisumNames.Properties.Location) },
                 { "VlastniKdo", $"{properties.TryGetValueFromProperties<string>(SpisumNames.Properties.Group)};{propertiesDictionary.GetNestedValueOrDefault(AlfrescoNames.ContentModel.Owner, "id")}" },
                 { "Vypujcitel", properties.TryGetValueFromProperties<string>(SpisumNames.Properties.Borrower) },
+                { "NazevSpisovny", properties.TryGetValueFromProperties<string>(SpisumNames.Properties.RepositoryName) },
                 { "VyraditDo", properties.TryGetValueFromProperties<string>(SpisumNames.Properties.DiscardTo) },
                 { "VyriditDo", properties.TryGetValueFromProperties<string>(SpisumNames.Properties.SettleToDate) },
                 { "VysledekSkartacnihoRizeni", properties.TryGetValueFromProperties<string>(SpisumNames.Properties.ShreddingResolution) },

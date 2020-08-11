@@ -21,7 +21,9 @@
     </ItemGroup>
     
     <ItemGroup>
+      <ProjectReference Include="..\ISFG.Alfresco.Api\ISFG.Alfresco.Api.csproj" />
       <ProjectReference Include="..\ISFG.Common\ISFG.Common.csproj" />
+      <ProjectReference Include="..\ISFG.Signer.Client\ISFG.Signer.Client.csproj" />
     </ItemGroup>
     
 </Project>

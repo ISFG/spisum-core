@@ -66,12 +66,27 @@ namespace ISFG.SpisUm.InitialScripts
 
                     if (validationResult.IsOK)
                     {
-                        // Company Home
-                        var repositoryRootFolder = await _alfrescoHttpClient.GetNodeInfo(AlfrescoNames.Aliases.Root);
-                        
                         var modelsNode = await _alfrescoHttpClient.GetNodeInfo(AlfrescoNames.Aliases.Root, ImmutableList<Parameter>.Empty
                             .Add(new Parameter(AlfrescoNames.Headers.RelativePath, $"{DataDictionaryConfiguration.DataDictionary}/{DataDictionaryConfiguration.Models}", ParameterType.QueryString)));
+
+                        try
+                        {
+                            var existingContentModel = await _alfrescoHttpClient.GetNodeInfo(AlfrescoNames.Aliases.Root, ImmutableList<Parameter>.Empty
+                            .Add(new Parameter(AlfrescoNames.Headers.RelativePath, $"{DataDictionaryConfiguration.DataDictionary}/{DataDictionaryConfiguration.Models}/ssl-model.xml", ParameterType.QueryString)));
                         
+                            if (existingContentModel != null)
+                            {
+                                var content = await _alfrescoHttpClient.NodeContent(existingContentModel?.Entry?.Id);
+
+                                if (FileUtils.IsFileEquals(content?.File, file.FilePath))
+                                    return;
+                            }
+                        }
+                        catch
+                        {
+                            // Do nothing
+                        }
+
                         FormDataParam fileParams;
                         using (var memstream = new MemoryStream())
                         {

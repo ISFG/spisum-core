@@ -77,7 +77,7 @@ namespace ISFG.Alfresco.Api.Services
                 if (valueDict1 is Dictionary<string, object> valueDict1Nested && valueDict2 is Dictionary<string, object> valueDict2Nested)
                     difference.AddRange(CompareProperties(valueDict1Nested, valueDict2Nested, key));
                 else
-                if (!valueDict1.Equals(valueDict2))
+                if ((!valueDict1?.ToString().Equals(valueDict2?.ToString())) ?? false) 
                     difference.Add(new ObjectDifference(Operations.Edit, path != null ? $"{path}.{key}" : key, valueDict2, valueDict1)); 
             }
             

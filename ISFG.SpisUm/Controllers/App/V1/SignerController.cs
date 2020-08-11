@@ -6,9 +6,10 @@ using ISFG.Common.Extensions;
 using ISFG.Common.Interfaces;
 using ISFG.Exceptions.Exceptions;
 using ISFG.SpisUm.Attributes;
-using ISFG.SpisUm.ClientSide;
 using ISFG.SpisUm.ClientSide.Interfaces;
+using ISFG.SpisUm.ClientSide.Models;
 using ISFG.SpisUm.ClientSide.Models.Nodes;
+using ISFG.SpisUm.ClientSide.Models.Signer;
 using ISFG.SpisUm.ClientSide.Validators;
 using ISFG.SpisUm.Endpoints;
 using ISFG.SpisUm.Interfaces;
@@ -25,7 +26,6 @@ namespace ISFG.SpisUm.Controllers.App.V1
     {
         #region Fields
 
-        private const string SignerStatus = "signerStatus_";
         private readonly IAlfrescoHttpClient _alfrescoHttpClient;
         private readonly IApiConfiguration _apiConfiguration;
         private readonly ISignerService _signerService;
@@ -68,21 +68,17 @@ namespace ISFG.SpisUm.Controllers.App.V1
         /// Check status of component
         /// </summary>
         [HttpGet("status")]
-        public async Task<List<SignerStatus>> Status([FromQuery] SignerGetStatus signerStatus)
+        public Task<List<SignerStatus>> Status([FromQuery] SignerGetStatus signerStatus)
         {
-            var componentValidator = new ComponentValidator(_alfrescoHttpClient);
-            await signerStatus.ComponentId.ForEachAsync(async x =>
+            signerStatus.ComponentId.ForEach(x =>
             {
-                var component = x.Split('_');
-                if (component.Length != 2)
+                if (x.Split('_').Length != 2)
                     throw new BadRequestException($"Component {x} is not in form 'guid_componentId'");
-                    
-                //await componentValidator.ValidateAsync(new DocumentProperties(component[1]));
             });
             
-            return (from component in signerStatus.ComponentId 
-                where _simpleMemoryCache.IsExist($"{SignerStatus}{component}") 
-                select new SignerStatus { Id = component.Split('_')[0] ,Component = component.Split('_')[1], Status = _simpleMemoryCache.Get<string>($"{SignerStatus}{component}")}).ToList();
+            return Task.FromResult((from component in signerStatus.ComponentId 
+                where _simpleMemoryCache.IsExist($"{MemoryCacheNames.SignerStatus}{component}") 
+                select new SignerStatus { Id = component.Split('_')[0] ,Component = component.Split('_')[1], Status = _simpleMemoryCache.Get<string>($"{MemoryCacheNames.SignerStatus}{component}")}).ToList());
         }
 
         #endregion

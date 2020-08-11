@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -561,14 +561,18 @@ namespace ISFG.SpisUm.ClientSide.Services
             };
 
             var nodeParent = (await _nodesService.GetParentsByAssociation(shipmentId, new List<string> { SpisumNames.Associations.ShipmentsToDispatch })).FirstOrDefault();
-            var parentInfo = await _alfrescoHttpClient.GetNodeInfo(nodeParent?.Entry?.Id);
+            var parentInfo = await _alfrescoHttpClient.GetNodeInfo(nodeParent?.Entry?.Id, ImmutableList<Parameter>.Empty
+                .Add(new Parameter(AlfrescoNames.Headers.Include, $"{AlfrescoNames.Includes.IsLocked}", ParameterType.QueryString)));
+
+            if (parentInfo?.Entry?.IsLocked == true)
+                await _nodesService.NodeUnlockAsAdmin(parentInfo?.Entry?.Id);
 
             await _alfrescoHttpClient.UpdateNode(shipmentId, updateBody
                 .AddProperty(SpisumNames.Properties.PostItemId, postItemId)
                 .AddProperty(SpisumNames.Properties.PostItemNumber, postItemNumber)
                 .AddProperty(SpisumNames.Properties.InternalState, SpisumNames.InternalState.Dispatched)
                 .AddProperty(SpisumNames.Properties.DispatchedDate, DateTime.UtcNow.ToAlfrescoDateTimeString())
-                .AddProperty(SpisumNames.Properties.State, SpisumNames.State.Dispatched));
+                .AddProperty(SpisumNames.Properties.ShipmentPostState, SpisumNames.ShipmentPostState.Vypraveno));
 
             await _nodesService.DeleteSecondaryChildrenAsAdmin(nodeParent?.Entry?.Id, shipmentId, ImmutableList<Parameter>.Empty
                             .Add(new Parameter(AlfrescoNames.Headers.Where, $"(assocType='{SpisumNames.Associations.ShipmentsToDispatch}')", ParameterType.QueryString)));
@@ -586,6 +590,9 @@ namespace ISFG.SpisUm.ClientSide.Services
             });
 
             await AddDispatchedPermissions(parentInfo, shipmentId);
+
+            if (parentInfo?.Entry?.IsLocked == true)
+                await _nodesService.NodeLockAsAdmin(parentInfo?.Entry?.Id);
 
             try
             {
@@ -655,7 +662,11 @@ namespace ISFG.SpisUm.ClientSide.Services
                     };
 
                     var nodeParent = (await _nodesService.GetParentsByAssociation(shipmentId, new List<string> { SpisumNames.Associations.ShipmentsToDispatch })).FirstOrDefault();
-                    var parentInfo = await _alfrescoHttpClient.GetNodeInfo(nodeParent?.Entry?.Id);
+                    var parentInfo = await _alfrescoHttpClient.GetNodeInfo(nodeParent?.Entry?.Id, ImmutableList<Parameter>.Empty
+                        .Add(new Parameter(AlfrescoNames.Headers.Include, $"{AlfrescoNames.Includes.IsLocked}", ParameterType.QueryString)));
+
+                    if (parentInfo?.Entry?.IsLocked == true)
+                        await _nodesService.NodeUnlockAsAdmin(parentInfo?.Entry?.Id);
 
                     await _alfrescoHttpClient.UpdateNode(shipmentId, updateBody
                         .AddProperty(SpisumNames.Properties.InternalState, SpisumNames.InternalState.Delivered)
@@ -707,6 +718,9 @@ namespace ISFG.SpisUm.ClientSide.Services
 
                     await AddDispatchedPermissions(nodeInfo, shipmentId);
 
+                    if (parentInfo?.Entry?.IsLocked == true)
+                        await _nodesService.NodeLockAsAdmin(parentInfo?.Entry?.Id);
+
                     try
                     {
                         var shipmentPid = shipmentInfo?.GetPid();
@@ -751,7 +765,7 @@ namespace ISFG.SpisUm.ClientSide.Services
                 try
                 {
                     var shipmentInfo = await _alfrescoHttpClient.GetNodeInfo(shipmentId, ImmutableList<Parameter>.Empty
-                              .Add(new Parameter(AlfrescoNames.Headers.Include, $"{AlfrescoNames.Includes.Path},{ AlfrescoNames.Includes.Permissions }", ParameterType.QueryString)));
+                              .Add(new Parameter(AlfrescoNames.Headers.Include, $"{AlfrescoNames.Includes.Path},{AlfrescoNames.Includes.Permissions}", ParameterType.QueryString)));
 
                     if (shipmentInfo?.Entry?.Path?.Name != AlfrescoNames.Prefixes.Path + SpisumNames.Paths.DispatchReturned)
                     {
@@ -846,7 +860,7 @@ namespace ISFG.SpisUm.ClientSide.Services
                     #region Validation
 
                     var shipmentInfo = await _alfrescoHttpClient.GetNodeInfo(shipmentId, ImmutableList<Parameter>.Empty
-                                  .Add(new Parameter(AlfrescoNames.Headers.Include, $"{AlfrescoNames.Includes.Path},{ AlfrescoNames.Includes.Permissions }", ParameterType.QueryString)));
+                                  .Add(new Parameter(AlfrescoNames.Headers.Include, $"{AlfrescoNames.Includes.Path},{AlfrescoNames.Includes.Permissions},{AlfrescoNames.Includes.IsLocked}", ParameterType.QueryString)));
 
                     if (shipmentInfo?.Entry?.Path?.Name != AlfrescoNames.Prefixes.Path + SpisumNames.Paths.DispatchToDispatch)
                     {
@@ -854,9 +868,11 @@ namespace ISFG.SpisUm.ClientSide.Services
                         return;
                     }
 
-                    var nodeParents = await _nodesService.GetParentsByAssociation(shipmentId, new List<string> { SpisumNames.Associations.ShipmentsToDispatch });
+                    var nodeParents = (await _nodesService.GetParentsByAssociation(shipmentId, new List<string> { SpisumNames.Associations.ShipmentsToDispatch },
+                        ImmutableList<Parameter>.Empty
+                                  .Add(new Parameter(AlfrescoNames.Headers.Include, $"{AlfrescoNames.Includes.IsLocked}", ParameterType.QueryString))))?.FirstOrDefault();
 
-                    if (nodeParents == null || nodeParents?.Count == 0)
+                    if (nodeParents == null)
                     {
                         unprocessedIds.Add(shipmentId);
                         return;
@@ -864,36 +880,41 @@ namespace ISFG.SpisUm.ClientSide.Services
 
                     #endregion
 
+                    if (nodeParents?.Entry?.IsLocked == true)
+                        await _nodesService.NodeUnlockAsAdmin(nodeParents?.Entry?.Id);
+
                     var locallySet = shipmentInfo?.Entry?.Permissions?.LocallySet;
                     var updateBody = new NodeBodyUpdateFixed
                     {
                         Permissions = { LocallySet = locallySet != null && locallySet.Any() ? locallySet.ToList() : new List<PermissionElement>() }
                     };
 
-                    var documentInfo = await _alfrescoHttpClient.GetNodeInfo(nodeParents?.FirstOrDefault()?.Entry?.Id);
-                    
+                    var documentInfo = await _alfrescoHttpClient.GetNodeInfo(nodeParents.Entry?.Id);
+
+                    if (shipmentInfo?.Entry?.IsLocked == true)
+                        await _alfrescoHttpClient.NodeUnlock(shipmentInfo?.Entry?.Id);
+
                     var shipmentAfterUpdate = await _alfrescoHttpClient.UpdateNode(shipmentId, updateBody
                          .AddProperty(SpisumNames.Properties.InternalState, SpisumNames.InternalState.Returned)
-                         .AddProperty(SpisumNames.Properties.ToDispatchDate, null)
                          .AddProperty(SpisumNames.Properties.ReasonForReturn, reason)
                          .AddProperty(SpisumNames.Properties.ReturnedDate, DateTime.UtcNow.ToAlfrescoDateTimeString())
                     );
 
                     await CreateShipmentPermission(documentInfo, shipmentId);
 
-                    await nodeParents.ForEachAsync(async x =>
-                    {
-                        await _nodesService.DeleteSecondaryChildrenAsAdmin(x?.Entry?.Id, shipmentId, ImmutableList<Parameter>.Empty
+                    await _nodesService.DeleteSecondaryChildrenAsAdmin(nodeParents?.Entry?.Id, shipmentId, ImmutableList<Parameter>.Empty
                             .Add(new Parameter(AlfrescoNames.Headers.Where, $"(assocType='{SpisumNames.Associations.ShipmentsToDispatch}')", ParameterType.QueryString)));
 
-                        await _nodesService.CreateSecondaryChildrenAsAdmin(x?.Entry?.Id, new ChildAssociationBody
-                        {
-                            AssocType = SpisumNames.Associations.ShipmentsToReturn,
-                            ChildId = shipmentId
-                        });
+                    await _nodesService.CreateSecondaryChildrenAsAdmin(nodeParents?.Entry?.Id, new ChildAssociationBody
+                    {
+                        AssocType = SpisumNames.Associations.ShipmentsToReturn,
+                        ChildId = shipmentId
                     });
 
                     await _nodesService.MoveByPath(shipmentInfo?.Entry?.Id, SpisumNames.Paths.DispatchReturned);
+
+                    if (nodeParents?.Entry?.IsLocked == true)
+                        await _nodesService.NodeLockAsAdmin(nodeParents?.Entry?.Id);
 
                     try
                     {
@@ -901,11 +922,11 @@ namespace ISFG.SpisUm.ClientSide.Services
 
                         // Log for shipment
                         await _auditLogService.Record(shipmentAfterUpdate?.Entry?.Id, shipmentAfterUpdate?.Entry?.NodeType, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.VyjmutiZVypraveni,
-                            TransactinoHistoryMessages.ShipmentReturn);
+                            string.Format(TransactinoHistoryMessages.ShipmentReturn, reason));
 
                         // Log for document
                         await _auditLogService.Record(documentInfo?.Entry?.Id, shipmentAfterUpdate?.Entry?.NodeType, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.VyjmutiZVypraveni,
-                            TransactinoHistoryMessages.ShipmentReturn);
+                            string.Format(TransactinoHistoryMessages.ShipmentReturn, reason));
 
                         // Log for file
                         if (documentInfo?.Entry?.NodeType == SpisumNames.NodeTypes.Document)
@@ -913,7 +934,7 @@ namespace ISFG.SpisUm.ClientSide.Services
                             var fileId = await _documentService.GetDocumentFileId(documentInfo?.Entry?.Id);
                             if (fileId != null)
                                 await _auditLogService.Record(fileId, shipmentAfterUpdate?.Entry?.NodeType, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.VyjmutiZVypraveni,
-                                    TransactinoHistoryMessages.ShipmentReturn);
+                                    string.Format(TransactinoHistoryMessages.ShipmentReturn, reason));
                         }
                     }
                     catch (Exception ex)
@@ -1013,27 +1034,30 @@ namespace ISFG.SpisUm.ClientSide.Services
                         shipmentBeforeUpdate?.Entry?.Properties?.As<JObject>().ToDictionary(),
                         shipmentAfterUpdate?.Entry?.Properties?.As<JObject>().ToDictionary());
 
-                    try
+                    if (difference.Count > 0)
                     {
-                        var componentsJson = difference.FirstOrDefault(x => x.Key == SpisumNames.Properties.ComponentVersionJSON);
-                        if (componentsJson != null)
-                            difference.Remove(componentsJson);
+                        try
+                        {
+                            var componentsJson = difference.FirstOrDefault(x => x.Key == SpisumNames.Properties.ComponentVersionJSON);
+                            if (componentsJson != null)
+                                difference.Remove(componentsJson);
+                        }
+                        catch { }
+
+                        string message = TransactinoHistoryMessages.GetMessagePropertiesChange(TransactinoHistoryMessages.ShipmentDataBoxUpdate, difference);
+
+                        // Log for shipment
+                        await _auditLogService.Record(shipmentId, SpisumNames.NodeTypes.ShipmentDatabox, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
+
+                        // Log for document
+                        await _auditLogService.Record(parentDocument?.Entry?.Id, SpisumNames.NodeTypes.ShipmentDatabox, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
+
+                        var fileId = await _documentService.GetDocumentFileId(parentDocument?.Entry?.Id);
+
+                        if (fileId != null)
+                            // Log for file
+                            await _auditLogService.Record(fileId, SpisumNames.NodeTypes.ShipmentDatabox, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
                     }
-                    catch { }
-
-                    string message = TransactinoHistoryMessages.GetMessagePropertiesChange(TransactinoHistoryMessages.ShipmentDataBoxUpdate, difference);
-
-                    // Log for shipment
-                    await _auditLogService.Record(shipmentId, SpisumNames.NodeTypes.ShipmentDatabox, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
-
-                    // Log for document
-                    await _auditLogService.Record(parentDocument?.Entry?.Id, SpisumNames.NodeTypes.ShipmentDatabox, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
-
-                    var fileId = await _documentService.GetDocumentFileId(parentDocument?.Entry?.Id);
-
-                    if (fileId != null)
-                        // Log for file
-                        await _auditLogService.Record(fileId, SpisumNames.NodeTypes.ShipmentDatabox, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
                 }
                 catch (Exception ex)
                 {
@@ -1106,28 +1130,30 @@ namespace ISFG.SpisUm.ClientSide.Services
                         shipmentBeforeUpdate?.Entry?.Properties?.As<JObject>().ToDictionary(),
                         shipmentAfterUpdate?.Entry?.Properties?.As<JObject>().ToDictionary());
 
-
-                    try
+                    if (difference.Count > 0)
                     {
-                        var componentsJson = difference.FirstOrDefault(x => x.Key == SpisumNames.Properties.ComponentVersionJSON);
-                        if (componentsJson != null)
-                            difference.Remove(componentsJson);
+                        try
+                        {
+                            var componentsJson = difference.FirstOrDefault(x => x.Key == SpisumNames.Properties.ComponentVersionJSON);
+                            if (componentsJson != null)
+                                difference.Remove(componentsJson);
+                        }
+                        catch { }
+
+                        string message = TransactinoHistoryMessages.GetMessagePropertiesChange(TransactinoHistoryMessages.ShipmentEmailUpdate, difference);
+
+                        // Log for shipment
+                        await _auditLogService.Record(shipmentId, SpisumNames.NodeTypes.ShipmentEmail, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
+
+                        // Log for document
+                        await _auditLogService.Record(parentDocument?.Entry?.Id, SpisumNames.NodeTypes.ShipmentEmail, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
+
+                        var fileId = await _documentService.GetDocumentFileId(parentDocument?.Entry?.Id);
+
+                        if (fileId != null)
+                            // Log for file
+                            await _auditLogService.Record(fileId, SpisumNames.NodeTypes.ShipmentEmail, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
                     }
-                    catch { }
-
-                    string message = TransactinoHistoryMessages.GetMessagePropertiesChange(TransactinoHistoryMessages.ShipmentEmailUpdate, difference);
-
-                    // Log for shipment
-                    await _auditLogService.Record(shipmentId, SpisumNames.NodeTypes.ShipmentEmail, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
-
-                    // Log for document
-                    await _auditLogService.Record(parentDocument?.Entry?.Id, SpisumNames.NodeTypes.ShipmentEmail, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
-
-                    var fileId = await _documentService.GetDocumentFileId(parentDocument?.Entry?.Id);
-
-                    if (fileId != null)
-                        // Log for file
-                        await _auditLogService.Record(fileId, SpisumNames.NodeTypes.ShipmentEmail, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
                 }
                 catch (Exception ex)
                 {
@@ -1190,27 +1216,30 @@ namespace ISFG.SpisUm.ClientSide.Services
                         shipmentBeforeUpdate?.Entry?.Properties?.As<JObject>().ToDictionary(),
                         shipmentAfterUpdate?.Entry?.Properties?.As<JObject>().ToDictionary());
 
-                    try
+                    if (difference.Count > 0)
                     {
-                        var componentsJson = difference.FirstOrDefault(x => x.Key == SpisumNames.Properties.ComponentVersionJSON);
-                        if (componentsJson != null)
-                            difference.Remove(componentsJson);
+                        try
+                        {
+                            var componentsJson = difference.FirstOrDefault(x => x.Key == SpisumNames.Properties.ComponentVersionJSON);
+                            if (componentsJson != null)
+                                difference.Remove(componentsJson);
+                        }
+                        catch { }
+
+                        string message = TransactinoHistoryMessages.GetMessagePropertiesChange(TransactinoHistoryMessages.ShipmentPersonallyUpdate, difference);
+
+                        // Log for shipment
+                        await _auditLogService.Record(shipmentId, SpisumNames.NodeTypes.ShipmentPersonally, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
+
+                        // Log for document
+                        await _auditLogService.Record(parentDocument?.Entry?.Id, SpisumNames.NodeTypes.ShipmentPersonally, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
+
+                        var fileId = await _documentService.GetDocumentFileId(parentDocument?.Entry?.Id);
+
+                        if (fileId != null)
+                            // Log for file
+                            await _auditLogService.Record(fileId, SpisumNames.NodeTypes.ShipmentPersonally, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
                     }
-                    catch { }
-
-                    string message = TransactinoHistoryMessages.GetMessagePropertiesChange(TransactinoHistoryMessages.ShipmentPersonallyUpdate, difference);
-
-                    // Log for shipment
-                    await _auditLogService.Record(shipmentId, SpisumNames.NodeTypes.ShipmentPersonally, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
-
-                    // Log for document
-                    await _auditLogService.Record(parentDocument?.Entry?.Id, SpisumNames.NodeTypes.ShipmentPersonally, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
-
-                    var fileId = await _documentService.GetDocumentFileId(parentDocument?.Entry?.Id);
-
-                    if (fileId != null)
-                        // Log for file
-                        await _auditLogService.Record(fileId, SpisumNames.NodeTypes.ShipmentPersonally, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
                 }
                 catch (Exception ex)
                 {
@@ -1287,27 +1316,30 @@ namespace ISFG.SpisUm.ClientSide.Services
                         shipmentBeforeUpdate?.Entry?.Properties?.As<JObject>().ToDictionary(),
                         shipmentAfterUpdate?.Entry?.Properties?.As<JObject>().ToDictionary());
 
-                    try
+                    if (difference.Count > 0)
                     {
-                        var componentsJson = difference.FirstOrDefault(x => x.Key == SpisumNames.Properties.ComponentVersionJSON);
-                        if (componentsJson != null)
-                            difference.Remove(componentsJson);
+                        try
+                        {
+                            var componentsJson = difference.FirstOrDefault(x => x.Key == SpisumNames.Properties.ComponentVersionJSON);
+                            if (componentsJson != null)
+                                difference.Remove(componentsJson);
+                        }
+                        catch { }
+
+                        string message = TransactinoHistoryMessages.GetMessagePropertiesChange(TransactinoHistoryMessages.ShipmentPostUpdate, difference);
+
+                        // Log for shipment
+                        await _auditLogService.Record(shipmentId, SpisumNames.NodeTypes.ShipmentPost, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
+
+                        // Log for document
+                        await _auditLogService.Record(parentDocument?.Entry?.Id, SpisumNames.NodeTypes.ShipmentPost, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
+
+                        var fileId = await _documentService.GetDocumentFileId(parentDocument?.Entry?.Id);
+
+                        if (fileId != null)
+                            // Log for file
+                            await _auditLogService.Record(fileId, SpisumNames.NodeTypes.ShipmentPost, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
                     }
-                    catch { }
-
-                    string message = TransactinoHistoryMessages.GetMessagePropertiesChange(TransactinoHistoryMessages.ShipmentPostUpdate, difference);
-
-                    // Log for shipment
-                    await _auditLogService.Record(shipmentId, SpisumNames.NodeTypes.ShipmentPost, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
-
-                    // Log for document
-                    await _auditLogService.Record(parentDocument?.Entry?.Id, SpisumNames.NodeTypes.ShipmentPost, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
-
-                    var fileId = await _documentService.GetDocumentFileId(parentDocument?.Entry?.Id);
-
-                    if (fileId != null)
-                        // Log for file
-                        await _auditLogService.Record(fileId, SpisumNames.NodeTypes.ShipmentPost, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
                 }
                 catch (Exception ex)
                 {
@@ -1379,27 +1411,30 @@ namespace ISFG.SpisUm.ClientSide.Services
                         shipmentBeforeUpdate?.Entry?.Properties?.As<JObject>().ToDictionary(),
                         shipmentAfterUpdate?.Entry?.Properties?.As<JObject>().ToDictionary());
 
-                    try
+                    if (difference.Count > 0)
                     {
-                        var componentsJson = difference.FirstOrDefault(x => x.Key == SpisumNames.Properties.ComponentVersionJSON);
-                        if (componentsJson != null)
-                            difference.Remove(componentsJson);
+                        try
+                        {
+                            var componentsJson = difference.FirstOrDefault(x => x.Key == SpisumNames.Properties.ComponentVersionJSON);
+                            if (componentsJson != null)
+                                difference.Remove(componentsJson);
+                        }
+                        catch { }
+
+                        string message = TransactinoHistoryMessages.GetMessagePropertiesChange(TransactinoHistoryMessages.ShipmentPublishUpdate, difference);
+
+                        // Log for shipment
+                        await _auditLogService.Record(shipmentId, SpisumNames.NodeTypes.ShipmentPublish, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
+
+                        // Log for document
+                        await _auditLogService.Record(parentDocument?.Entry?.Id, SpisumNames.NodeTypes.ShipmentPublish, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
+
+                        var fileId = await _documentService.GetDocumentFileId(parentDocument?.Entry?.Id);
+
+                        if (fileId != null)
+                            // Log for file
+                            await _auditLogService.Record(fileId, SpisumNames.NodeTypes.ShipmentPublish, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
                     }
-                    catch { }
-
-                    string message = TransactinoHistoryMessages.GetMessagePropertiesChange(TransactinoHistoryMessages.ShipmentPublishUpdate, difference);
-
-                    // Log for shipment
-                    await _auditLogService.Record(shipmentId, SpisumNames.NodeTypes.ShipmentPublish, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
-
-                    // Log for document
-                    await _auditLogService.Record(parentDocument?.Entry?.Id, SpisumNames.NodeTypes.ShipmentPublish, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
-
-                    var fileId = await _documentService.GetDocumentFileId(parentDocument?.Entry?.Id);
-
-                    if (fileId != null)
-                        // Log for file
-                        await _auditLogService.Record(fileId, SpisumNames.NodeTypes.ShipmentPublish, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Uprava, message);
                 }
                 catch (Exception ex)
                 {
@@ -1643,7 +1678,7 @@ namespace ISFG.SpisUm.ClientSide.Services
             parameters = parameters.Add(new Parameter(SpisumNames.Properties.ShRef, properties.GetNestedValueOrDefault(SpisumNames.Properties.Pid)?.ToString(), ParameterType.GetOrPost));
             parameters = parameters.Add(new Parameter(SpisumNames.Properties.ShRefId, nodeInfo?.Entry?.Id, ParameterType.GetOrPost));
             parameters = parameters.Add(new Parameter(SpisumNames.Properties.ShComponentsRef, string.Join(",", components.ToArray()), ParameterType.GetOrPost));
-            parameters = parameters.Add(new Parameter(SpisumNames.Properties.ShFilesSize, GetshFileSizeFormat(componentsTotalSize), ParameterType.GetOrPost));
+            parameters = parameters.Add(new Parameter(SpisumNames.Properties.ShFilesSize, GetshFileSizeFormat(componentsTotalSize), ParameterType.GetOrPost));            
             parameters = parameters.Add(new Parameter(SpisumNames.Properties.Ref, body.Ref, ParameterType.GetOrPost));
 
             // Special for databox
@@ -1679,7 +1714,7 @@ namespace ISFG.SpisUm.ClientSide.Services
             parameters = parameters.Add(new Parameter(SpisumNames.Properties.ShRef, properties.GetNestedValueOrDefault(SpisumNames.Properties.Pid)?.ToString(), ParameterType.GetOrPost));
             parameters = parameters.Add(new Parameter(SpisumNames.Properties.ShRefId, nodeInfo?.Entry?.Id, ParameterType.GetOrPost));
             parameters = parameters.Add(new Parameter(SpisumNames.Properties.ShComponentsRef, string.Join(",", components.ToArray()), ParameterType.GetOrPost));
-            parameters = parameters.Add(new Parameter(SpisumNames.Properties.ShFilesSize, GetshFileSizeFormat(componentsTotalSize), ParameterType.GetOrPost));
+            parameters = parameters.Add(new Parameter(SpisumNames.Properties.ShFilesSize, GetshFileSizeFormat(componentsTotalSize), ParameterType.GetOrPost));            
             parameters = parameters.Add(new Parameter(SpisumNames.Properties.Ref, body.Ref, ParameterType.GetOrPost));
 
             return parameters;
@@ -1755,7 +1790,7 @@ namespace ISFG.SpisUm.ClientSide.Services
             parameters = parameters.Add(new Parameter(SpisumNames.Properties.AddressZip, body.AddressZip, ParameterType.GetOrPost));
             parameters = parameters.Add(new Parameter(SpisumNames.Properties.AddressState, body.AddressState, ParameterType.GetOrPost));
             parameters = parameters.Add(new Parameter(SpisumNames.Properties.Ref, body.Ref, ParameterType.GetOrPost));
-
+            parameters = parameters.Add(new Parameter(SpisumNames.Properties.ShipmentPostState, SpisumNames.ShipmentPostState.Nevypraveno, ParameterType.GetOrPost));
             parameters = parameters.Add(new Parameter(SpisumNames.Properties.PostType, string.Join(",", body.PostType), ParameterType.GetOrPost));
             parameters = parameters.Add(new Parameter(SpisumNames.Properties.PostTypeOther, body.PostTypeOther, ParameterType.GetOrPost));
             parameters = parameters.Add(new Parameter(SpisumNames.Properties.PostItemType, body.PostItemType, ParameterType.GetOrPost));
@@ -1767,9 +1802,7 @@ namespace ISFG.SpisUm.ClientSide.Services
 
             parameters = parameters.Add(body.PostItemStatedPrice != null ?
                 new Parameter(SpisumNames.Properties.PostItemStatedPrice, body.PostItemStatedPrice?.ToString().Replace(",", "."), ParameterType.GetOrPost) :
-                new Parameter(SpisumNames.Properties.PostItemStatedPrice, null, ParameterType.GetOrPost));
-
-            parameters = parameters.Add(new Parameter(SpisumNames.Properties.State, SpisumNames.State.NotDispatched, ParameterType.GetOrPost));
+                new Parameter(SpisumNames.Properties.PostItemStatedPrice, null, ParameterType.GetOrPost));            
 
             return parameters;
         }
@@ -1779,8 +1812,7 @@ namespace ISFG.SpisUm.ClientSide.Services
         {
             var componentsInfo = await _nodesService.GetNodesInfo(componentsId);
 
-            if (!_nodesService.AreNodeTypesValid(componentsInfo, SpisumNames.NodeTypes.Component))
-                throw new BadRequestException("", $"One or more provided components are not allowed nodeType {SpisumNames.NodeTypes.Component}");
+            ValidateComponentsAllowedType(componentsInfo);
 
             var properties = nodeInfo.Entry.Properties.As<JObject>().ToDictionary();
 
@@ -1852,7 +1884,7 @@ namespace ISFG.SpisUm.ClientSide.Services
         private async Task ShipmentSendEmailDatabox(string nodeId, NodeEntry shipmentInfo, EmailOrDataboxEnum emailOrDataboxEnum)
         {
             var nodeParentInfo = await _alfrescoHttpClient.GetNodeInfo(nodeId, ImmutableList<Parameter>.Empty
-                .Add(new Parameter(AlfrescoNames.Headers.Include, $"{ AlfrescoNames.Includes.Permissions }", ParameterType.QueryString)));
+                .Add(new Parameter(AlfrescoNames.Headers.Include, $"{AlfrescoNames.Includes.Permissions},{AlfrescoNames.Includes.IsLocked}", ParameterType.QueryString)));
 
             // Phase 1
             await _alfrescoHttpClient.UpdateNode(shipmentInfo?.Entry?.Id, new NodeBodyUpdate()
@@ -1965,6 +1997,9 @@ namespace ISFG.SpisUm.ClientSide.Services
                     throw new BadRequestException("", "Failed to send databox message");
                 }
 
+            if (nodeParentInfo?.Entry?.IsLocked == true)
+                await _alfrescoHttpClient.NodeUnlock(nodeId);
+
             await _nodesService.DeleteSecondaryChildrenAsAdmin(nodeId, shipmentInfo?.Entry?.Id);
             await _nodesService.CreateSecondaryChildrenAsAdmin(nodeId, new ChildAssociationBody
             {
@@ -1977,6 +2012,9 @@ namespace ISFG.SpisUm.ClientSide.Services
             await _alfrescoHttpClient.NodeLock(shipmentInfo?.Entry?.Id, new NodeBodyLock {Type = NodeBodyLockType.FULL});
 
             await AddDispatchedPermissions(nodeParentInfo, shipmentInfo?.Entry?.Id);
+
+            if (nodeParentInfo?.Entry?.IsLocked == true)
+                await _alfrescoHttpClient.NodeLock(nodeId, new NodeBodyLock() { Type = NodeBodyLockType.FULL });
 
             try
             {
@@ -2008,7 +2046,10 @@ namespace ISFG.SpisUm.ClientSide.Services
         private async Task ShipmentSendPersonally(string nodeId, NodeEntry shipmentInfo)
         {
             var nodeParentInfo = await _alfrescoHttpClient.GetNodeInfo(nodeId, ImmutableList<Parameter>.Empty
-                .Add(new Parameter(AlfrescoNames.Headers.Include, $"{ AlfrescoNames.Includes.Permissions }", ParameterType.QueryString)));
+                .Add(new Parameter(AlfrescoNames.Headers.Include, $"{AlfrescoNames.Includes.Permissions},{AlfrescoNames.Includes.IsLocked}", ParameterType.QueryString)));
+
+            if (nodeParentInfo?.Entry?.IsLocked == true)
+                await _alfrescoHttpClient.NodeUnlock(nodeId);
 
             var locallySet = shipmentInfo?.Entry?.Permissions?.LocallySet;
             var updateBody = new NodeBodyUpdateFixed
@@ -2113,6 +2154,9 @@ namespace ISFG.SpisUm.ClientSide.Services
 
             await AddDispatchedPermissions(nodeParentInfo, shipmentInfo?.Entry.Id);
 
+            if (nodeParentInfo?.Entry?.IsLocked == true)
+                await _alfrescoHttpClient.NodeLock(nodeId, new NodeBodyLock() { Type = NodeBodyLockType.FULL });
+
             try
             {
                 var shipmentPid = shipmentInfo?.GetPid();
@@ -2122,7 +2166,7 @@ namespace ISFG.SpisUm.ClientSide.Services
                     TransactinoHistoryMessages.ShipmentSendPersonallyDelivered);
 
                 // Log for document
-                await _auditLogService.Record(shipmentInfo?.Entry?.Id, SpisumNames.NodeTypes.ShipmentPersonally, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Doruceno,
+                await _auditLogService.Record(nodeParentInfo?.Entry?.Id, SpisumNames.NodeTypes.ShipmentPersonally, shipmentPid, NodeTypeCodes.Zasilka, EventCodes.Doruceno,
                     TransactinoHistoryMessages.ShipmentSendPersonallyDelivered);
 
                 var fileId = await _documentService.GetDocumentFileId(nodeId);
@@ -2147,7 +2191,10 @@ namespace ISFG.SpisUm.ClientSide.Services
             };
 
             var nodeParentInfo = await _alfrescoHttpClient.GetNodeInfo(nodeId, ImmutableList<Parameter>.Empty
-                .Add(new Parameter(AlfrescoNames.Headers.Include, $"{ AlfrescoNames.Includes.Permissions }", ParameterType.QueryString)));
+                .Add(new Parameter(AlfrescoNames.Headers.Include, $"{AlfrescoNames.Includes.Permissions},{AlfrescoNames.Includes.IsLocked}", ParameterType.QueryString)));
+
+            if (nodeParentInfo?.Entry?.IsLocked == true)
+                await _alfrescoHttpClient.NodeUnlock(nodeId);
 
             await _alfrescoHttpClient.UpdateNode(shipmentInfo?.Entry?.Id, updateBody
                 .AddProperty(SpisumNames.Properties.InternalState, SpisumNames.InternalState.ToDispatch)
@@ -2165,6 +2212,9 @@ namespace ISFG.SpisUm.ClientSide.Services
             await _nodesService.MoveByPath(shipmentInfo?.Entry?.Id, SpisumNames.Paths.DispatchToDispatch);
 
             await AddToDispatchPermissions(nodeParentInfo, shipmentInfo?.Entry?.Id);
+
+            if (nodeParentInfo?.Entry?.IsLocked == true)
+                await _alfrescoHttpClient.NodeLock(nodeId, new NodeBodyLock() { Type = NodeBodyLockType.FULL });
 
             try
             {
@@ -2222,8 +2272,8 @@ namespace ISFG.SpisUm.ClientSide.Services
                 throw new BadRequestException(ErrorCodes.V_MAX_SIZE);
             if (!await IsComponentsAssociatedWithNode(nodeId, componentsInfo))
                 throw new BadRequestException("", "One or more provided components are not associated with provided nodeId");
-            if (!_nodesService.AreNodeTypesValid(componentsInfo, SpisumNames.NodeTypes.Component))
-                throw new BadRequestException("", $"One or more provided components are not allowed nodeType {SpisumNames.NodeTypes.Component}");
+
+            ValidateComponentsAllowedType(componentsInfo);
 
             return new ShipmentComponentValidation
             {
@@ -2231,7 +2281,19 @@ namespace ISFG.SpisUm.ClientSide.Services
                 TotalSizeBytes = GetComponentsSize(componentsInfo)
             };
         }
-
+        private void ValidateComponentsAllowedType(List<NodeEntry> componentsInfo)
+        {
+            if (!componentsInfo.All(x => new List<string>
+            {
+                SpisumNames.NodeTypes.Component,
+                SpisumNames.NodeTypes.EmailComponent,
+                SpisumNames.NodeTypes.DataBoxComponent
+            }.Contains(x?.Entry?.NodeType)))
+                throw new BadRequestException(string.Empty, $"One or more provided components are not allowed nodeType " +
+                    $"{SpisumNames.NodeTypes.Component}, " +
+                    $"{SpisumNames.NodeTypes.Email}" +
+                    $"{SpisumNames.NodeTypes.DataBox}");
+        }
         #endregion
     }
 }

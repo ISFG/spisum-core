@@ -62,8 +62,9 @@ namespace ISFG.SpisUm.ClientSide.Validators
                         .WithMessage("User has no access to this action.");
 
                     RuleFor(x => x)
-                         .Must(x => _nodeEntry?.Entry?.Path?.Name?.StartsWith(AlfrescoNames.Prefixes.Path + SpisumNames.Paths.Evidence, StringComparison.OrdinalIgnoreCase) == true)
-                         .OnAnyFailure(x => throw new BadRequestException("Document must be in evidence site."));
+                         .Must(x => _nodeEntry?.Entry?.Path?.Name?.StartsWith(AlfrescoNames.Prefixes.Path + SpisumNames.Paths.Evidence, StringComparison.OrdinalIgnoreCase) == true
+                            || _nodeEntry?.Entry?.Path?.Name?.StartsWith(AlfrescoNames.Prefixes.Path + SpisumNames.Paths.MailRoomWaitingForTakeOver, StringComparison.OrdinalIgnoreCase) == true)
+                         .OnAnyFailure(x => throw new BadRequestException("Document must be in evidence/mailroom site."));
                 });
         }
 

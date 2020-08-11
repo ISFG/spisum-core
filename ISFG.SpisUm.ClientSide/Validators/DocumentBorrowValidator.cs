@@ -92,7 +92,7 @@ namespace ISFG.SpisUm.ClientSide.Validators
                         .WithMessage($"NodeId must be type of {SpisumNames.NodeTypes.Document}.");
 
                     RuleFor(x => x)
-                        .Must(x => _nodeEntry?.Entry?.Path?.Name?.StartsWith(AlfrescoNames.Prefixes.Path + SpisumNames.Paths.RepositoryDocuments, StringComparison.OrdinalIgnoreCase) == true)
+                        .Must(x => _nodeEntry?.Entry?.Path?.Name?.StartsWith(AlfrescoNames.Prefixes.Path + SpisumNames.Paths.RepositoryStored, StringComparison.OrdinalIgnoreCase) == true)
                         .OnAnyFailure(x => throw new BadRequestException("Document must be in repository site."));
 
                     RuleFor(x => x)

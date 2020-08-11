@@ -32,13 +32,13 @@ namespace ISFG.SpisUm.InitialScripts
         {
             Body = new PersonBodyCreate
             {
-                Id = "databox",
+                Id = SpisumNames.SystemUsers.Databox,
                 FirstName = "databox",
                 Email = "spisum@spisum.cz",
                 Enabled = true,
                 EmailNotificationsEnabled = true,
                 LastName = "databox",
-                Password = "databox"
+                Password = SpisumNames.SystemUsers.Databox
             },
             Groups = new List<string> { "GROUP_DATABOX" }
         };
@@ -47,13 +47,13 @@ namespace ISFG.SpisUm.InitialScripts
         {
             Body = new PersonBodyCreate
             {
-                Id = "emailbox",
+                Id = SpisumNames.SystemUsers.Emailbox,
                 FirstName = "emailbox",
                 Email = "spisum@spisum.cz",
                 Enabled = true,
                 EmailNotificationsEnabled = true,
                 LastName = "emailbox",
-                Password = "emailbox"
+                Password = SpisumNames.SystemUsers.Emailbox
             },
             Groups = new List<string> { "GROUP_EMAILBOX" }
         };
@@ -62,13 +62,13 @@ namespace ISFG.SpisUm.InitialScripts
         {
             Body = new PersonBodyCreate
             {
-                Id = "sAdmin",
+                Id = SpisumNames.SystemUsers.SAdmin,
                 FirstName = "Spisum",
                 Email = "spisum@spisum.cz",
                 Enabled = true,
                 EmailNotificationsEnabled = true,
                 LastName = "Admin",
-                Password = "sAdmin"
+                Password = SpisumNames.SystemUsers.SAdmin
             },
             Groups = new List<string> { "GROUP_ALFRESCO_ADMINISTRATORS" }
         };
@@ -77,13 +77,13 @@ namespace ISFG.SpisUm.InitialScripts
         {
             Body = new PersonBodyCreate
             {
-                Id = "spisum",
+                Id = SpisumNames.SystemUsers.Spisum,
                 FirstName = "Spisum",
                 Email = "spisum@spisum.cz",
                 Enabled = true,
                 EmailNotificationsEnabled = true,
                 LastName = "Superuser",
-                Password = "spisum"
+                Password = SpisumNames.SystemUsers.Spisum
             },
             Groups = new List<string> { SpisumNames.Groups.SpisumAdmin },
             MainGroup = SpisumNames.Groups.MailroomGroup

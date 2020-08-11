@@ -75,7 +75,7 @@ namespace ISFG.SpisUm.ClientSide.Validators.Concept
                             var senderType = properties.GetNestedValueOrDefault(SpisumNames.Properties.SenderType)?.ToString();
                             var documentType = properties.GetNestedValueOrDefault(SpisumNames.Properties.DocumentType)?.ToString();
 
-                            if (form == "analog" || documentType == "technicalDataCarries" || form == "digital" && senderType == SpisumNames.SenderType.Own)
+                            if (form == SpisumNames.Form.Analog || documentType == "technicalDataCarries" || form == SpisumNames.Form.Digital && senderType == SpisumNames.SenderType.Own)
                                 return true;
 
                             return false;

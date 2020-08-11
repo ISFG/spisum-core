@@ -5,6 +5,7 @@ using ISFG.Alfresco.Api.Interfaces;
 using ISFG.Alfresco.Api.Models;
 using ISFG.Alfresco.Api.Models.CoreApi.CoreApi;
 using ISFG.Alfresco.Api.Models.CoreApiFixed;
+using ISFG.Common.Extensions;
 using ISFG.Common.Interfaces;
 using ISFG.SpisUm.ClientSide.Models;
 using ISFG.SpisUm.ClientSide.Models.Document;
@@ -46,8 +47,11 @@ namespace ISFG.SpisUm.ClientSide.Validators
                         .WithMessage($"User isn't member of group {identityUser.RequestGroup}.");
 
                     RuleFor(x => x.NodeId)
-                        .Must(x => _nodeEntry.Entry.Path.Name.Equals(AlfrescoNames.Prefixes.Path + SpisumNames.Paths.EvidenceDocumentsForProcessingForSignature(identityUser.RequestGroup)) ||
-                                   _nodeEntry.Entry.Path.Name.Equals(AlfrescoNames.Prefixes.Path + SpisumNames.Paths.EvidenceFilesDocumentsForProcessingForSignature(identityUser.RequestGroup)))
+                        .Must(x => {
+                            var group = _nodeEntry?.Entry?.Properties?.TryGetValueFromProperties<string>(SpisumNames.Properties.Group);
+                            return group != null && (_nodeEntry.Entry.Path.Name.Equals(AlfrescoNames.Prefixes.Path + SpisumNames.Paths.EvidenceDocumentsForProcessingForSignature(group)) ||
+                                      _nodeEntry.Entry.Path.Name.Equals(AlfrescoNames.Prefixes.Path + SpisumNames.Paths.EvidenceFilesDocumentsForProcessingForSignature(group)));
+                        })
                         .WithMessage($"NodeId must be in path {SpisumNames.Paths.EvidenceDocumentsForProcessing(identityUser.RequestGroup)} or {SpisumNames.Paths.EvidenceFilesDocumentsForProcessing(identityUser.RequestGroup)}.");
 
                 });

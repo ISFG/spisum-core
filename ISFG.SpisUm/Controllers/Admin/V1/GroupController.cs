@@ -83,6 +83,7 @@ namespace ISFG.SpisUm.Controllers.Admin.V1
 
                 // add to main group
                 await _initialGroup.AddMainGroupMember(SpisumNames.Groups.MainGroup, groupId);
+                await _alfrescoHttpClient.CreateGroupMember(groupId, new GroupMembershipBodyCreate { Id = SpisumNames.SystemUsers.Spisum, MemberType = GroupMembershipBodyCreateMemberType.PERSON });
 
                 if (body.Type?.ToLower() == "dispatch")
                     await _initialGroup.AddMainGroupMember(SpisumNames.Groups.DispatchGroup, groupId);
@@ -113,7 +114,10 @@ namespace ISFG.SpisUm.Controllers.Admin.V1
                 SpisumNames.Groups.RolesGroup,
                 SpisumNames.Groups.SpisumAdmin
             }, groupId) == -1)
+            {
                 await _alfrescoHttpClient.DeleteGroupMember(SpisumNames.Groups.MainGroup, groupId);
+                await _alfrescoHttpClient.DeleteGroup(groupId);
+            }
             else
                 throw new ForbiddenException("403", "This Group can't be deleted");
         }

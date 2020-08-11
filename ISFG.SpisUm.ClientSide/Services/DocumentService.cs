@@ -86,25 +86,31 @@ namespace ISFG.SpisUm.ClientSide.Services
         {
             await _nodesService.TryUnlockNode(documentId);
 
+            var groupRepository = await _alfrescoHttpClient.GetGroup(_identityUser.RequestGroup);
+
             var updateBody = await _nodesService.GetNodeBodyUpdateWithPermissions(documentId);
 
             await _alfrescoHttpClient.UpdateNode(documentId, updateBody
                 .AddProperty(SpisumNames.Properties.BorrowDate, DateTime.UtcNow.ToAlfrescoDateTimeString())
                 .AddProperty(SpisumNames.Properties.Borrower, user)
                 .AddProperty(SpisumNames.Properties.BorrowGroup, group)
+                .AddProperty(SpisumNames.Properties.ReturnedDate, null)
+                .AddProperty(SpisumNames.Properties.RepositoryName, groupRepository?.Entry?.Id)
                 .AddPermission(group, $"{GroupPermissionTypes.Consumer}")
                 .AddPermission($"{SpisumNames.Prefixes.UserGroup}{user}", $"{GroupPermissionTypes.Consumer}")
             );
 
             if (moveDocument)
-                await _nodesService.MoveByPath(documentId, SpisumNames.Paths.RepositoryDocumentsRented);            
+                await _nodesService.MoveByPath(documentId, SpisumNames.Paths.RepositoryRented);
 
-            var node =  await _alfrescoHttpClient.NodeLock(documentId, new NodeBodyLock { Type = NodeBodyLockType.FULL });
+            var node = await _alfrescoHttpClient.NodeLock(documentId, new NodeBodyLock { Type = NodeBodyLockType.FULL });
 
             try
             {
+
                 var personEntry = await _alfrescoHttpClient.GetPerson(user);
                 var groupEntry = await _alfrescoHttpClient.GetGroup(group);
+
                 var documentPid = node?.GetPid();
 
                 // Audit log for a document
@@ -145,13 +151,13 @@ namespace ISFG.SpisUm.ClientSide.Services
             }
 
             if (type != null && documentForm == null)
-                documentForm = "digital";
+                documentForm = SpisumNames.Form.Digital;
 
-            if (type != null && documentForm != "digital")
+            if (type != null && documentForm != SpisumNames.Form.Digital)
                 throw new BadRequestException("Digital document type expected");
 
             var personGroup = await _personService.GetCreateUserGroup();
-            
+
             var responseCreate = await _alfrescoHttpClient.CreateNode(AlfrescoNames.Aliases.Root, new FormDataParam(new byte[] { 01 }), ImmutableList<Parameter>.Empty
                 .Add(new Parameter(SpisumNames.Properties.DeliveryMode, type?.ToString()?.ToLower(), ParameterType.GetOrPost))
                 .Add(new Parameter(AlfrescoNames.Headers.NodeType, nodeType, ParameterType.GetOrPost))
@@ -161,16 +167,18 @@ namespace ISFG.SpisUm.ClientSide.Services
                 .Add(new Parameter(SpisumNames.Properties.Group, _identityUser.RequestGroup, ParameterType.GetOrPost))
                 .Add(new Parameter(AlfrescoNames.Headers.Include, AlfrescoNames.Includes.Properties, ParameterType.QueryString))
                 .Add(new Parameter(SpisumNames.Properties.DocumentType, GetDocumentType(type, documentForm), ParameterType.GetOrPost))
-                .Add(new Parameter(SpisumNames.Properties.Version, 1, ParameterType.GetOrPost)));
+                .Add(new Parameter(SpisumNames.Properties.Version, 1, ParameterType.GetOrPost))
+                .Add(new Parameter(SpisumNames.Properties.State, SpisumNames.State.Unprocessed, ParameterType.GetOrPost))
+                );
 
             try
             {
                 var nodeEntry = await _alfrescoHttpClient.GetNodeInfo(responseCreate.Entry.Id, ImmutableList<Parameter>.Empty
                     .Add(new Parameter(AlfrescoNames.Headers.Include, AlfrescoNames.Includes.Properties, ParameterType.QueryString)));
-                
-               if (nodeEntry?.Entry?.NodeType == SpisumNames.NodeTypes.Document)
+
+                if (nodeEntry?.Entry?.NodeType == SpisumNames.NodeTypes.Document)
                     await _auditLogService.Record(responseCreate.Entry.Id, SpisumNames.NodeTypes.Document, nodeEntry.GetPid(), NodeTypeCodes.Dokument, EventCodes.Zalozeni, TransactinoHistoryMessages.DocumentCreate);
-               if (nodeEntry?.Entry?.NodeType == SpisumNames.NodeTypes.Concept)
+                if (nodeEntry?.Entry?.NodeType == SpisumNames.NodeTypes.Concept)
                     await _auditLogService.Record(responseCreate.Entry.Id, SpisumNames.NodeTypes.Concept, nodeEntry.GetPid(), NodeTypeCodes.Dokument, EventCodes.Zalozeni, TransactinoHistoryMessages.ConceptCreate);
             }
             catch (Exception ex)
@@ -180,10 +188,10 @@ namespace ISFG.SpisUm.ClientSide.Services
 
             try
             {
-                await _nodesService.CreatePermissions(responseCreate.Entry.Id, personGroup.GroupPrefix, _identityUser.Id);
+                await _nodesService.CreatePermissions(responseCreate.Entry.Id, personGroup.GroupPrefix, _identityUser.Id, nodeType != SpisumNames.NodeTypes.Concept);
             }
             catch
-            {   
+            {
                 await _alfrescoHttpClient.DeleteNode(responseCreate.Entry.Id);
             }
 
@@ -230,7 +238,7 @@ namespace ISFG.SpisUm.ClientSide.Services
 
             var path = documentInfo?.Entry?.Path?.Name;
 
-            await _nodesService.MoveByPath(documentId, path.Replace("/ForSignature", "").Replace(AlfrescoNames.Prefixes.Path, ""));            
+            await _nodesService.MoveByPath(documentId, path.Replace("/ForSignature", "").Replace(AlfrescoNames.Prefixes.Path, ""));
 
             // Remove permissions as admin
             var permissionBody = new NodeBodyUpdateFixed
@@ -266,6 +274,13 @@ namespace ISFG.SpisUm.ClientSide.Services
                 Log.Logger?.Error(ex, "Audit log failed");
             }
 
+            var takeRef = properties.GetNestedValueOrDefault(SpisumNames.Properties.TakeRef)?.ToString();
+            var waitingRef = properties.GetNestedValueOrDefault(SpisumNames.Properties.WaitingRef)?.ToString();
+
+            if (takeRef != null)
+                await _nodesService.DeleteNodeAsAdmin(takeRef);
+            if (waitingRef != null)
+                await _nodesService.DeleteNodeAsAdmin(waitingRef);
 
             return node;
         }
@@ -300,10 +315,10 @@ namespace ISFG.SpisUm.ClientSide.Services
                             }
                         }
                     });
-                    
+
                     try
                     {
-                        await _auditLogService.Record(documentId, SpisumNames.NodeTypes.Document, nodeInfo?.GetPid(), NodeTypeCodes.Dokument, EventCodes.Uprava, 
+                        await _auditLogService.Record(documentId, SpisumNames.NodeTypes.Document, nodeInfo?.GetPid(), NodeTypeCodes.Dokument, EventCodes.Uprava,
                             TransactinoHistoryMessages.DocumentFavoriteAdd);
                     }
                     catch (Exception ex)
@@ -383,13 +398,19 @@ namespace ISFG.SpisUm.ClientSide.Services
 
         public async Task<NodeEntry> ChangeFileMark(string nodeId, string fileMark, ShreddingPlanItemModel plan = null)
         {
+            var documentInfo = await _alfrescoHttpClient.GetNodeInfo(nodeId);
+            var documentProperties = documentInfo?.Entry?.Properties?.As<JObject>().ToDictionary();
+
+            DateTime.TryParse(documentProperties.GetNestedValueOrDefault(SpisumNames.Properties.SettleDate)?.ToString(),
+                out DateTime settleDate);
+
+            int.TryParse(documentProperties.GetNestedValueOrDefault(SpisumNames.Properties.RetentionPeriod)?.ToString(),
+                out int retentionPeriod);
+
             if (plan == null)
             {
                 if (await _nodesService.IsNodeLocked(nodeId))
                     await _nodesService.UnlockAll(nodeId);
-
-                var documentInfo = await _alfrescoHttpClient.GetNodeInfo(nodeId);
-                var documentProperties = documentInfo?.Entry?.Properties?.As<JObject>().ToDictionary();
 
                 var documentFilePlanId = documentProperties.GetNestedValueOrDefault(SpisumNames.Properties.FilePlan)?.ToString();
                 var fileMarkOld = documentProperties.GetNestedValueOrDefault(SpisumNames.Properties.FileMark)?.ToString();
@@ -410,7 +431,41 @@ namespace ISFG.SpisUm.ClientSide.Services
                 .AddProperty(SpisumNames.Properties.RetentionMark, plan.RetentionMark)
                 .AddProperty(SpisumNames.Properties.RetentionMode, retentionMode)
                 .AddProperty(SpisumNames.Properties.RetentionPeriod, plan.Period)
+                .AddProperty(SpisumNames.Properties.ShreddingYear, new DateTime(settleDate.Year + 1 + retentionPeriod, 1, 1).ToAlfrescoDateTimeString())
             );
+
+            var takeRefNode = documentProperties.GetNestedValueOrDefault(SpisumNames.Properties.TakeRef)?.ToString();
+            var waitingRefNode = documentProperties.GetNestedValueOrDefault(SpisumNames.Properties.WaitingRef)?.ToString();
+
+            if (!string.IsNullOrWhiteSpace(takeRefNode))
+            {
+                await _nodesService.UpdateNodeAsAdmin(takeRefNode, new NodeBodyUpdate()
+                    .AddProperty(SpisumNames.Properties.FileMark, fileMark)
+                    .AddProperty(SpisumNames.Properties.RetentionMark, plan.RetentionMark)
+                    .AddProperty(SpisumNames.Properties.RetentionMode, retentionMode)
+                    .AddProperty(SpisumNames.Properties.RetentionPeriod, plan.Period)
+                    .AddProperty(SpisumNames.Properties.ShreddingYear, new DateTime(settleDate.Year + 1 + retentionPeriod, 1, 1).ToAlfrescoDateTimeString())
+                    );
+            }
+            if (!string.IsNullOrWhiteSpace(waitingRefNode))
+            {
+                await _nodesService.UpdateNodeAsAdmin(waitingRefNode, new NodeBodyUpdate()
+                    .AddProperty(SpisumNames.Properties.FileMark, fileMark)
+                    .AddProperty(SpisumNames.Properties.RetentionMark, plan.RetentionMark)
+                    .AddProperty(SpisumNames.Properties.RetentionMode, retentionMode)
+                    .AddProperty(SpisumNames.Properties.RetentionPeriod, plan.Period)
+                    .AddProperty(SpisumNames.Properties.ShreddingYear, new DateTime(settleDate.Year + 1 + retentionPeriod, 1, 1).ToAlfrescoDateTimeString())
+                    );
+            }
+
+            var parentRm = await _nodesService.GetParentsByAssociation(nodeId, new List<string>
+                {
+                    SpisumNames.Associations.DocumentInRepository,
+                    SpisumNames.Associations.FileInRepository
+                });
+
+            if (parentRm != null && parentRm?.Count > 0)
+                await _repositoryService.ChangeRetention(parentRm?.FirstOrDefault()?.Entry.Id, plan.RetentionMark, Convert.ToInt32(plan.Period), settleDate, fileMark);
 
             await _nodesService.LockAll(nodeId);
 
@@ -418,9 +473,6 @@ namespace ISFG.SpisUm.ClientSide.Services
             {
                 if (node?.Entry?.NodeType == SpisumNames.NodeTypes.Document)
                 {
-                    var documentInfo = await _alfrescoHttpClient.GetNodeInfo(nodeId);
-                    var documentProperties = documentInfo?.Entry?.Properties?.As<JObject>().ToDictionary();
-
                     var fileMarkOld = documentProperties.GetNestedValueOrDefault(SpisumNames.Properties.FileMark)?.ToString();
                     var retentionModeOld = documentProperties.GetNestedValueOrDefault(SpisumNames.Properties.RetentionMode)?.ToString();
 
@@ -453,12 +505,6 @@ namespace ISFG.SpisUm.ClientSide.Services
             var node = await _alfrescoHttpClient.UpdateNode(nodeId, new NodeBodyUpdate()
                 .AddProperty(SpisumNames.Properties.Location, location));
 
-            if (isMemberOfRepository.Value)
-                return await _alfrescoHttpClient.NodeLock(nodeId, new NodeBodyLock
-                {
-                    Type = NodeBodyLockType.FULL
-                });
-
             try
             {
                 var documentPid = node?.GetPid();
@@ -471,6 +517,12 @@ namespace ISFG.SpisUm.ClientSide.Services
             {
                 Log.Logger?.Error(ex, "Audit log failed");
             }
+
+            if (isMemberOfRepository.Value)
+                return await _alfrescoHttpClient.NodeLock(nodeId, new NodeBodyLock
+                {
+                    Type = NodeBodyLockType.FULL
+                });
 
             return node;
         }
@@ -489,7 +541,6 @@ namespace ISFG.SpisUm.ClientSide.Services
         {
             return await _nodesService.Recover(nodeIds, reason, SpisumNames.NodeTypes.Document, SpisumNames.Paths.EvidenceCancelled(_identityUser.RequestGroup));
         }
-
 
         public async Task<NodeEntry> Register(NodeUpdate body, GenerateSsid ssidConfiguration)
         {
@@ -516,7 +567,7 @@ namespace ISFG.SpisUm.ClientSide.Services
             else
             {
                 await _nodesService.Update(body);
-                await _nodesService.MoveByPath(body.NodeId, SpisumNames.Paths.EvidenceDocumentsForProcessing(_identityUser.RequestGroup));
+                await _nodesService.MoveByPath(body.NodeId, SpisumNames.Paths.MailRoomNotPassed);
             }
 
             return await _nodesService.GenerateSsid(body.NodeId, ssidConfiguration);
@@ -543,9 +594,10 @@ namespace ISFG.SpisUm.ClientSide.Services
                     .AddProperty(SpisumNames.Properties.BorrowDate, null)
                     .AddProperty(SpisumNames.Properties.Borrower, null)
                     .AddProperty(SpisumNames.Properties.BorrowGroup, null)
+                    .AddProperty(SpisumNames.Properties.RepositoryName, null)
                     .AddProperty(SpisumNames.Properties.ReturnedDate, DateTime.UtcNow.ToAlfrescoDateTimeString()));
 
-                await _nodesService.MoveByPath(documentId, SpisumNames.Paths.RepositoryDocumentsStored);
+                await _nodesService.MoveByPath(documentId, SpisumNames.Paths.RepositoryStored);
 
                 await _nodesService.UpdateNodeAsAdmin(documentId, updateBody
                     .RemovePermission(borrowedGroup)
@@ -580,16 +632,17 @@ namespace ISFG.SpisUm.ClientSide.Services
                     .AddProperty(SpisumNames.Properties.BorrowDate, null)
                     .AddProperty(SpisumNames.Properties.Borrower, null)
                     .AddProperty(SpisumNames.Properties.BorrowGroup, null)
+                    .AddProperty(SpisumNames.Properties.RepositoryName, null)
                     .AddProperty(SpisumNames.Properties.ReturnedDate, DateTime.UtcNow.ToAlfrescoDateTimeString()));
 
-                await _nodesService.MoveByPathAsAdmin(documentId, SpisumNames.Paths.RepositoryDocumentsStored);
+                await _nodesService.MoveByPathAsAdmin(documentId, SpisumNames.Paths.RepositoryStored);
 
                 await _nodesService.UpdateNodeAsAdmin(documentId, updateBody
                     .RemovePermission(borrowedGroup)
                     .RemovePermission($"{SpisumNames.Prefixes.UserGroup}{borrowedUser}")
                 );
 
-                var node =  await _nodesService.NodeLockAsAdmin(documentId);
+                var node = await _nodesService.NodeLockAsAdmin(documentId);
 
                 try
                 {
@@ -635,81 +688,97 @@ namespace ISFG.SpisUm.ClientSide.Services
             var VersionProperties = versionEntry?.Entry?.Properties?.As<JObject>().ToDictionary();
             var componentsRevertVersionJSON = VersionProperties.GetNestedValueOrDefault(SpisumNames.Properties.ComponentVersionJSON);
 
-            if (componentsRevertVersionJSON != null)
-                componentsRevertVersion = JsonConvert.DeserializeObject<List<VersionRecord>>(VersionProperties.GetNestedValueOrDefault(SpisumNames.Properties.ComponentVersionJSON)?.ToString());
-
-            // 1. Revert components that changed their version
-            foreach (var componentVersion in componentsVersion)
+            if (componentsRevertVersionJSON == null)
             {
-                var changedComponent = componentsRevertVersion.FirstOrDefault(x => x.Id == componentVersion.Id && x.Version != componentVersion.Version);
-
-                if (changedComponent == null)
-                    continue;
-
-                await _alfrescoHttpClient.RevertVersion(changedComponent?.Id, changedComponent?.Version, new RevertBody { MajorVersion = false });
-
-                await _validationService.CheckOutputFormat(changedComponent?.Id);
-            }
-
-            // 2. Remove components that are not presented in version which is reverting to (e.g. some components does not exists at this time)            
-            var components = await _nodesService.GetSecondaryChildren(nodeId, SpisumNames.Associations.Components);
-            var deletedComponents = await _nodesService.GetSecondaryChildren(nodeId, SpisumNames.Associations.DeletedComponents);
-            foreach (var component in components)
-                if (!componentsRevertVersion.Exists(x => x.Id == component.Entry.Id))
-                {
-                    await _alfrescoHttpClient.DeleteSecondaryChildren(nodeId, component.Entry.Id);
-                    await _alfrescoHttpClient.CreateNodeSecondaryChildren(nodeId, new ChildAssociationBody
+                var componentsToDelete = await _nodesService.GetSecondaryChildren(nodeId, SpisumNames.Associations.Components);
+                foreach (var component in componentsToDelete)
+                    if (!componentsRevertVersion.Exists(x => x.Id == component?.Entry?.Id))
                     {
-                        ChildId = component.Entry.Id,
-                        AssocType = SpisumNames.Associations.DeletedComponents
-                    });
-                }
-
-            // 3. Recover and revert component that was deleted later but is present in this version
-            foreach (var componentRevert in componentsRevertVersion)
-                if (!components.Exists(x => x.Entry.Id == componentRevert.Id))
-                {
-                    var deletedComponent = deletedComponents.FirstOrDefault(x => x.Entry.Id == componentRevert.Id);
-
-                    if (deletedComponent != null)
-                    {
-                        await _alfrescoHttpClient.DeleteSecondaryChildren(nodeId, componentRevert.Id);
+                        await _alfrescoHttpClient.DeleteSecondaryChildren(nodeId, component?.Entry?.Id);
                         await _alfrescoHttpClient.CreateNodeSecondaryChildren(nodeId, new ChildAssociationBody
                         {
-                            ChildId = componentRevert.Id,
-                            AssocType = SpisumNames.Associations.Components
+                            ChildId = component.Entry.Id,
+                            AssocType = SpisumNames.Associations.DeletedComponents
                         });
-
-                        // Revert version if neccesary
-                        var deletedComponentProperties = versionEntry?.Entry?.Properties?.As<JObject>().ToDictionary();
-                        var version = conceptProperties.GetNestedValueOrDefault(AlfrescoNames.ContentModel.VersionLabel)?.ToString();
-
-                        if (componentRevert.Version != version)
-                            await _alfrescoHttpClient.RevertVersion(componentRevert.Id, componentRevert.Version, new RevertBody { MajorVersion = false });
-                        
-                        await _validationService.CheckOutputFormat(componentRevert?.Id);
                     }
+            }
+            else
+            {
+                componentsRevertVersion = JsonConvert.DeserializeObject<List<VersionRecord>>(VersionProperties.GetNestedValueOrDefault(SpisumNames.Properties.ComponentVersionJSON)?.ToString());
+
+
+                // 1. Revert components that changed their version
+                foreach (var componentVersion in componentsVersion)
+                {
+                    var changedComponent = componentsRevertVersion.FirstOrDefault(x => x.Id == componentVersion.Id && x.Version != componentVersion.Version);
+
+                    if (changedComponent == null)
+                        continue;
+
+                    await _alfrescoHttpClient.RevertVersion(changedComponent?.Id, changedComponent?.Version, new RevertBody { MajorVersion = false });
                 }
 
-            var nodeInfo = await UpdateMainFileComponentVersionPropertiesRevert(nodeId, versionEntry);
+                // 2. Remove components that are not presented in version which is reverting to (e.g. some components does not exists at this time)            
+                var components = await _nodesService.GetSecondaryChildren(nodeId, SpisumNames.Associations.Components);
+                var deletedComponents = await _nodesService.GetSecondaryChildren(nodeId, SpisumNames.Associations.DeletedComponents);
+                foreach (var component in components)
+                    if (!componentsRevertVersion.Exists(x => x.Id == component?.Entry?.Id))
+                    {
+                        await _alfrescoHttpClient.DeleteSecondaryChildren(nodeId, component?.Entry?.Id);
+                        await _alfrescoHttpClient.CreateNodeSecondaryChildren(nodeId, new ChildAssociationBody
+                        {
+                            ChildId = component.Entry.Id,
+                            AssocType = SpisumNames.Associations.DeletedComponents
+                        });
+                    }
 
+                // 3. Recover and revert component that was deleted later but is present in this version
+                foreach (var componentRevert in componentsRevertVersion)
+                    if (!components.Exists(x => x.Entry.Id == componentRevert.Id))
+                    {
+                        var deletedComponent = deletedComponents.FirstOrDefault(x => x.Entry.Id == componentRevert.Id);
+
+                        if (deletedComponent != null)
+                        {
+                            await _alfrescoHttpClient.DeleteSecondaryChildren(nodeId, componentRevert.Id);
+                            await _alfrescoHttpClient.CreateNodeSecondaryChildren(nodeId, new ChildAssociationBody
+                            {
+                                ChildId = componentRevert.Id,
+                                AssocType = SpisumNames.Associations.Components
+                            });
+
+                            // Revert version if neccesary
+                            var deletedComponentProperties = versionEntry?.Entry?.Properties?.As<JObject>().ToDictionary();
+                            var version = conceptProperties.GetNestedValueOrDefault(AlfrescoNames.ContentModel.VersionLabel)?.ToString();
+
+                            if (componentRevert.Version != version)
+                                await _alfrescoHttpClient.RevertVersion(componentRevert.Id, componentRevert.Version, new RevertBody { MajorVersion = false });
+                        }
+                    }
+            }
+
+            // Check output format for all components
+            var currentComponents = await _nodesService.GetSecondaryChildren(nodeId, SpisumNames.Associations.Components);
+            await currentComponents?.ForEachAsync(async component =>
+            {
+                await _validationService.CheckOutputFormat(component?.Entry?.Id);
+            });
+
+            var nodeInfo = await UpdateMainFileComponentVersionPropertiesRevert(nodeId, versionEntry);
             try
             {
                 var documentPid = nodeInfo?.GetPid();
 
-                var properties = conceptEntry?.Entry?.Properties?.As<JObject>().ToDictionary();
-                var version = properties.GetNestedValueOrDefault(SpisumNames.Properties.Version)?.ToString();
-
-                var propertiesAfterUpdate = conceptEntry?.Entry?.Properties?.As<JObject>().ToDictionary();
-                var versionAfterUpdate = propertiesAfterUpdate.GetNestedValueOrDefault(SpisumNames.Properties.Version)?.ToString();
+                var propertiesAfterUpdate = nodeInfo?.Entry?.Properties?.As<JObject>().ToDictionary();
+                var versionAfterUpdate = propertiesAfterUpdate.GetNestedValueOrDefault(AlfrescoNames.ContentModel.VersionLabel)?.ToString();
 
                 if (conceptEntry?.Entry.NodeType == SpisumNames.NodeTypes.Concept)
                     await _auditLogService.Record(nodeId, SpisumNames.NodeTypes.Concept, documentPid, NodeTypeCodes.Dokument, EventCodes.NovaVerze,
-                        string.Format(TransactinoHistoryMessages.ConceptRevert, versionAfterUpdate, version));
+                        string.Format(TransactinoHistoryMessages.ConceptRevert, versionAfterUpdate, versionId));
 
                 if (conceptEntry?.Entry.NodeType == SpisumNames.NodeTypes.Document)
                     await _auditLogService.Record(nodeId, SpisumNames.NodeTypes.Document, documentPid, NodeTypeCodes.Dokument, EventCodes.NovaVerze,
-                        string.Format(TransactinoHistoryMessages.DocumentRevert, versionAfterUpdate, version));
+                        string.Format(TransactinoHistoryMessages.DocumentRevert, versionAfterUpdate, versionId));
             }
             catch (Exception ex)
             {
@@ -725,6 +794,12 @@ namespace ISFG.SpisUm.ClientSide.Services
             string[] documentData = { settleMethod, settleDate.ToUniversalTime().ToString(CultureInfo.InvariantCulture), customSettleMethod, settleReason, _identityUser.Id };
             string[] fileData = { DateTime.UtcNow.ToAlfrescoDateTimeString(), _identityUser.Id };
 
+            var nodeInfo = await _alfrescoHttpClient.GetNodeInfo(nodeId);            
+            var nodeProperties = nodeInfo?.Entry?.Properties?.As<JObject>().ToDictionary();
+
+            int.TryParse(nodeProperties.GetNestedValueOrDefault(SpisumNames.Properties.RetentionPeriod)?.ToString(),
+                out int retentionPeriod);
+
             var nodeBody = new NodeBodyUpdate()
                 .AddProperty(SpisumNames.Properties.SettleMethod, settleMethod)
                 .AddProperty(SpisumNames.Properties.SettleDate, settleDate.ToUniversalTime())
@@ -737,6 +812,7 @@ namespace ISFG.SpisUm.ClientSide.Services
                 .AddProperty(SpisumNames.Properties.ProcessorOrgUnit, _identityUser.OrganizationUnit)
                 .AddProperty(SpisumNames.Properties.ProcessorOrgAddress, _identityUser.OrganizationAddress)
                 .AddProperty(SpisumNames.Properties.ProcessorJob, _identityUser.Job)
+                .AddProperty(SpisumNames.Properties.ShreddingYear, new DateTime(settleDate.Year + 1 + retentionPeriod, 1, 1).ToAlfrescoDateTimeString())
                 .AddProperty(SpisumNames.Properties.State, SpisumNames.State.Settled)
                 .AddProperty(SpisumNames.Properties.TSettle, string.Join("; ", documentData.Where(x => x != null)))
                 .AddProperty(SpisumNames.Properties.TClose, string.Join("; ", fileData.Where(x => x != null)));
@@ -748,8 +824,15 @@ namespace ISFG.SpisUm.ClientSide.Services
                 await _nodesService.MoveByPath(nodeId, SpisumNames.Paths.EvidenceDocumentsProcessed(_identityUser.RequestGroup));
             else if (node?.Entry?.Path?.Name?.Equals(AlfrescoNames.Prefixes.Path + SpisumNames.Paths.EvidenceFilesDocumentsForProcessing(_identityUser.RequestGroup)) == true)
                 await _nodesService.MoveByPath(nodeId, SpisumNames.Paths.EvidenceFilesDocumentsProcessed(_identityUser.RequestGroup));
-                       
-            await _nodesService.LockAll(nodeId);
+
+            await _nodesService.LockAll(nodeId, new List<string>
+            {
+                SpisumNames.NodeTypes.ShipmentDatabox,
+                SpisumNames.NodeTypes.ShipmentEmail,
+                SpisumNames.NodeTypes.ShipmentPersonally,
+                SpisumNames.NodeTypes.ShipmentPost,
+                SpisumNames.NodeTypes.ShipmentPublish
+            });
 
             var documentPid = node?.GetPid();
 
@@ -817,6 +900,7 @@ namespace ISFG.SpisUm.ClientSide.Services
                     .AddProperty(SpisumNames.Properties.ProcessorOrgName, null)
                     .AddProperty(SpisumNames.Properties.ProcessorOrgUnit, null)
                     .AddProperty(SpisumNames.Properties.ProcessorOrgAddress, null)
+                    .AddProperty(SpisumNames.Properties.ShreddingYear, null)
                     .AddProperty(SpisumNames.Properties.ProcessorJob, null));
 
                 var file = await GetDocumentFile(nodeId);
@@ -905,7 +989,7 @@ namespace ISFG.SpisUm.ClientSide.Services
                 // Cut off
                 try { await _repositoryService.CutOff(rmNodeId); } catch { }
             }
-            
+
             var node = await _alfrescoHttpClient.NodeLock(nodeId, new NodeBodyLock { Type = NodeBodyLockType.FULL });
 
             try
@@ -969,7 +1053,7 @@ namespace ISFG.SpisUm.ClientSide.Services
                 await _repositoryService.CutOff(rmNodeId);
             }
 
-            var node = await _alfrescoHttpClient.NodeLock(nodeId, new NodeBodyLock {Type = NodeBodyLockType.FULL });
+            var node = await _alfrescoHttpClient.NodeLock(nodeId, new NodeBodyLock { Type = NodeBodyLockType.FULL });
 
             try
             {
@@ -997,12 +1081,11 @@ namespace ISFG.SpisUm.ClientSide.Services
             await _nodesService.TryUnlockNode(nodeId);
 
             var nodeInfo = await _alfrescoHttpClient.GetNodeInfo(nodeId);
-            var documentProperties = nodeInfo?.Entry?.Properties?.As<JObject>().ToDictionary();
-            var retentionPeriod = documentProperties.GetNestedValueOrDefault(SpisumNames.Properties.RetentionPeriod)?.ToString();
+            var documentProperties = nodeInfo?.Entry?.Properties?.As<JObject>().ToDictionary();            
             var retentionMarkOld = documentProperties.GetNestedValueOrDefault(SpisumNames.Properties.RetentionMark)?.ToString();
 
-            if (string.IsNullOrWhiteSpace(retentionPeriod))
-                throw new BadRequestException("", $"{SpisumNames.Properties.RetentionPeriod} is not set");
+            int.TryParse(documentProperties.GetNestedValueOrDefault(SpisumNames.Properties.RetentionPeriod)?.ToString(),
+                out int retentionPeriod);
 
             var node = await _alfrescoHttpClient.UpdateNode(nodeId, new NodeBodyUpdate()
                 .AddProperty(SpisumNames.Properties.RetentionMark, retentionMark)
@@ -1025,9 +1108,12 @@ namespace ISFG.SpisUm.ClientSide.Services
 
             try
             {
-                // Audit log for a document
-                await _auditLogService.Record(nodeId, SpisumNames.NodeTypes.Document, node?.GetPid(), NodeTypeCodes.Dokument, EventCodes.Uprava,
-                    string.Format(TransactinoHistoryMessages.DocumentChangeRetentionMark, retentionMarkOld, retentionMark));
+                if (nodeInfo?.Entry?.NodeType == SpisumNames.NodeTypes.Document)
+                    await _auditLogService.Record(nodeId, SpisumNames.NodeTypes.Document, node?.GetPid(), NodeTypeCodes.Dokument, EventCodes.Uprava,
+                        string.Format(TransactinoHistoryMessages.DocumentChangeRetentionMark, retentionMarkOld, retentionMark));
+                else if (nodeInfo?.Entry?.NodeType == SpisumNames.NodeTypes.File)
+                    await _auditLogService.Record(nodeId, SpisumNames.NodeTypes.File, node?.GetPid(), NodeTypeCodes.Spis, EventCodes.Uprava,
+                        string.Format(TransactinoHistoryMessages.FileShreddingChange, retentionMarkOld, retentionMark));
             }
             catch (Exception ex)
             {
@@ -1049,10 +1135,10 @@ namespace ISFG.SpisUm.ClientSide.Services
                     if (await _nodesService.IsNodeLocked(document))
                         await _nodesService.UnlockAll(document);
 
-                    await _nodesService.UpdateHandOverRepositoryPermissionsAll(document, group);                   
+                    await _nodesService.UpdateHandOverRepositoryPermissionsAll(document, group);
 
                     var node = await _alfrescoHttpClient.UpdateNode(document, new NodeBodyUpdate()
-                        .AddProperty(SpisumNames.Properties.State, SpisumNames.Other.HandOverToRepository)
+                        .AddProperty(SpisumNames.Properties.State, SpisumNames.State.HandoverToRepository)
                         .AddProperty(SpisumNames.Properties.ToRepositoryDate, DateTime.UtcNow.ToAlfrescoDateTimeString()));
 
                     if (moveDocument)
@@ -1065,7 +1151,7 @@ namespace ISFG.SpisUm.ClientSide.Services
 
                         await _nodesService.MoveHandOverPath(document, groupDocument, group, null);
                     }
-                    
+
                     await _nodesService.LockAll(document);
 
                     try
@@ -1122,7 +1208,9 @@ namespace ISFG.SpisUm.ClientSide.Services
 
             if (nodeInfo.Entry.Content.MimeType == "application/zfo")
                 await _alfrescoHttpClient.UpdateNode(nodeId, new NodeBodyUpdate()
-                    .AddProperty(SpisumNames.Properties.FileIsInOutputFormat, "impossible"));
+                    .AddProperty(SpisumNames.Properties.FileIsInOutputFormat, SpisumNames.Global.Impossible)
+                    .AddProperty(SpisumNames.Properties.SafetyElementsCheck, false)
+                    .AddProperty(SpisumNames.Properties.CanBeSigned, false));
 
             var emlzfoFilePid = await _componentService.GenerateComponentPID(documentId, "/", GeneratePIDComponentType.Component);
 
@@ -1150,7 +1238,9 @@ namespace ISFG.SpisUm.ClientSide.Services
                 {
                     if (item.Entry.Content.MimeType == "application/zfo")
                         await _alfrescoHttpClient.UpdateNode(item.Entry.Id, new NodeBodyUpdate()
-                            .AddProperty(SpisumNames.Properties.FileIsInOutputFormat, "impossible"));
+                            .AddProperty(SpisumNames.Properties.FileIsInOutputFormat, SpisumNames.Global.Impossible)
+                            .AddProperty(SpisumNames.Properties.SafetyElementsCheck, false)
+                            .AddProperty(SpisumNames.Properties.CanBeSigned, false));
 
                     await _alfrescoHttpClient.CreateNodeSecondaryChildren(documentId, new ChildAssociationBody
                     {
@@ -1225,7 +1315,7 @@ namespace ISFG.SpisUm.ClientSide.Services
             if (type == EmailOrDataboxEnum.Databox)
                 return "databox";
 
-            return documentForm == "digital" ? "technicalDataCarries" : documentForm;
+            return documentForm == SpisumNames.Form.Digital ? "technicalDataCarries" : documentForm;
         }
 
         private EmailOrDataboxEnum? GetEmailDataboxTypeByPath(string nodePath)

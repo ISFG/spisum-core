@@ -1,6 +1,6 @@
 ﻿using System;
-using ISFG.SpisUm.Jobs.Configuration;
 using ISFG.SpisUm.Jobs.Interfaces;
+using ISFG.SpisUm.Jobs.Models;
 using ISFG.SpisUm.Jobs.Services;
 using Microsoft.Extensions.DependencyInjection;
 

@@ -46,7 +46,7 @@ namespace ISFG.SpisUm.Controllers.Auth.V1
         [HttpPost("login")]
         public async Task<Authorization> Login([FromQuery] string username, [FromQuery] string password)
         {
-            if (Array.IndexOf(new[] { "admin", "databox", "emailbox" }, username?.ToLower()) != -1)
+            if (Array.IndexOf(new[] { SpisumNames.SystemUsers.Admin, SpisumNames.SystemUsers.Databox, SpisumNames.SystemUsers.Emailbox }, username?.ToLower()) != -1)
                 throw new ForbiddenException("403", "Forbidden user");
             return await _authorizationService.Login(username, password);
         }

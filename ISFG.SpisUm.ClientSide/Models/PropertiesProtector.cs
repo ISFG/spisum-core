@@ -12,7 +12,6 @@ namespace ISFG.SpisUm.ClientSide.Models
                 {
                     SpisumNames.Properties.ComponentVersionJSON,
                     SpisumNames.Properties.Version,
-                    SpisumNames.Properties.AttachmentsCount,
                     SpisumNames.Properties.Author,
                     SpisumNames.Properties.AuthorId,
                     SpisumNames.Properties.AuthorOrgId,
@@ -57,6 +56,8 @@ namespace ISFG.SpisUm.ClientSide.Models
                     SpisumNames.Properties.EraseDate,
                     SpisumNames.Properties.FileIdentificator,
                     SpisumNames.Properties.FileIsInOutputFormat,
+                    SpisumNames.Properties.FileIsInOutputFormatDocument,
+                    SpisumNames.Properties.FileIsInOutputFormatFile,
                     SpisumNames.Properties.FileName,
                     SpisumNames.Properties.ForSignatureDate,
                     SpisumNames.Properties.ForSignatureGroup,
@@ -137,8 +138,7 @@ namespace ISFG.SpisUm.ClientSide.Models
                     SpisumNames.Properties.DataCompleteVerificationItem,
                     SpisumNames.Properties.ImprintFile,
                     SpisumNames.Properties.UsedAlgorithm,
-                    SpisumNames.Properties.WaitingRef,
-                    "cm:owner"
+                    SpisumNames.Properties.WaitingRef
                 };
             }
         }

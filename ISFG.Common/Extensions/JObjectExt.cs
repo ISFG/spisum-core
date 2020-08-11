@@ -15,13 +15,13 @@ namespace ISFG.Common.Extensions
             var jObjectKeys = (from r in result
                 let key = r.Key
                 let value = r.Value
-                where value.GetType() == typeof(JObject)
+                where value?.GetType() == typeof(JObject)
                 select key).ToList();
 
             var jArrayKeys = (from r in result
                 let key = r.Key
                 let value = r.Value
-                where value.GetType() == typeof(JArray)
+                where value?.GetType() == typeof(JArray)
                 select key).ToList();
 
             jArrayKeys.ForEach(key =>

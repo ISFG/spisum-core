@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using ISFG.Alfresco.Api.Extensions;
@@ -46,7 +47,7 @@ namespace ISFG.SpisUm.Controllers.Admin.V1
         [HttpPost("download")]
         public async Task<FileContentResult> Download(List<string> nodesId)
         {
-            return await _nodesService.Download(nodesId);
+            return await _nodesService.Download(nodesId, DateTime.Now.ToString("dd-MM-yyyy-hh-mm-ss"));
         }
 
         /// <summary>

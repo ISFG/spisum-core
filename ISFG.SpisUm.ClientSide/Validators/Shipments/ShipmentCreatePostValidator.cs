@@ -87,9 +87,7 @@ namespace ISFG.SpisUm.ClientSide.Validators.Shipments
                .WithMessage("AddressCity is too long");
 
             RuleFor(x => x.Body.AddressZip)
-               .Must(x => CheckLength(x, 100))
-               .When(x => x.Body != null)
-               .WithMessage("AddressZip is too long");
+               .MaximumLength(10);
 
             RuleFor(x => x.Body.AddressState)
                .Must(x => CheckLength(x, 100))
@@ -109,13 +107,13 @@ namespace ISFG.SpisUm.ClientSide.Validators.Shipments
             RuleFor(x => x.Body.PostItemCashOnDelivery)
               .NotNull()
               .GreaterThanOrEqualTo(0)
-              .When(x => x.Body != null && x.Body.PostType.Any(x => x == "Dobirka"))
+              .When(x => x.Body != null && x.Body?.PostType?.Any(x => x == "Dobirka") == true)
               .WithMessage("PostItemCashOnDelivery is mandatory and cannot be negative number");
 
             RuleFor(x => x.Body.PostItemStatedPrice)
               .NotNull()
               .GreaterThanOrEqualTo(0)
-              .When(x => x.Body != null && x.Body.PostType.Any(x => x == "UdanaCena"))
+              .When(x => x.Body != null && x.Body?.PostType?.Any(x => x == "UdanaCena") == true)
               .WithMessage("PostItemStatedPrice is mandatory and cannot be negative number");
         }
 

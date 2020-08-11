@@ -83,7 +83,7 @@ namespace ISFG.SpisUm.ClientSide.Validators
                         .Must(x =>
                         {
                             var nodeProperties = _nodeEntry.Entry.Properties.As<JObject>().ToDictionary();
-                            if (nodeProperties.GetNestedValueOrDefault(SpisumNames.Properties.Form)?.ToString() == "analog" && 
+                            if (nodeProperties.GetNestedValueOrDefault(SpisumNames.Properties.Form)?.ToString() == SpisumNames.Form.Analog && 
                                 nodeProperties.GetNestedValueOrDefault(SpisumNames.Properties.ListCount)?.ToString() == null)
                                 return false;
 

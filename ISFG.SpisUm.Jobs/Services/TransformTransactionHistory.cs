@@ -7,6 +7,7 @@ using ISFG.Alfresco.Api.Interfaces;
 using ISFG.Alfresco.Api.Models;
 using ISFG.Data.Interfaces;
 using ISFG.Pdf.Models;
+using ISFG.Pdf.Models.TransactionHistory;
 using ISFG.SpisUm.Jobs.Interfaces;
 using ISFG.SpisUm.Jobs.Models;
 using Newtonsoft.Json;
@@ -40,7 +41,7 @@ namespace ISFG.SpisUm.Jobs.Services
 
         #region Implementation of ITransformTransactionHistory
 
-        public async Task<TransactionHistoryPdf> ToPdfModel(DateTime currentDate)
+        public async Task<TransactionHistoryModel> ToPdfModel(DateTime currentDate)
         {
             var mainGroup = await _alfrescoHttpClient.GetGroupMembers(JobsNames.MainGroup,
                 ImmutableList<Parameter>.Empty.Add(new Parameter(AlfrescoNames.Headers.Where, AlfrescoNames.MemberType.Group, ParameterType.QueryString)));
@@ -53,7 +54,7 @@ namespace ISFG.SpisUm.Jobs.Services
             var transactionHistory = await _transactionHistoryRepository.GetTransactionHistoryByDate(currentDate.Date, currentDate.Date);
             var pdfCounter = pdfCount?.List?.Pagination?.TotalItems.HasValue == true ? pdfCount.List.Pagination.TotalItems.Value : 1;
             
-            TransactionHistoryPdf transactionHistoryObj = new TransactionHistoryPdf
+            TransactionHistoryModel transactionHistoryObj = new TransactionHistoryModel
             {
                 Header = string.Format(PdfTranslations.PageHeader, _transactionHistoryConfiguration?.Originator, currentDate.ToString("dd.MM.yyyy")),
                 Name = string.Format(PdfTranslations.FirstPage.Name, currentDate.ToString("dd.MM.yyyy")),
@@ -61,7 +62,7 @@ namespace ISFG.SpisUm.Jobs.Services
                 Address = string.Format(PdfTranslations.FirstPage.Address, _transactionHistoryConfiguration?.Address),
                 SerialNumber = string.Format(PdfTranslations.FirstPage.SerialNumber, ++pdfCounter),
                 NumberOfPages = PdfTranslations.FirstPage.NumberOfPages,
-                Rows = new TableRows
+                Rows = new TransactionHistoryRows
                 {
                     Pid = PdfTranslations.Cells.Pid,
                     TypeOfObject = PdfTranslations.Cells.TypeOfObject,
@@ -70,7 +71,7 @@ namespace ISFG.SpisUm.Jobs.Services
                     Author = PdfTranslations.Cells.Author,
                     Date = PdfTranslations.Cells.Date
                 },
-                Columns = new List<TableColumns>()
+                Columns = new List<TransactionHistoryColumns>()
             };
             
             foreach (var item in transactionHistory)
@@ -83,24 +84,24 @@ namespace ISFG.SpisUm.Jobs.Services
                 string requestGroup = mainGroup?.List?.Entries?.FirstOrDefault(u => u.Entry.Id == item.UserGroupId)?.Entry?.DisplayName ?? item.UserGroupId;
 
                 if (eventParams != null)
-                    transactionHistoryObj.Columns.Add(new TableColumns
+                    transactionHistoryObj.Columns.Add(new TransactionHistoryColumns
                     {
                         Pid = item.Pid,
                         TypeOfObject = item.FkNodeTypeCodeNavigation.Code,
                         TypeOfChanges = item.FkEventTypeCodeNavigation.Code,
                         Descriptions = eventParams.Message,
                         Author = string.Join("; ", item.UserId, requestGroup),
-                        Date = item.OccuredAt.ToString("dd.MM.yyyy hh:mm:ss")
+                        Date = item.OccuredAt.ToString("dd.MM.yyyy HH:mm:ss")
                     });
                 else
-                    transactionHistoryObj.Columns.Add(new TableColumns
+                    transactionHistoryObj.Columns.Add(new TransactionHistoryColumns
                     {
                         Pid = item.Pid,
                         TypeOfObject = item.FkNodeTypeCodeNavigation.Code,
                         TypeOfChanges = "",
                         Descriptions = item.FkEventTypeCodeNavigation.Code,
                         Author = string.Join(";", item.UserId, requestGroup),
-                        Date = item.OccuredAt.ToString("dd.MM.yyyy hh:mm:ss")
+                        Date = item.OccuredAt.ToString("dd.MM.yyyy HH:mm:ss")
                     });
             }            
             

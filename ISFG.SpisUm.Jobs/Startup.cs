@@ -1,4 +1,5 @@
 using System;
+using Cronos;
 using ISFG.Alfresco.Api;
 using ISFG.Alfresco.Api.Configurations;
 using ISFG.Alfresco.Api.Interfaces;
@@ -22,6 +23,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 
 namespace ISFG.SpisUm.Jobs
 {
@@ -81,12 +83,43 @@ namespace ISFG.SpisUm.Jobs
 
             services.AddCronJob<AuditLogThumbprintJob>(c =>
             {
-                c.TimeZoneInfo = TimeZoneInfo.Local;
-                c.CronExpression = $@"{TransactionHistoryConfiguration.CronExpression}"; // https://github.com/HangfireIO/Cronos
+                c.TimeZoneInfo = GetTimeZoneFromConfiguration();
+                c.CronExpression = GetCronExpressionFromConfiguration();
             });
             
             services.AddSingleton(TransactionHistoryConfiguration);
             services.AddScoped<ITransformTransactionHistory, TransformTransactionHistory>();
+        }
+
+        #endregion
+
+        #region Private Methods
+
+        private string GetCronExpressionFromConfiguration()
+        {
+            try
+            {
+                CronExpression.Parse(TransactionHistoryConfiguration?.Schedule?.CronExpression); // https://github.com/HangfireIO/Cronos
+                return $@"{TransactionHistoryConfiguration?.Schedule?.CronExpression}"; 
+            }
+            catch
+            {
+                Log.Warning($"Couldn't parse cronExpression '{TransactionHistoryConfiguration?.Schedule?.CronExpression}' from configuration. The default cronExpression '0 2 * * *' has been set.");
+                return @"0 2 * * *";
+            }
+        }
+
+        private TimeZoneInfo GetTimeZoneFromConfiguration()
+        {
+            try
+            {
+                return TimeZoneInfo.FindSystemTimeZoneById(TransactionHistoryConfiguration?.Schedule?.TimeZone ?? string.Empty);
+            }
+            catch
+            {
+                Log.Warning($"Couldn't parse timezone '{TransactionHistoryConfiguration?.Schedule?.TimeZone}' from configuration. The default 'Local' time zone has been set.");
+                return TimeZoneInfo.Local;
+            }
         }
 
         #endregion

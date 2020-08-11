@@ -8,8 +8,8 @@ namespace ISFG.SpisUm.Jobs.Configuration
     {
         #region Implementation of ITransactionHistoryConfiguration
 
+        public ScheduleConfiguration Schedule { get; set; }
         public string Address { get; set; }
-        public string CronExpression { get; set; }
         public string Name { get; set; }
         public string Originator { get; set; }
 

@@ -67,7 +67,7 @@ namespace ISFG.SpisUm.ClientSide.Validators
                     RuleFor(x => x)
                         .Must(x => _allowedPaths(identityUser.RequestGroup).Any(path => _nodeEntry?.Entry?.Path?.Name?.StartsWith(AlfrescoNames.Prefixes.Path + path, StringComparison.OrdinalIgnoreCase) == true))
                         .OnAnyFailure(x => throw new BadRequestException($"Document must be in {string.Join(" or ", _allowedPaths(identityUser.RequestGroup))}."));
-                    
+
                     RuleFor(x => x.NodeId)
                         .Must(x =>
                         {
@@ -75,12 +75,12 @@ namespace ISFG.SpisUm.ClientSide.Validators
 
                             _missingProperties.AddRange(_notNullProperties.Where(property => nodeProperties.GetNestedValueOrDefault(property)?.ToString() == null));
 
-                            if (nodeProperties.GetNestedValueOrDefault(SpisumNames.Properties.Form)?.ToString() == "analog" && 
+                            if (nodeProperties.GetNestedValueOrDefault(SpisumNames.Properties.Form)?.ToString() == SpisumNames.Form.Analog &&
                                 nodeProperties.GetNestedValueOrDefault(SpisumNames.Properties.ListCount)?.ToString() == null)
                             {
                                 _missingProperties.Add(SpisumNames.Properties.ListCount);
                                 return false;
-                            }                                
+                            }
 
                             return _notNullProperties.All(property => nodeProperties.GetNestedValueOrDefault(property)?.ToString() != null);
                         })
@@ -93,35 +93,30 @@ namespace ISFG.SpisUm.ClientSide.Validators
                            {
                                var nodeProperties = component?.Entry.Properties.As<JObject>().ToDictionary();
 
+                               var fileIsInOutputFormat = nodeProperties.GetNestedValueOrDefault(SpisumNames.Properties.FileIsInOutputFormat)?.ToString();
                                var fileIsReadable = nodeProperties.GetNestedValueOrDefault(SpisumNames.Properties.FileIsReadable)?.ToString();
                                var componentType = nodeProperties.GetNestedValueOrDefault(SpisumNames.Properties.ComponentType)?.ToString();
 
+                               // V_SETTLE_OUTPUTFORMAT
+                               if (fileIsInOutputFormat == null || fileIsInOutputFormat == SpisumNames.Global.No)
+                                   componentsIdNotInOutputFormat.Add(component?.Entry?.Id);
+
+                               // V_SETTLE_READABLE_TYPE
                                if (string.IsNullOrWhiteSpace(fileIsReadable) || string.IsNullOrWhiteSpace(componentType))
                                    componentsId.Add(component?.Entry?.Id);
                            });
 
-                           return componentsId.Count == 0;
-                       })
-                       .OnAnyFailure(x => throw new BadRequestException($"Components {string.Join(",", componentsId)} must have filled one of these properties: {SpisumNames.Properties.FileIsReadable}, " +
-                                                                        $"{SpisumNames.Properties.ComponentType}"));
+                           if (componentsId.Count != 0 && componentsIdNotInOutputFormat.Count != 0)
+                               throw new BadRequestException(ErrorCodes.V_SETTLE_OUTPUTFORMAT_READABLE_TYPE);
 
-                    RuleFor(x => x.NodeId)
-                        .Must(x =>
-                        {
-                            _components.ForEach(component =>
-                            {
-                                var nodeProperties = component?.Entry.Properties.As<JObject>().ToDictionary();
+                           if (componentsId.Count != 0)
+                               throw new BadRequestException(ErrorCodes.V_SETTLE_READABLE_TYPE);
 
-                                var fileIsInOutputFormat = nodeProperties.GetNestedValueOrDefault(SpisumNames.Properties.FileIsInOutputFormat)?.ToString();
+                           if (componentsIdNotInOutputFormat.Count != 0)
+                               throw new BadRequestException(ErrorCodes.V_SETTLE_OUTPUTFORMAT);
 
-                                if (fileIsInOutputFormat == null || fileIsInOutputFormat == "no")
-                                    componentsIdNotInOutputFormat.Add(component?.Entry?.Id);
-                            });
-
-                            return componentsIdNotInOutputFormat.Count == 0;
-
-                        })
-                        .OnAnyFailure(x => throw new BadRequestException($"Components {string.Join(",", componentsIdNotInOutputFormat)} property {SpisumNames.Properties.FileIsInOutputFormat} must be true"));
+                           return true;
+                       });
                 });
         }
 

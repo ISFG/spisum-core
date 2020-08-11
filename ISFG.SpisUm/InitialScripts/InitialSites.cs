@@ -82,9 +82,12 @@ namespace ISFG.SpisUm.InitialScripts
 
             if (configSitesRM != null && configSitesRM.Body != null)
                 await _initialSite.CreateSiteRmAndFolders(sites, configSitesRM, configGroups);
-           
+
             if (configShreddingPlan?.Count > 0)
-                await _initialSite.CreateRMShreddingPlan(configShreddingPlan.SelectMany(x => x.Items.Where(y => y.IsCaption != true && y.FileMark != null && y.Period != null)).ToList());
+            {
+                foreach (var shreddingPlan in configShreddingPlan)
+                    await _initialSite.CreateRMShreddingPlan(shreddingPlan);
+            }
             
             // update ROOT permissions for all users because of PID generator script
             if (SpisumNames.Groups.MainGroup != null)
@@ -98,6 +101,16 @@ namespace ISFG.SpisUm.InitialScripts
                     new Permission
                     {
                         Id = SpisumNames.Groups.MainGroup,
+                        Role = AlfrescoNames.Permissions.Editor
+                    },
+                    new Permission
+                    {
+                        Id = SpisumNames.Groups.EmailBox,
+                        Role = AlfrescoNames.Permissions.Editor
+                    },
+                    new Permission
+                    {
+                        Id = SpisumNames.Groups.DataBox,
                         Role = AlfrescoNames.Permissions.Editor
                     }
                 });

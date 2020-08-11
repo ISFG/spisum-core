@@ -76,7 +76,7 @@ namespace ISFG.SpisUm.ClientSide.Services
                 foreach (var componentId in componentsId)
                     try
                     {
-                        var componentEntryBeforeDelete = await _alfrescoHttpClient.GetNodeInfo(nodeId);
+                        var componentEntryBeforeDelete = await _alfrescoHttpClient.GetNodeInfo(componentId);
 
                         await _alfrescoHttpClient.DeleteSecondaryChildren(nodeId, componentId);
                         await _alfrescoHttpClient.CreateNodeSecondaryChildren(nodeId, new ChildAssociationBody
@@ -90,7 +90,6 @@ namespace ISFG.SpisUm.ClientSide.Services
                         try
                         {
                             var componentPid = componentEntryBeforeDelete?.GetPid();
-
 
                             if (parentInfo?.Entry?.NodeType == SpisumNames.NodeTypes.Concept)
                                 await _auditLogService.Record(nodeId, SpisumNames.NodeTypes.Component, componentPid, NodeTypeCodes.Komponenta, EventCodes.VyjmutiZDokumentu,
@@ -108,7 +107,7 @@ namespace ISFG.SpisUm.ClientSide.Services
 
                             if (fileId != null)
                                 await _auditLogService.Record(fileId, SpisumNames.NodeTypes.Component, componentPid, NodeTypeCodes.Komponenta, EventCodes.VyjmutiZDokumentu,
-                                    TransactinoHistoryMessages.DocumentComponentDeleteFile);
+                                    string.Format(TransactinoHistoryMessages.DocumentComponentDeleteFile, parentInfo?.GetPid()));
                         }
                         catch (Exception ex)
                         {

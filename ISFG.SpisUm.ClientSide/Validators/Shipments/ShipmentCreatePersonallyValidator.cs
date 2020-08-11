@@ -87,9 +87,7 @@ namespace ISFG.SpisUm.ClientSide.Validators.Shipments
                .WithMessage("AddressCity is too long");
 
             RuleFor(x => x.Body.AddressZip)
-               .Must(x => CheckLength(x, 100))
-               .When(x => x.Body != null)
-               .WithMessage("AddressZip is too long");
+                .MaximumLength(10);
 
             RuleFor(x => x.Body.AddressState)
                .Must(x => CheckLength(x, 100))

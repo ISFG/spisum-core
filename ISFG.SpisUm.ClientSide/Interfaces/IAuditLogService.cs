@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using ISFG.SpisUm.ClientSide.Models;
+using ISFG.SpisUm.ClientSide.Models.TransactionHistory;
 
 namespace ISFG.SpisUm.ClientSide.Interfaces
 {

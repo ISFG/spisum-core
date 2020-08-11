@@ -90,6 +90,7 @@ namespace ISFG.Alfresco.Api.Interfaces
         Task<SuccessARM> WebScriptsNodeRuleDelete(string storeType, string storeId, string Id, string ruleId, IImmutableList<Parameter> parameters = null);
         Task<GetNodeRulesARM> WebScriptsNodeRules (string storeType, string storeId, string Id, IImmutableList<Parameter> parameters = null);
         Task<CreateRuleARM> WebScriptsRuleCreate(string storeType, string storeId, string Id, CreateRuleAM body, IImmutableList<Parameter> parameters = null);
+        Task<object> WebScriptsRuleInheritance(string storeType, string storeId, string Id);
 
         #endregion
     }

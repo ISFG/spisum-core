@@ -87,6 +87,17 @@
             #endregion
         }
 
+        public static class Query
+        {
+            #region Fields
+            
+            public static readonly string Force = "force";
+            public static readonly string C = "c";
+            public static readonly string NoCache = "noCache";   
+            
+            #endregion
+        }
+
         public static class MemberType
         {
             #region Fields

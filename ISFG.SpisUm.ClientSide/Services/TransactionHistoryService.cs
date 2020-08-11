@@ -67,23 +67,49 @@ namespace ISFG.SpisUm.ClientSide.Services
             try
             {
                 var nodeEntry = await _alfrescoHttpClient.GetNodeInfo(nodeId);
-
-                var personEntry = await _alfrescoHttpClient.GetPerson(nextOwner);
+                
                 var groupEntry = await _alfrescoHttpClient.GetGroup(nextGroup);
                 var pid = nodeEntry?.GetPid();
                 
-                if (nodeEntry?.Entry?.NodeType == SpisumNames.NodeTypes.Document)
-                { 
-                    await _auditLogService.Record(nodeId, SpisumNames.NodeTypes.Document, pid, NodeTypeCodes.Dokument, EventCodes.PostoupeniAgende, string.Format(TransactinoHistoryMessages.DocumentHandover, personEntry?.Entry?.DisplayName, groupEntry?.Entry?.DisplayName));
-                    return;
-                }
-                if (nodeEntry?.Entry?.NodeType == SpisumNames.NodeTypes.Concept)
+                if (!string.IsNullOrWhiteSpace(nextOwner))
                 {
-                    await _auditLogService.Record(nodeId, SpisumNames.NodeTypes.Concept, pid, NodeTypeCodes.Dokument, EventCodes.PostoupeniAgende, string.Format(TransactinoHistoryMessages.ConceptHandover, personEntry?.Entry?.DisplayName, groupEntry?.Entry?.DisplayName));
-                    return;
+                    var personEntry = await _alfrescoHttpClient.GetPerson(nextOwner);
+
+                    if (nodeEntry?.Entry?.NodeType == SpisumNames.NodeTypes.Document)
+                    {
+                        await _auditLogService.Record(nodeId, SpisumNames.NodeTypes.Document, pid, NodeTypeCodes.Dokument, EventCodes.PostoupeniAgende,
+                            string.Format(TransactinoHistoryMessages.DocumentHandover, personEntry?.Entry?.DisplayName, groupEntry?.Entry?.DisplayName));
+                        return;
+                    }
+                    if (nodeEntry?.Entry?.NodeType == SpisumNames.NodeTypes.Concept)
+                    {
+                        await _auditLogService.Record(nodeId, SpisumNames.NodeTypes.Concept, pid, NodeTypeCodes.Dokument, EventCodes.PostoupeniAgende,
+                            string.Format(TransactinoHistoryMessages.ConceptHandover, personEntry?.Entry?.DisplayName, groupEntry?.Entry?.DisplayName));
+                        return;
+                    }
+                    if (nodeEntry?.Entry?.NodeType == SpisumNames.NodeTypes.File)
+                        await _auditLogService.Record(nodeId, SpisumNames.NodeTypes.File, pid, NodeTypeCodes.Spis, EventCodes.PostoupeniAgende,
+                            string.Format(TransactinoHistoryMessages.FileHandover, personEntry?.Entry?.DisplayName, groupEntry?.Entry?.DisplayName));
                 }
-                if (nodeEntry?.Entry?.NodeType == SpisumNames.NodeTypes.File) 
-                    await _auditLogService.Record(nodeId, SpisumNames.NodeTypes.File, pid, NodeTypeCodes.Spis, EventCodes.PostoupeniAgende, string.Format(TransactinoHistoryMessages.FileHandover, personEntry?.Entry?.DisplayName, groupEntry?.Entry?.DisplayName));
+                else
+                {
+                    if (nodeEntry?.Entry?.NodeType == SpisumNames.NodeTypes.Document)
+                    {
+                        await _auditLogService.Record(nodeId, SpisumNames.NodeTypes.Document, pid, NodeTypeCodes.Dokument, EventCodes.PostoupeniAgende,
+                            string.Format(TransactinoHistoryMessages.DocumentHandoverGroup, groupEntry?.Entry?.DisplayName));
+                        return;
+                    }
+                    if (nodeEntry?.Entry?.NodeType == SpisumNames.NodeTypes.Concept)
+                    {
+                        await _auditLogService.Record(nodeId, SpisumNames.NodeTypes.Concept, pid, NodeTypeCodes.Dokument, EventCodes.PostoupeniAgende,
+                            string.Format(TransactinoHistoryMessages.ConceptHandoverGroup, groupEntry?.Entry?.DisplayName));
+                        return;
+                    }
+                    if (nodeEntry?.Entry?.NodeType == SpisumNames.NodeTypes.File)
+                        await _auditLogService.Record(nodeId, SpisumNames.NodeTypes.File, pid, NodeTypeCodes.Spis, EventCodes.PostoupeniAgende,
+                            string.Format(TransactinoHistoryMessages.FileHandoverGroup, groupEntry?.Entry?.DisplayName));
+                }
+               
             }
             catch (Exception ex)
             {

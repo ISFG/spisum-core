@@ -133,7 +133,6 @@ namespace ISFG.SpisUm.ClientSide.Services
             if (pathRegex.IsMatch(nodeInfo?.Entry?.Path?.Name ?? ""))
                 return await CreateArhiveAndMoveAllFiles(body, archiveFolder, nodeType);
             throw new BadRequestException("", "Node is not in expected path");
-
         }
 
         #endregion
@@ -241,7 +240,7 @@ namespace ISFG.SpisUm.ClientSide.Services
 
                     var personGroup = await GetCreateUserGroup();
 
-                    updateBody.Permissions = _nodesService.SetPermissions(personGroup.GroupPrefix, _identityUser.Id).Permissions;
+                    updateBody.Permissions = _nodesService.SetPermissions(personGroup.GroupPrefix, _identityUser.Id, true).Permissions;
 
                     updateBody.Properties = new Dictionary<string, object>
                     {
@@ -260,7 +259,7 @@ namespace ISFG.SpisUm.ClientSide.Services
 
             // Set PID to archive
             List<NodeEntry> movedNodes = new List<NodeEntry>();
-            movedNodes.Add(await _nodesService.MoveByPath(body.NodeId, SpisumNames.Paths.EvidenceDocumentsForProcessing(_identityUser.RequestGroup)));
+            movedNodes.Add(await _nodesService.MoveByPath(body.NodeId, SpisumNames.Paths.MailRoomNotPassed));
             movedNodes.AddRange(await _nodesService.MoveAllComponets(body.NodeId));
 
             foreach (var copy in copiedNodes)
@@ -286,6 +285,8 @@ namespace ISFG.SpisUm.ClientSide.Services
                     }
                 });
             }
+
+            await _nodesService.Update(body);
 
             return await _alfrescoHttpClient.GetNodeInfo(body.NodeId);
         }

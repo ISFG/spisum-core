@@ -27,7 +27,8 @@ namespace ISFG.Signer.Client.Services
                 Input = fileData,
                 FileName = $"{Guid.NewGuid()}.pdf",
                 FileType = DocType.PDF,
-                SignatureType = SignatureType.DEFAULT
+                SignatureType = SignatureType.DEFAULT,
+                Params = "add_timestamp=false"  //CertificateID = "8ea191cc-270b-4bfb-92fa-ea103c788a28",
             }));
 
         public async Task<ValidateResponse> Validate(byte[] fileData) => await InvokeRequest(() => 

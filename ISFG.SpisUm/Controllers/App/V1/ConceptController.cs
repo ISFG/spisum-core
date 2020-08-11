@@ -11,11 +11,13 @@ using ISFG.Alfresco.Api.Models.CoreApiFixed;
 using ISFG.Common.Extensions;
 using ISFG.Common.Interfaces;
 using ISFG.Data.Models;
+using ISFG.Exceptions.Exceptions;
 using ISFG.SpisUm.ClientSide.Extensions;
 using ISFG.SpisUm.ClientSide.Interfaces;
 using ISFG.SpisUm.ClientSide.Models;
 using ISFG.SpisUm.ClientSide.Models.Concept;
 using ISFG.SpisUm.ClientSide.Models.Nodes;
+using ISFG.SpisUm.ClientSide.Models.TransactionHistory;
 using ISFG.SpisUm.Endpoints;
 using ISFG.SpisUm.Interfaces;
 using ISFG.SpisUm.Models.V1;
@@ -135,7 +137,7 @@ namespace ISFG.SpisUm.Controllers.App.V1
         {
             var componentEntry = await _componentService.CreateVersionedComponent(input.NodeId, input.FileData);
             var nodeFinal = await _validationService.CheckOutputFormat(componentEntry?.Entry?.Id, input.FileData);
-
+            await _validationService.UpdateDocumentOutputFormat(input.NodeId);
             try
             {
                 var documentEntry = await _alfrescoHttpClient.GetNodeInfo(input.NodeId);
@@ -166,16 +168,32 @@ namespace ISFG.SpisUm.Controllers.App.V1
         [HttpPost("{nodeId}/component/delete")]
         public async Task<List<string>> DeleteComponent([FromRoute] ConceptComponentCancel input)
         {
-            return await _componentService.CancelComponent(input.NodeId, input.ComponentsId);
+            var deleted = await _componentService.CancelComponent(input.NodeId, input.ComponentsId);
+            await _validationService.UpdateDocumentOutputFormat(input.NodeId);
+
+            return deleted;
         }
 
         /// <summary>
         /// Download a component        
         /// </summary>
         [HttpPost("{nodeId}/component/download")]
-        public async Task<FileContentResult> Download(List<string> nodesId)
+        public async Task<FileContentResult> Download([FromRoute] string nodeId, [FromBody] List<string> nodesId)
         {
-            var file = await _nodesService.Download(nodesId);
+            var notValidIds = new List<string>();
+            var childrens = await _alfrescoHttpClient.GetNodeSecondaryChildren(nodeId, ImmutableList<Parameter>.Empty
+                .Add(new Parameter(AlfrescoNames.Headers.Where, $"(assocType='{SpisumNames.Associations.Components}')", ParameterType.QueryString)));
+
+            foreach (var node in nodesId)
+                if (childrens.List.Entries.All(x => x.Entry.Id != node))
+                    notValidIds.Add(node);
+            
+            if (notValidIds.Any())
+                throw new BadRequestException($"Node id's '{string.Join(",", notValidIds.ToArray())}' are not associated with concept.");
+
+            var nodeEntry = await _alfrescoHttpClient.GetNodeInfo(nodeId);
+
+            var file = await _nodesService.Download(nodesId, nodeEntry?.GetPid());
 
             try
             {
@@ -189,13 +207,13 @@ namespace ISFG.SpisUm.Controllers.App.V1
                     var componentPid = componentEntry?.GetPid();
 
                     await _auditLogService.Record(documentEntry?.Entry?.Id, SpisumNames.NodeTypes.Component, componentPid, NodeTypeCodes.Komponenta, EventCodes.Export, 
-                        TransactinoHistoryMessages.ConceptComponentPostContentDocument);
+                        TransactinoHistoryMessages.ConceptComponentDownloadDocument);
 
                     var fileId = await _documentService.GetDocumentFileId(documentEntry?.Entry?.Id);
 
                     if (fileId != null)
                         await _auditLogService.Record(fileId, SpisumNames.NodeTypes.Component, componentPid, NodeTypeCodes.Komponenta, EventCodes.Export, 
-                            TransactinoHistoryMessages.ConceptComponentPostContentFile);
+                            TransactinoHistoryMessages.ConceptComponentDownloadFile);
 
                 });
             }
@@ -330,8 +348,8 @@ namespace ISFG.SpisUm.Controllers.App.V1
         public async Task<FileContentResult> GetThumbnailPdf([FromRoute] string nodeId, [FromRoute] string componentId)
         {
             var fileContent = await _alfrescoHttpClient.GetThumbnailPdf(componentId, ImmutableList<Parameter>.Empty
-                .Add(new Parameter("c", "force", ParameterType.QueryString))
-                .Add(new Parameter("noCache", DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds, ParameterType.QueryString)));
+                .Add(new Parameter(AlfrescoNames.Query.C, AlfrescoNames.Query.Force, ParameterType.QueryString))
+                .Add(new Parameter(AlfrescoNames.Query.NoCache, DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds, ParameterType.QueryString)));
 
             if (fileContent != null)
             {
@@ -344,12 +362,14 @@ namespace ISFG.SpisUm.Controllers.App.V1
 
                     var componentPid = componentEntry?.GetPid();
 
-                    await _auditLogService.Record(documentEntry?.Entry?.Id, SpisumNames.NodeTypes.Component, componentPid, NodeTypeCodes.Komponenta, EventCodes.Zobrazeni, TransactinoHistoryMessages.DocumentComponentGetContentDocument);
+                    await _auditLogService.Record(documentEntry?.Entry?.Id, SpisumNames.NodeTypes.Component, componentPid, NodeTypeCodes.Komponenta, EventCodes.Zobrazeni, 
+                        TransactinoHistoryMessages.DocumentComponentGetContentDocument);
 
                     var fileId = await _documentService.GetDocumentFileId(documentEntry?.Entry?.Id);
 
                     if (fileId != null)
-                        await _auditLogService.Record(fileId, SpisumNames.NodeTypes.Component, componentPid, NodeTypeCodes.Komponenta, EventCodes.Zobrazeni, TransactinoHistoryMessages.DocumentComponentGetContentFile);
+                        await _auditLogService.Record(fileId, SpisumNames.NodeTypes.Component, componentPid, NodeTypeCodes.Komponenta, EventCodes.Zobrazeni, 
+                                TransactinoHistoryMessages.DocumentComponentGetContentFile);
 
                 }
                 catch (Exception ex)
@@ -461,38 +481,41 @@ namespace ISFG.SpisUm.Controllers.App.V1
                     nodeEntryBeforeUpdate?.Entry?.Properties?.As<JObject>().ToDictionary(),
                     nodeEntryAfterUpdate?.Entry?.Properties?.As<JObject>().ToDictionary());
 
-                try
+                if (difference.Count > 0)
                 {
-                    var componentsJson = difference.FirstOrDefault(x => x.Key == SpisumNames.Properties.ComponentVersionJSON);
-                    if (componentsJson != null)
-                        difference.Remove(componentsJson);
-                }
-                catch { }
+                    try
+                    {
+                        var componentsJson = difference.FirstOrDefault(x => x.Key == SpisumNames.Properties.ComponentVersionJSON);
+                        if (componentsJson != null)
+                            difference.Remove(componentsJson);
+                    }
+                    catch { }
 
-                string messageDocument = TransactinoHistoryMessages.GetMessagePropertiesChange(TransactinoHistoryMessages.ConceptComponentUpdateDocument, difference);
-                string messageFile = TransactinoHistoryMessages.GetMessagePropertiesChange(TransactinoHistoryMessages.ConceptComponentUpdateFile, difference);
+                    string messageDocument = TransactinoHistoryMessages.GetMessagePropertiesChange(TransactinoHistoryMessages.ConceptComponentUpdateDocument, difference);
+                    string messageFile = TransactinoHistoryMessages.GetMessagePropertiesChange(TransactinoHistoryMessages.ConceptComponentUpdateFile, difference);
 
-                await _auditLogService.Record(
-                    documentEntry?.Entry?.Id,
-                    SpisumNames.NodeTypes.Component,
-                    nodeEntryBeforeUpdate?.GetPid(),
-                    NodeTypeCodes.Komponenta,
-                    EventCodes.Uprava,
-                    nodeEntryBeforeUpdate?.Entry?.Properties?.As<JObject>().ToDictionary(),
-                    nodeEntryAfterUpdate?.Entry?.Properties?.As<JObject>().ToDictionary(),
-                    messageDocument);
-
-                var fileId = await _documentService.GetDocumentFileId(documentEntry?.Entry?.Id);
-                if (fileId != null)
                     await _auditLogService.Record(
-                        fileId,
+                        documentEntry?.Entry?.Id,
                         SpisumNames.NodeTypes.Component,
                         nodeEntryBeforeUpdate?.GetPid(),
                         NodeTypeCodes.Komponenta,
                         EventCodes.Uprava,
                         nodeEntryBeforeUpdate?.Entry?.Properties?.As<JObject>().ToDictionary(),
                         nodeEntryAfterUpdate?.Entry?.Properties?.As<JObject>().ToDictionary(),
-                        messageFile);
+                        messageDocument);
+
+                    var fileId = await _documentService.GetDocumentFileId(documentEntry?.Entry?.Id);
+                    if (fileId != null)
+                        await _auditLogService.Record(
+                            fileId,
+                            SpisumNames.NodeTypes.Component,
+                            nodeEntryBeforeUpdate?.GetPid(),
+                            NodeTypeCodes.Komponenta,
+                            EventCodes.Uprava,
+                            nodeEntryBeforeUpdate?.Entry?.Properties?.As<JObject>().ToDictionary(),
+                            nodeEntryAfterUpdate?.Entry?.Properties?.As<JObject>().ToDictionary(),
+                            messageFile);
+                }
             }
             catch (Exception ex)
             {
@@ -518,31 +541,35 @@ namespace ISFG.SpisUm.Controllers.App.V1
                 conceptEntryBeforeUpdate?.Entry?.Properties?.As<JObject>().ToDictionary(),
                 conceptEntryAfterUpdate?.Entry?.Properties?.As<JObject>().ToDictionary());
 
-            try
+            if (difference.Count > 0)
             {
-                var componentsJson = difference.FirstOrDefault(x => x.Key == SpisumNames.Properties.ComponentVersionJSON);
-                if (componentsJson != null)
-                    difference.Remove(componentsJson);
-            }
-            catch { }
+                try
+                {
+                    var componentsJson = difference.FirstOrDefault(x => x.Key == SpisumNames.Properties.ComponentVersionJSON);
+                    if (componentsJson != null)
+                        difference.Remove(componentsJson);
+                }
+                catch { }
 
-            string messageDocument = TransactinoHistoryMessages.GetMessagePropertiesChange(TransactinoHistoryMessages.ConceptUpdate, difference);
+                string messageDocument = TransactinoHistoryMessages.GetMessagePropertiesChange(TransactinoHistoryMessages.ConceptUpdate, difference);
 
-            try
-            {
-                await _auditLogService.Record(
-                    documentId,
-                    SpisumNames.NodeTypes.Concept,
-                    documentPid,
-                    NodeTypeCodes.Dokument,
-                    EventCodes.Uprava,
-                    conceptEntryBeforeUpdate?.Entry?.Properties?.As<JObject>().ToDictionary(),
-                    conceptEntryAfterUpdate?.Entry?.Properties?.As<JObject>().ToDictionary(),
-                    messageDocument);
-            }
-            catch (Exception ex)
-            {
-                Log.Logger?.Error(ex, "Audit log failed");
+                try
+                {
+                    await _auditLogService.Record(
+                        documentId,
+                        SpisumNames.NodeTypes.Concept,
+                        documentPid,
+                        NodeTypeCodes.Dokument,
+                        EventCodes.Uprava,
+                        conceptEntryBeforeUpdate?.Entry?.Properties?.As<JObject>().ToDictionary(),
+                        conceptEntryAfterUpdate?.Entry?.Properties?.As<JObject>().ToDictionary(),
+                        messageDocument);
+                }
+                catch (Exception ex)
+                {
+                    Log.Logger?.Error(ex, "Audit log failed");
+                }
+
             }
 
             return conceptEntryAfterUpdate;
@@ -561,18 +588,20 @@ namespace ISFG.SpisUm.Controllers.App.V1
 
             try
             {
-                var componentPid = componentEntryAfterUpdate?.GetPid();
+                var component = await _alfrescoHttpClient.GetNodeInfo(input.ComponentId);
+
+                var componentPid = component?.GetPid();
 
                 await _auditLogService.Record(input.NodeId, SpisumNames.NodeTypes.Component, componentPid, NodeTypeCodes.Komponenta, EventCodes.NovaVerze,
                     componentEntryBeforeUpdate?.Entry?.Properties?.As<JObject>().ToDictionary(),
                     componentEntryAfterUpdate?.Entry?.Properties?.As<JObject>().ToDictionary(),
-                    TransactinoHistoryMessages.ConceptComponentDownloadDocument);
+                    TransactinoHistoryMessages.ConceptComponentPostContentDocument);
 
                 var fileId = await _documentService.GetDocumentFileId(input.NodeId);
 
                 if (fileId != null)
                     await _auditLogService.Record(fileId, SpisumNames.NodeTypes.Component, componentPid, NodeTypeCodes.Komponenta, EventCodes.NovaVerze, 
-                        TransactinoHistoryMessages.ConceptComponentDownloadFile);
+                        TransactinoHistoryMessages.ConceptComponentPostContentFile);
 
             }
             catch (Exception ex)

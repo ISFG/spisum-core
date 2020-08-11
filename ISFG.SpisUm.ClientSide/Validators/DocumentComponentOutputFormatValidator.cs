@@ -60,7 +60,7 @@ namespace ISFG.SpisUm.ClientSide.Validators
                             var properties = _nodeEntry?.Entry?.Properties?.As<JObject>().ToDictionary();
                             var fileIsInOutputFormat = properties.GetNestedValueOrDefault(SpisumNames.Properties.FileIsInOutputFormat)?.ToString();
 
-                            return fileIsInOutputFormat != "yes";
+                            return fileIsInOutputFormat != SpisumNames.Global.Yes;
                         })
                         .WithMessage("Component is already in output format.");
                 });

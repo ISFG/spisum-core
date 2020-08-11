@@ -1,7 +1,7 @@
 ﻿using System;
 using AutoMapper;
 using EntityFrameworkPaginateCore;
-using ISFG.SpisUm.ClientSide.Models;
+using ISFG.SpisUm.ClientSide.Models.TransactionHistory;
 using Newtonsoft.Json;
 using Serilog;
 

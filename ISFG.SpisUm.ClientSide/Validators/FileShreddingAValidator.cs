@@ -54,9 +54,9 @@ namespace ISFG.SpisUm.ClientSide.Validators
                     
                     RuleFor(x => x)
                         .Must(x => 
-                            _nodeEntry?.Entry?.Path?.Name?.StartsWith(AlfrescoNames.Prefixes.Path + SpisumNames.Paths.RepositoryFilesStored, StringComparison.OrdinalIgnoreCase) == true || 
-                            _nodeEntry?.Entry?.Path?.Name?.StartsWith(AlfrescoNames.Prefixes.Path + SpisumNames.Paths.RepositoryFilesRented, StringComparison.OrdinalIgnoreCase) == true)
-                        .OnAnyFailure(x => throw new BadRequestException($"File must be in {SpisumNames.Paths.RepositoryFilesStored} or {SpisumNames.Paths.RepositoryFilesRented} path."));      
+                            _nodeEntry?.Entry?.Path?.Name?.StartsWith(AlfrescoNames.Prefixes.Path + SpisumNames.Paths.RepositoryStored, StringComparison.OrdinalIgnoreCase) == true || 
+                            _nodeEntry?.Entry?.Path?.Name?.StartsWith(AlfrescoNames.Prefixes.Path + SpisumNames.Paths.RepositoryRented, StringComparison.OrdinalIgnoreCase) == true)
+                        .OnAnyFailure(x => throw new BadRequestException($"File must be in {SpisumNames.Paths.RepositoryStored} or {SpisumNames.Paths.RepositoryRented} path."));      
                     
                     RuleFor(x => x.NodeId)
                         .Must(x =>

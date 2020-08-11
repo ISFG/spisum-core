@@ -19,10 +19,10 @@ namespace ISFG.Alfresco.Api.Models
         public static string ConceptComponentGetContentFile = "Zobrazení náhledu komponenty.";
         public static string ConceptComponentPostContentDocument = "Nahrání nové verze komponenty.";
         public static string ConceptComponentPostContentFile = "Nahrání nové verze komponenty.";
-        public static string ConceptComponentDeleteDocument = "Odebrání komponenty od dokumentu.";
+        public static string ConceptComponentDeleteDocument = "Odebrání komponenty od konceptu.";
         public static string Concept = "Zobrazení detailu konceptu.";
-        public static string ConceptToDocument = "Povýšení konceptu na dokument.";
-        public static string ConceptRevert = "Vznik verze [cislonoveverze] obnovením verze [cisloobnoveneverze] .";
+        public static string ConceptToDocument = "Povýšení konceptu {0} na dokument.";
+        public static string ConceptRevert = "Vznik verze {0} obnovením verze {1} .";
 
         public static string ShipmentEmailCreate = "Založení zásilky emailem.";
         public static string ShipmentPostCreate = "Založení zásilky poštou.";
@@ -45,21 +45,23 @@ namespace ISFG.Alfresco.Api.Models
         public static string ShipmentSendEmailDataBoxToDispatch = "Předání zásilky do výpravny.";
         public static string ShipmentSendEmailDataBoxDispatched = "Vypravení zásilky.";
         public static string ShipmentSendEmailDataBoxFailed = "Neúspěšné vypravení zásilky.";
-        public static string ShipmentReturn = "Vrácení zásilky z výpravny.";
+        public static string ShipmentReturn = "Vrácení zásilky z výpravny z důvodu {0}.";
         public static string ShipmentResend = "Předání zásilky do výpravny.";
 
         public static string Document = "Zobrazení detailu dokumentu.";
         public static string DocumentSignComponent = "Podepsání komponenty.";
+        public static string DocumentSignComponentWithVisual = "Podepsání komponenty s vizualizací podpisu.";
+        public static string DocumentSignComponentWithoutVisual = "Podepsání komponenty bez vizualizace podpisu.";
         public static string DocumentCreate = "Založení dokumentu.";
-        public static string DocumentSettle = "Dokument vyřízen \"{0}\".";
-        public static string DocumentRevert = "Vznik verze [cislonoveverze] obnovením verze [cisloobnoveneverze] .";
-        public static string DocumentSettleMethodOther = "Dokument vyřízen \"{0}\". Obsahem vyřízení je \"{1}\" z důvodu \"{2}\".";
-        public static string DocumentSettleCancel = "Zrušeno vyřízení dokumentu z důvodu \"{0}\".";
+        public static string DocumentSettle = "Vyřízení dokumentu způsobem \"{0}\".";
+        public static string DocumentRevert = "Vznik verze {0} obnovením verze {1}.";
+        public static string DocumentSettleMethodOther = "Vyřízení dokumentu způsobem \"{0}\". Obsahem vyřízení je \"{1}\" z důvodu \"{2}\".";
+        public static string DocumentSettleCancel = "Zrušení vyřízení dokumentu z důvodu \"{0}\".";
         public static string DocumentChangeLocation = "Změna úložného místa z \"{0}\" na \"{1}\".";
         public static string DocumentToRepository = "Dokument předán do spisovny.";
         public static string DocumentBorrow = "Zapůjčení dokumentu uživateli {0}, {1}.";
         public static string DocumentReturn = "Vrácení zapůjčeného dokumentu do spisovny.";
-        public static string DocumentLostDestroy = "Ztráta/zničení dokumentu.";
+        public static string DocumentLostDestroy = "Ztráta/zničení dokumentu z důvodu \"{0}\".";
         public static string DocumentChangeRetentionMark = "Změna skartačního znaku z \"{0}\" na \"{1}\".";
         public static string DocumentChangeRetentionMarkFile = "Změna skartačního znaku z \"{0}\" na \"{1}\".";
         public static string DocumentChangeFileMark = "Změna spisového znaku z \"{0}\" na \"{1}\". " + Environment.NewLine + "Změna skartačního režimu z \"{2}\" na \"{3}\". ";
@@ -75,7 +77,7 @@ namespace ISFG.Alfresco.Api.Models
         public static string DocumentShreddingDiscardCancel = "Zrušení vyřazení dokumentu ze skartačního řízení.";
         public static string FileChangeFileMark = "Změna spisového znaku z \"{0}\" na \"{1}\". " + Environment.NewLine + "Změna skartačního režimu z \"{2}\" na \"{3}\". ";
 
-        public static string File = "Zobrazení detauli spisu.";
+        public static string File = "Zobrazení detailu spisu.";
         public static string FileCreate = "Založení spisu.";
         public static string FileCreateAddDocument = "Vložení dokumentu do spisu {0}.";
         public static string FileCreateAddFile = "Vložení dokumentu {0} do spisu.";
@@ -87,15 +89,16 @@ namespace ISFG.Alfresco.Api.Models
         public static string FileToRepository = "Spis předán do spisovny.";
         public static string FileShreddingChange = "Změna skartačního znaku z \"{0}\" na \"{1}\".";
         public static string FileOpen = "Otevtření spisu z důvodu \"{0}\".";
-        public static string FileClose = "Uzavření spisu";
-        public static string FileCloseSettle = "Spis vyřízen \"{0}\".";
-        public static string FileCloseSettleOther = "Spis vyřízen \"{0}\". Obsahem vyřízení je \"{1}\" z důvodu \"{2}\".";
+        public static string FileClose = "Spis vyřízen způsobem {0}. Obsahem vyřízení je {1} z důvodu {2}.";
+        public static string FileCloseSettle = "Vyřízení spisu způsobem \"{0}\".";
+        public static string FileCloseSettleOther = "Vyřízení spisu způsobem \"{0}\". Obsahem vyřízení je \"{1}\" z důvodu \"{2}\".";
         public static string FileFavoriteAdd = "Označení spisu jako oblíbený.";
-        public static string FileFavoriteRemove = "Zrušení spisu dokumentu jako oblíbený.";
+        public static string FileFavoriteRemove = "Zrušení označení spisu jako oblíbený.";
         public static string FileUpdate = "Změna hodnoty pole {0} z \"{1}\" na \"{2}\". ";
         public static string FileChangeLocation = "Změna úložného místa z \"{0}\" na \"{1}\".";
         public static string FileBorrow = "Zapůjčení spisu uživateli {0}, {1}.";
         public static string FileReturn = "Vrácení zapůjčeného spisu do spisovny.";
+        public static string FileLostDestroy = "Ztráta/zničení spisu z důvodu \"{0}\".";
 
         public static string DocumentForSignature = "Předání dokumentu k podpisu uživateli {0}, {1}.";
         public static string DocumentReturnForRework = "Vrácení dokumentu k přepracování uživateli {0}, {1}.";
@@ -104,6 +107,10 @@ namespace ISFG.Alfresco.Api.Models
         public static string DocumentHandover = "Předání dokumentu uživateli {0}, {1}.";
         public static string ConceptHandover = "Předání konceptu uživateli {0}, {1}.";
         public static string FileHandover = "Předání spisu uživateli {0}, {1}.";
+
+        public static string DocumentHandoverGroup = "Předání dokumentu na skupinu {0}.";
+        public static string ConceptHandoverGroup = "Předání konceptu na skupinu {0}.";
+        public static string FileHandoverGroup = "Předání spisu na skupinu {0}.";
 
         public static string DocumentHandoverAccept = "Převzetí dokumentu.";
         public static string ConceptHandoverAccept = "Převzetí konceptu.";
@@ -127,7 +134,7 @@ namespace ISFG.Alfresco.Api.Models
 
         public static string DocumentComponentDeleteComponent = "Odebrání komponenty od dokumentu.";
         public static string DocumentComponentDeleteDocument = "Odebrání komponenty od dokumentu.";
-        public static string DocumentComponentDeleteFile = "Odebrání komponenty od dokumentu.";
+        public static string DocumentComponentDeleteFile = "Odebrání komponenty od dokumentu {0}.";
 
         public static string DocumentComponentGetContentComponent = "Zobrazení náhledu komponenty.";
         public static string DocumentComponentGetContentDocument = "Zobrazení náhledu komponenty.";
@@ -142,8 +149,8 @@ namespace ISFG.Alfresco.Api.Models
         public static string DocumentComponentDownloadFile = "Stažení komponenty.";
 
         public static string ConceptCancel = "Storno konceptu z důvodu \"{0}\".";
-        public static string DocumentCancel = "Storno dokumentu \"{0}\".";
-        public static string FileCancel = "Storno spisu \"{0}\".";
+        public static string DocumentCancel = "Storno dokumentu z důvodu \"{0}\".";
+        public static string FileCancel = "Storno spisu z důvodu \"{0}\".";
 
         public static string DocumentRegister = "Zaevidování dokumentu.";
 

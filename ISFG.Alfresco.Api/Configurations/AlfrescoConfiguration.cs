@@ -53,6 +53,7 @@ namespace ISFG.Alfresco.Api.Configurations
 
         public string FolderName { get; set; }
         public ScriptFile[] Files { get; set; }
+        public List<string> DisableInheritanceRules { get; set; }
 
         #endregion
     }

@@ -1,14 +1,16 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using ISFG.Alfresco.Api.Interfaces;
+﻿using ISFG.Alfresco.Api.Interfaces;
 using ISFG.Alfresco.Api.Models.Sites;
 using ISFG.Common.Interfaces;
+using ISFG.Pdf.Interfaces;
 using ISFG.SpisUm.Attributes;
 using ISFG.SpisUm.ClientSide.Interfaces;
 using ISFG.SpisUm.Endpoints;
 using ISFG.SpisUm.Models.V1;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Mime;
+using System.Threading.Tasks;
 
 namespace ISFG.SpisUm.Controllers.App.V1
 {
@@ -25,17 +27,27 @@ namespace ISFG.SpisUm.Controllers.App.V1
         private readonly string _cacheKey = nameof(CodeListsController);
         private readonly INodesService _nodesService;
         private readonly ISimpleMemoryCache _simpleMemoryCache;
+        private readonly IPdfService _pdfService;
+        private readonly ITransformService _transformService;
 
         #endregion
 
         #region Constructors
 
-        public CodeListsController(IAlfrescoConfiguration alfrescoConfiguration, IAlfrescoHttpClient alfrescoHttpClient, ISimpleMemoryCache simpleMemoryCache, INodesService nodesService)
+        public CodeListsController(
+            IAlfrescoConfiguration alfrescoConfiguration,
+            IAlfrescoHttpClient alfrescoHttpClient, 
+            ISimpleMemoryCache simpleMemoryCache, 
+            INodesService nodesService, 
+            IPdfService pdfService, 
+            ITransformService transformService)
         {
             _alfrescoConfig = alfrescoConfiguration;
             _alfrescoHttpClient = alfrescoHttpClient;
             _simpleMemoryCache = simpleMemoryCache;
             _nodesService = nodesService;
+            _pdfService = pdfService;
+            _transformService = transformService;
         }
 
         #endregion
@@ -90,7 +102,19 @@ namespace ISFG.SpisUm.Controllers.App.V1
         {
             return _nodesService.GetShreddingPlans();
         }
-
+        
+        [HttpGet("shredding-plan-print")]
+        public async Task<FileContentResult> GetShreddingPlanPrint(string shreddingPlanId)
+        {
+            var transform = await _transformService.ShreddingPlan(shreddingPlanId);
+            var pdf = await _pdfService.GenerateShreddingPlan(transform);
+            
+            return new FileContentResult(pdf.ToArray(), MediaTypeNames.Application.Pdf)
+            {
+                FileDownloadName = $"{shreddingPlanId}.pdf"
+            };
+        }        
+ 
         #endregion
     }
 }

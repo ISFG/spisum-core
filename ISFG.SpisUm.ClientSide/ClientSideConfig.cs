@@ -8,6 +8,7 @@ using ISFG.SpisUm.ClientSide.Models.File;
 using ISFG.SpisUm.ClientSide.Models.Nodes;
 using ISFG.SpisUm.ClientSide.Models.Shipments;
 using ISFG.SpisUm.ClientSide.Models.Shredding;
+using ISFG.SpisUm.ClientSide.Models.Signer;
 using ISFG.SpisUm.ClientSide.Services;
 using ISFG.SpisUm.ClientSide.Validators;
 using ISFG.SpisUm.ClientSide.Validators.Concept;

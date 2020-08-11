@@ -1,6 +1,6 @@
 ﻿using ISFG.Alfresco.Api.Models;
 
-namespace ISFG.SpisUm.ClientSide.Models
+namespace ISFG.SpisUm.ClientSide.Models.Query
 {
     public class GetPeopleModel : BasicQueryParams
     {

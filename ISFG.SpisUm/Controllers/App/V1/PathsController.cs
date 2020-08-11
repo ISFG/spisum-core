@@ -1,9 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Threading.Tasks;
-using ISFG.Alfresco.Api.Interfaces;
-using ISFG.Alfresco.Api.Models;
+﻿using ISFG.Alfresco.Api.Interfaces;
 using ISFG.Alfresco.Api.Models.CoreApi.CoreApi;
 using ISFG.Alfresco.Api.Models.GsApi.GsApi;
 using ISFG.Alfresco.Api.Models.Site;
@@ -18,7 +13,9 @@ using ISFG.SpisUm.Models.V1;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
-using RestSharp;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ISFG.SpisUm.Controllers.App.V1
 {
@@ -115,7 +112,6 @@ namespace ISFG.SpisUm.Controllers.App.V1
                 var path = "rm/documentLibrary";
                 result.Add(new PathsModel
                 {
-                    Id = await getNodeId(path),
                     Name = "RM",
                     Childs = await GetAllChilds(configSitesRM.Childs, path, null),
                     Path = path,
@@ -151,7 +147,6 @@ namespace ISFG.SpisUm.Controllers.App.V1
 
                 result.Add(new PathsModel
                 {
-                    Id = await getNodeId(childPath),
                     Childs = await GetAllChilds(child.Childs, childPath, key == null ? name : key + name),
                     Name = name,
                     Path = childPath,
@@ -169,31 +164,12 @@ namespace ISFG.SpisUm.Controllers.App.V1
                 var path = $"{configSite.Body.Id}/documentLibrary";
                 result.Add(new PathsModel
                 {
-                    Id = await getNodeId(path),
                     Name = configSite.Body.Id,
                     Childs = await GetAllChilds(configSite.Childs, path, null),
                     Path = path,
                     Permissions = configSite?.Permissions?.Select(x => x.Id)?.ToList() ?? new List<string>()
                 });
             }
-        }
-
-        private async Task<string> getNodeId(string path)
-        {
-            try
-            {
-                var response = await _alfrescoHttpClient.GetNodeInfo(AlfrescoNames.Aliases.Root, ImmutableList<Parameter>.Empty
-                    /*.Add(new Parameter(AlfrescoNames.Headers.Fields, "id", ParameterType.QueryString))*/
-                    .Add(new Parameter(AlfrescoNames.Headers.RelativePath, $"Sites/{path}", ParameterType.QueryString)));
-
-                return response?.Entry?.Id;
-            }
-            catch
-            {
-
-            }
-
-            return null;
         }
 
         #endregion

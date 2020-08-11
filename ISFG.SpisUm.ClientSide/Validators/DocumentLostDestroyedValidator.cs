@@ -5,10 +5,12 @@ using ISFG.Alfresco.Api.Interfaces;
 using ISFG.Alfresco.Api.Models;
 using ISFG.Alfresco.Api.Models.CoreApi.CoreApi;
 using ISFG.Alfresco.Api.Models.CoreApiFixed;
+using ISFG.Common.Extensions;
 using ISFG.Common.Interfaces;
 using ISFG.Exceptions.Exceptions;
 using ISFG.SpisUm.ClientSide.Models;
 using ISFG.SpisUm.ClientSide.Models.Nodes;
+using Newtonsoft.Json.Linq;
 using RestSharp;
 
 namespace ISFG.SpisUm.ClientSide.Validators
@@ -46,8 +48,14 @@ namespace ISFG.SpisUm.ClientSide.Validators
                         .WithMessage($"User isn't member of group {identityUser.RequestGroup}.");
                     
                     RuleFor(x => x.NodeId)
-                        .Must(x => _nodeEntry.Entry.NodeType == SpisumNames.NodeTypes.Document)
+                        .Must(x => _nodeEntry?.Entry?.NodeType == SpisumNames.NodeTypes.Document)
                         .WithMessage(x => $"Provided nodeId must be NodeType {SpisumNames.NodeTypes.Document}");
+                    
+                    RuleFor(x => x.NodeId)
+                        .Must(x => _nodeEntry?.Entry?.Properties?.As<JObject>()?
+                            .ToDictionary()?
+                            .GetNestedValueOrDefault(SpisumNames.Properties.Form)?.ToString() == SpisumNames.Form.Analog)
+                        .WithMessage(x => $"Provided nodeId must have form {SpisumNames.Form.Analog}");
                 });
             
             RuleFor(x => x)

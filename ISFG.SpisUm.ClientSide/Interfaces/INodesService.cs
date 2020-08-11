@@ -24,11 +24,12 @@ namespace ISFG.SpisUm.ClientSide.Interfaces
         Task<NodeEntry> CreatePermissions(string nodeId, string prefix = null, string owner = null, bool isInheritanceEnabled = false);
         Task<NodeEntry> CreatePermissionsWithoutPostfixes(string nodeId, string prefix = null, string owner = null, bool isInheritanceEnabled = false);
         Task CreateSecondaryChildrenAsAdmin(string parentId, ChildAssociationBody body);
+        ImmutableList<Parameter> CloneProperties(Dictionary<string, object> properties, ImmutableList<Parameter> parameters);
         Task DeclineOwner(string nodeId, bool cancelAction);
         Task DeleteNodeAsAdmin(string nodeId);
         Task DeleteNodePermanent(string nodeId, bool permanent = true);
         Task DeleteSecondaryChildrenAsAdmin(string parentId, string childrenId, IImmutableList<Parameter> parameters = null);
-        Task<FileContentResult> Download(List<string> nodesId);
+        Task<FileContentResult> Download(List<string> nodesId, string zipName);
         Task<List<string>> FoundNode(string[] nodeIds, string nodeType);
         Task<NodeEntry> GenerateSsid(string nodeId, GenerateSsid ssid);
         Task<List<NodeChildAssociationEntry>> GetChildren(string nodeId, bool includeProperties = false, bool includePath = false);
@@ -36,26 +37,28 @@ namespace ISFG.SpisUm.ClientSide.Interfaces
         Task<NodeBodyUpdate> GetNodeBodyUpdateWithPermissionsAsAdmin(string nodeId);
         Task<List<NodeEntry>> GetNodesInfo(List<string> nodesId);
         Task<List<NodeAssociationPaging>> GetParents(List<string> nodeIds);
-        Task<List<NodeAssociationEntry>> GetParentsByAssociation(string nodeId, List<string> associations);
+        Task<List<NodeAssociationEntry>> GetParentsByAssociation(string nodeId, List<string> associations, IImmutableList<Parameter> parameters = null);
         Task<List<NodeChildAssociationEntry>> GetSecondaryChildren(string nodeId, string association, bool includePath = false, bool includeProperties = false);
         Task<List<NodeChildAssociationEntry>> GetSecondaryChildren(string nodeId, List<string> associations, bool includePath = false, bool includeProperties = false);
         List<ShreddingPlanModel> GetShreddingPlans();
         Task<bool> IsMemberOfRepository(string requestGroup);
         Task<bool> IsNodeLocked(string nodeId);
         Task LockAll(string nodeId);
+        Task LockAll(string nodeId, List<string> excludedNodeTypes);
         Task LostDestroyedNode(string nodeId, string reason);
         Task<List<NodeEntry>> MoveAllComponets(string nodeId);
         Task<List<NodeEntry>> MoveByPath(List<string> nodesId, string targetPath);
         Task<NodeEntry> MoveByPath(string nodeId, string targetPath);
         Task<NodeEntry> MoveByPathAsAdmin(string nodeId, string targetPath);
         Task<NodeEntry> MoveByPathCached(string nodeId, string destinationPath);
-        Task MoveForSignature(string nodeId, string group);
+        Task MoveForSignature(string nodeId, string group, string signGroup, string signUser);
         Task<NodeEntry> MoveFromSignature(string nodeId);
         Task MoveHandOverPath(string nodeId, string group, string nextGroup, string nextOwner);
         Task<List<NodeEntry>> MoveChildren(string nodeId, string targetNodeId);
         Task<List<NodeEntry>> MoveChildrenByPath(string nodeId, string targetPath);
-        Task MoveOwner(string nodeId, string group, bool isMemberOfDispatch = false);
+        Task MoveOwner(string nodeId, string group, bool isMemberOfDispatch = false, bool isDecline = false);
         Task<NodeEntry> NodeLockAsAdmin(string nodeId);
+        Task<NodeEntry> NodeUnlockAsAdmin(string nodeId);
         Task<NodeEntry> OpenFile(string nodeId, string reason);
         Task<List<string>> Recover(List<string> nodeIds, string reason, string nodeType, string allowedPath);
         Task<NodeEntry> RemoveAllVersions(string nodeId);
@@ -71,7 +74,7 @@ namespace ISFG.SpisUm.ClientSide.Interfaces
         Task UpdateHandOverPermissionsAll(string nodeId, string nextGroup = null, string nextOwner = null);
         Task<NodeEntry> UpdateHandOverRepositoryPermissions(string nodeId, string nextGroup);
         Task UpdateHandOverRepositoryPermissionsAll(string nodeId, string group);
-        Task<NodeEntry> UpdateNodeAsAdmin(string nodeId, NodeBodyUpdate updateBody);
+        Task<NodeEntry> UpdateNodeAsAdmin(string nodeId, NodeBodyUpdate updateBody);        
 
         #endregion
     }

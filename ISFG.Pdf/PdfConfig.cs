@@ -11,6 +11,7 @@ namespace ISFG.Pdf
         public static IServiceCollection AddPdf(this IServiceCollection services)
         {
             services.AddScoped<IPdfService, PdfService>();
+            services.AddScoped<ITransformService, TransformService>();
 
             return services;
         }

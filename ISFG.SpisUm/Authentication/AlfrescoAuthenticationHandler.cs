@@ -50,7 +50,9 @@ namespace ISFG.SpisUm.Authentication
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
-            string authorization = Request.Headers[HeaderNames.Authorization];
+            string authorization = Request?.Headers[HeaderNames.Authorization];
+            if (string.IsNullOrWhiteSpace(authorization)) 
+                authorization = Request?.Query["token"];            
 
             if (string.IsNullOrEmpty(authorization))
                 return AuthenticateResult.Fail("Authentication not provided.");

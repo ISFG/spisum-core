@@ -8,6 +8,8 @@ namespace ISFG.SpisUm.ClientSide.Interfaces
     {
         #region Public Methods
 
+        Task<NodeEntry> UpdateFileOutputFormat(string fileId);
+        Task<NodeEntry> UpdateDocumentOutputFormat(string documentId);
         Task<NodeEntry> ConvertToOutputFormat(string documentId, string componentId, string reason, string organization);
         Task<NodeEntry> CheckOutputFormat(string nodeId);
         Task<NodeEntry> CheckOutputFormat(string nodeId, byte[] file, string mimeType);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using ISFG.Pdf.Models;
+using ISFG.Pdf.Models.TransactionHistory;
 
 namespace ISFG.SpisUm.Jobs.Interfaces
 {
@@ -8,7 +9,7 @@ namespace ISFG.SpisUm.Jobs.Interfaces
     {
         #region Public Methods
 
-        Task<TransactionHistoryPdf> ToPdfModel(DateTime currentDate);
+        Task<TransactionHistoryModel> ToPdfModel(DateTime currentDate);
 
         #endregion
     }

@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using ISFG.SpisUm.ClientSide.Models.Signer;
 
 namespace ISFG.SpisUm.ClientSide.Interfaces
 {
@@ -7,10 +8,9 @@ namespace ISFG.SpisUm.ClientSide.Interfaces
         #region Public Methods
 
         Task<SignerCreateResponse> CreateXml(string baseUrl, string documentId, string[] componentId, bool visual);
-        Task<byte[]> DownloadFile(string token, string componentId);
-        Task<string> GenerateBatch(string baseUrl, string token, string documentId, string[] componentId, bool visual);
+        Task<string> GenerateBatch(string baseUrl, string documentId, string[] componentId, bool visual);
         Task<bool> CheckAndUpdateComponent(string componentId, byte[] component);
-        Task UploadFile(string token, string documentId, string componentId, byte[] newComponent);
+        Task UploadFile(string documentId, string componentId, byte[] newComponent, bool visual);
 
         #endregion
     }

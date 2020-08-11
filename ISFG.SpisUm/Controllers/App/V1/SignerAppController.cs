@@ -3,8 +3,13 @@
  using System.Net.Mime;
  using System.Text;
  using System.Threading.Tasks;
+ using ISFG.Alfresco.Api.Interfaces;
+ using ISFG.Common.Extensions;
  using ISFG.Common.Interfaces;
+ using ISFG.Exceptions.Exceptions;
+ using ISFG.SpisUm.Attributes;
  using ISFG.SpisUm.ClientSide.Interfaces;
+ using ISFG.SpisUm.ClientSide.Models;
  using ISFG.SpisUm.Endpoints;
  using ISFG.SpisUm.Interfaces;
  using Microsoft.AspNetCore.Mvc;
@@ -14,12 +19,13 @@
 {
     [ApiVersion("1")]
     [ApiController]
+    [AlfrescoAuthentication]
     [Route(EndpointsUrl.ApiRoute + "/signer-app")]
     public class SignerAppController : ControllerBase
     {
         #region Fields
 
-        private const string SignerStatus = "signerStatus_";
+        private readonly IAlfrescoHttpClient _alfrescoHttpClient;
         private readonly IApiConfiguration _apiConfiguration;
         private readonly ISignerService _signerService;
         private readonly ISimpleMemoryCache _simpleMemoryCache;
@@ -31,12 +37,13 @@
         public SignerAppController(
             ISimpleMemoryCache simpleMemoryCache,
             IApiConfiguration apiConfiguration,
-            ISignerService signerService
-        )
+            ISignerService signerService, 
+            IAlfrescoHttpClient alfrescoHttpClient)
         {
             _simpleMemoryCache = simpleMemoryCache;
             _apiConfiguration = apiConfiguration;
             _signerService = signerService;
+            _alfrescoHttpClient = alfrescoHttpClient;
         }
 
         #endregion
@@ -47,20 +54,26 @@
         /// Download a file
         /// </summary>
         [HttpGet("download")]
-        public async Task<Stream> DownloadFile([FromQuery] string token, [FromQuery] string componentId)
+        public async Task<Stream> DownloadFile([FromQuery] string token, [FromQuery] string requestGroup, [FromQuery] string componentId)
         {
-            var file = await _signerService.DownloadFile(token, componentId);
+            var fileContent = await _alfrescoHttpClient.NodeContent(componentId);
 
-            return new MemoryStream(file);
+            return new MemoryStream(fileContent.File);
         }
 
         /// <summary>
         /// Generate a batch
         /// </summary>
         [HttpGet("batch")]
-        public async Task<FileResult> GenerateBatch([FromQuery] string token, [FromQuery] bool visual, [FromQuery] string documentId, [FromQuery] string[] componentId)
+        public async Task<FileResult> GenerateBatch([FromQuery] string token, [FromQuery] string requestGroup, [FromQuery] bool visual, [FromQuery] string documentId, [FromQuery] string[] componentId)
         {
-            var createBatch = await _signerService.GenerateBatch(_apiConfiguration.Url, token, documentId, componentId, visual);
+            componentId.ForEach(x =>
+            {
+                if (x.Split('_').Length != 2)
+                    throw new BadRequestException($"Component {componentId} is not in form 'guid_componentId'");
+            });
+            
+            var createBatch = await _signerService.GenerateBatch(_apiConfiguration.Url, documentId, componentId, visual);
 
            return File(new MemoryStream(Encoding.ASCII.GetBytes(createBatch)), MediaTypeNames.Text.Xml, "batch.xml");
         }
@@ -74,7 +87,7 @@
             await using var memoryStream = new MemoryStream();
             await Request.Body.CopyToAsync(memoryStream);
  
-            _simpleMemoryCache.Create($"{SignerStatus}{componentId}", Encoding.Default.GetString(memoryStream.ToArray()), new MemoryCacheEntryOptions
+            _simpleMemoryCache.Create($"{MemoryCacheNames.SignerStatus}{componentId}", Encoding.Default.GetString(memoryStream.ToArray()), new MemoryCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30),
                 SlidingExpiration = TimeSpan.FromMinutes(15)
@@ -85,12 +98,12 @@
         /// Upload a new file
         /// </summary>
         [HttpPost("upload")]
-        public async Task UploadFile([FromQuery] string token, [FromQuery] string documentId, [FromQuery] string componentId)
+        public async Task UploadFile([FromQuery] string token, [FromQuery] string requestGroup, [FromQuery] string documentId, [FromQuery] string componentId, [FromQuery] bool visual)
         {
             await using var memoryStream = new MemoryStream();
             await Request.Body.CopyToAsync(memoryStream);
             
-            await _signerService.UploadFile(token, documentId, componentId, memoryStream.ToArray());
+            await _signerService.UploadFile(documentId, componentId, memoryStream.ToArray(), visual);
         }
 
         #endregion

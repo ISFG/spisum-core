@@ -7,25 +7,22 @@ using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
-using AutoMapper;
+using System.Xml.Linq;
 using ISFG.Alfresco.Api.Extensions;
 using ISFG.Alfresco.Api.Interfaces;
 using ISFG.Alfresco.Api.Models;
 using ISFG.Alfresco.Api.Models.CoreApi.CoreApi;
-using ISFG.Alfresco.Api.Services;
 using ISFG.Common.Extensions;
 using ISFG.Common.Interfaces;
 using ISFG.Common.Utils;
 using ISFG.Data.Models;
-using ISFG.Exceptions.Exceptions;
-using ISFG.Pdf.Interfaces;
 using ISFG.Signer.Client.Generated.Signer;
 using ISFG.Signer.Client.Interfaces;
 using ISFG.Signer.Client.Models;
-using ISFG.SpisUm.ClientSide.Authentification;
 using ISFG.SpisUm.ClientSide.Extensions;
 using ISFG.SpisUm.ClientSide.Interfaces;
 using ISFG.SpisUm.ClientSide.Models;
+using ISFG.SpisUm.ClientSide.Models.Signer;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 using Serilog;
@@ -36,18 +33,12 @@ namespace ISFG.SpisUm.ClientSide.Services
     {
         #region Fields
 
-        private readonly IAlfrescoConfiguration _alfrescoConfiguration;
         private readonly IAlfrescoHttpClient _alfrescoHttpClient;
         private readonly IAuditLogService _auditLogService;
+        private readonly IComponentService _componentService;
         private readonly IIdentityUser _identityUser;
-        private readonly IMapper _mapper;
-        private readonly IPdfService _pdfService;
-        private readonly IPersonService _personService;
-        private readonly IRepositoryService _repositoryService;
+        private readonly INodesService _nodesService;
         private readonly ISignerClient _signerClient;
-        private readonly ISimpleMemoryCache _simpleMemoryCache;
-        private readonly ISystemLoginService _systemLoginService;
-        private readonly ITransactionHistoryService _transactionHistoryService;
 
         #endregion
 
@@ -55,31 +46,18 @@ namespace ISFG.SpisUm.ClientSide.Services
 
         public SignerService(
             ISignerClient signerClient,
-            ISimpleMemoryCache simpleMemoryCache, 
-            IAlfrescoConfiguration alfrescoConfiguration,
-            IPersonService personService, 
-            IIdentityUser identityUser, 
-            IMapper mapper, 
-            ITransactionHistoryService transactionHistoryService,
+            IIdentityUser identityUser,
             IAuditLogService auditLogService,
-            IRepositoryService repositoryService, 
             IAlfrescoHttpClient alfrescoHttpClient,
-            IPdfService pdfService,
-            ISystemLoginService systemLoginService
-        )
+            INodesService nodesService, 
+            IComponentService componentService)
         {
             _signerClient = signerClient;
-            _simpleMemoryCache = simpleMemoryCache;
-            _alfrescoConfiguration = alfrescoConfiguration;
-            _personService = personService;
             _identityUser = identityUser;
-            _mapper = mapper;
-            _transactionHistoryService = transactionHistoryService;
             _auditLogService = auditLogService;
-            _repositoryService = repositoryService;
             _alfrescoHttpClient = alfrescoHttpClient;
-            _pdfService = pdfService;
-            _systemLoginService = systemLoginService;
+            _nodesService = nodesService;
+            _componentService = componentService;
         }
 
         #endregion
@@ -91,62 +69,40 @@ namespace ISFG.SpisUm.ClientSide.Services
             if (componentId.Length == 1)
             {
                 var compGuid = IdGenerator.ShortGuid();
-                return Task.FromResult(new SignerCreateResponse($"call-signer:{BuildXml(baseUrl, _identityUser.Token, componentId[0],  documentId, compGuid, visual).ToBase64()}", null, $"{compGuid}_{componentId[0]}"));
+                var componentCallSigner = $"{SpisumNames.Signer.CallSigner}:{BuildSignXml(baseUrl, documentId, componentId[0], compGuid, visual).ToString().ToBase64()}";
+                
+                return Task.FromResult(new SignerCreateResponse(componentCallSigner, null, $"{compGuid}_{componentId[0]}"));
             }
 
+            var componentsWithGuid = new List<string>();
             var batchGuid = $"{IdGenerator.ShortGuid()}_{Guid.NewGuid().ToString()}";
-            var batchUrl = $"{baseUrl}api/app/v1/signer-app/batch?token=" + _identityUser.Token + "&visual=" + visual.ToString().ToLower() + "&documentId=" + documentId;
-            var components = new List<string>();
             
-            var stringBuilder = new StringBuilder();
-            stringBuilder.AppendLine("<external type='batch'>");
-            stringBuilder.Append("<input type='url'>");
-            stringBuilder.Append(componentId.Aggregate(batchUrl, (current, component) =>
+            var statusUrl = $"{BuildEndpointUrl(baseUrl, "status")}&componentId={batchGuid}";
+            var inputUrl = componentId.Aggregate($"{BuildEndpointUrl(baseUrl, "batch")}&documentId={documentId}&visual={visual.ToLowerString()}", (current, component) =>
             {
-                var guid = IdGenerator.ShortGuid(); 
-                components.Add($"{guid}_{component}"); 
-                
-                return current + $"&componentId={guid}_{component}";
-            }).ToBase64());
-            stringBuilder.Append("</input>");
-            stringBuilder.AppendLine($"<status type='url'>{$"{baseUrl}api/app/v1/signer-app/status?token={_identityUser?.Token}&componentId={batchGuid}".ToBase64()}</status>");
-            stringBuilder.AppendLine("</external>");
+                var guidComponent = $"{IdGenerator.ShortGuid()}_{component}";
+                componentsWithGuid.Add(guidComponent);
 
-            return Task.FromResult(new SignerCreateResponse($"call-signer:{stringBuilder.ToString().ToBase64()}", batchGuid, components.ToArray()));
-        }
-
-        public async Task<byte[]> DownloadFile(string token, string componentId)
-        {
-            var alfrescoClient = new AlfrescoHttpClient(_alfrescoConfiguration, new SignerAuthentification(_simpleMemoryCache, token));
-            var fileContent = await alfrescoClient.NodeContent(componentId);
-
-            return fileContent.File;
-        }
-
-        public Task<string> GenerateBatch(string baseUrl, string token, string documentId, string[] componentId, bool visual)
-        {
-            var stringBuilder = new StringBuilder();
-            
-            stringBuilder.AppendLine("<batch>");
-            componentId.ForEach(x =>
-            {
-                var component = x.Split('_');
-                if (component.Length != 2)
-                    throw new BadRequestException($"Component {componentId} is not in form 'guid_componentId'");
-                
-                stringBuilder.Append(BuildXml(baseUrl, token, component[1], documentId, component[0], visual));
+                return current + $"&componentId={guidComponent}";
             });
-            stringBuilder.AppendLine("</batch>");
 
-            return Task.FromResult(stringBuilder.ToString());
+            var componentsCallSigner = $"{SpisumNames.Signer.CallSigner}:{GenerateBatchXml(inputUrl, statusUrl).ToString().ToBase64()}";
+            
+            return Task.FromResult(new SignerCreateResponse(componentsCallSigner, batchGuid, componentsWithGuid.ToArray()));
         }
+        
+        public Task<string> GenerateBatch(string baseUrl, string documentId, string[] componentId, bool visual) => Task.FromResult(
+            new XElement(SpisumNames.Signer.Batch,
+                from component in componentId
+                select BuildSignXml(baseUrl, documentId, component.Split('_')[1], component.Split('_')[0], visual)).ToString()
+            );
 
         public async Task<bool> CheckAndUpdateComponent(string componentId, byte[] component)
         {
             try
             {
                 var pdfValidation = await _signerClient.Validate(component);
-                var certValidation = await _signerClient.ValidateCertificate(pdfValidation?.Report?.sigInfos[0]?.signCert.Data);
+                var certValidation = await _signerClient.ValidateCertificate(pdfValidation?.Report?.sigInfos?.LastOrDefault()?.signCert?.Data);
             
                 await _alfrescoHttpClient.UpdateNode(componentId, GetSignerProperties(pdfValidation, certValidation, false));
                 
@@ -158,37 +114,35 @@ namespace ISFG.SpisUm.ClientSide.Services
             }
         }
 
-        public async Task UploadFile(string token, string documentId, string componentId, byte[] newComponent)
+        public async Task UploadFile(string documentId, string componentId, byte[] newComponent, bool visual)
         {
-            var alfrescoClient = new AlfrescoHttpClient(_alfrescoConfiguration, new SignerAuthentification(_simpleMemoryCache, token));
-            var nodeService = new NodesService(_alfrescoConfiguration, alfrescoClient, _auditLogService, _identityUser, _mapper, _simpleMemoryCache, _transactionHistoryService, _systemLoginService, _repositoryService);
-            var componentService = new ComponentService(alfrescoClient, nodeService, _personService, _identityUser, _auditLogService);
-            
-            var nodeEntry = await alfrescoClient.GetNodeInfo(componentId, ImmutableList<Parameter>.Empty
+            var nodeEntry = await _alfrescoHttpClient.GetNodeInfo(componentId, ImmutableList<Parameter>.Empty
                 .Add(new Parameter(AlfrescoNames.Headers.Include, $"{AlfrescoNames.Includes.Properties}, {AlfrescoNames.Includes.Path}", ParameterType.QueryString)));
             var properties = nodeEntry?.Entry?.Properties?.As<JObject>().ToDictionary();
             
             var pdfValidation = await _signerClient.Validate(newComponent);
-            var certValidation = await _signerClient.ValidateCertificate(pdfValidation?.Report?.sigInfos[0]?.signCert.Data);
+            var certValidation = await _signerClient.ValidateCertificate(pdfValidation?.Report?.sigInfos?.LastOrDefault()?.signCert?.Data);
 
-            await UnlockNode(alfrescoClient, documentId);
-            await UnlockNode(alfrescoClient, componentId);
-
-            await componentService.UploadNewVersionComponent(documentId, componentId, newComponent, 
-                Path.ChangeExtension(properties.GetNestedValueOrDefault(SpisumNames.Properties.FileName)?.ToString(), ".pdf"), MediaTypeNames.Application.Pdf);
-            var node = await alfrescoClient.UpdateNode(componentId, GetSignerProperties(pdfValidation, certValidation, true));
+            if (await _nodesService.IsNodeLocked(documentId))
+                await _alfrescoHttpClient.NodeUnlock(documentId);
             
-            await LockNode(alfrescoClient, documentId);
-            await LockNode(alfrescoClient, componentId);
+            if (await _nodesService.IsNodeLocked(componentId))
+                await _alfrescoHttpClient.NodeUnlock(componentId);            
+
+            await _componentService.UploadNewVersionComponent(documentId, componentId, newComponent, 
+                Path.ChangeExtension(properties.GetNestedValueOrDefault(SpisumNames.Properties.FileName)?.ToString(), ".pdf"), MediaTypeNames.Application.Pdf);
+            var node = await _alfrescoHttpClient.UpdateNode(componentId, GetSignerProperties(pdfValidation, certValidation, true));
+            
+            await _alfrescoHttpClient.NodeLock(documentId, new NodeBodyLock().AddLockType(NodeBodyLockType.FULL)); 
+            await _alfrescoHttpClient.NodeLock(componentId, new NodeBodyLock().AddLockType(NodeBodyLockType.FULL)); 
 
             try
             {
                 var componentPid = nodeEntry?.GetPid();
 
                 // Audit log for a document
-                if (node?.Entry?.NodeType == SpisumNames.NodeTypes.Document)
-                    await _auditLogService.Record(documentId, SpisumNames.NodeTypes.Component, componentPid, NodeTypeCodes.Komponenta, EventCodes.PripojeniPodpisu,
-                        TransactinoHistoryMessages.DocumentSignComponent);
+                await _auditLogService.Record(documentId, SpisumNames.NodeTypes.Component, componentPid, NodeTypeCodes.Komponenta, EventCodes.PripojeniPodpisu,
+                        visual ? TransactinoHistoryMessages.DocumentSignComponentWithVisual : TransactinoHistoryMessages.DocumentSignComponentWithoutVisual);
 
                 // Audit log for a file
                 var documentFileParent = await _alfrescoHttpClient.GetNodeParents(documentId, ImmutableList<Parameter>.Empty
@@ -199,7 +153,7 @@ namespace ISFG.SpisUm.ClientSide.Services
                 var fileId = documentFileParent?.List?.Entries?.FirstOrDefault()?.Entry?.Id;
                 if (fileId != null)
                     await _auditLogService.Record(fileId, SpisumNames.NodeTypes.Component, componentPid, NodeTypeCodes.Komponenta, EventCodes.PripojeniPodpisu,
-                        TransactinoHistoryMessages.DocumentSignComponent);
+                        visual ? TransactinoHistoryMessages.DocumentSignComponentWithVisual : TransactinoHistoryMessages.DocumentSignComponentWithoutVisual);
             }
             catch (Exception ex)
             {
@@ -210,30 +164,43 @@ namespace ISFG.SpisUm.ClientSide.Services
         #endregion
 
         #region Private Methods
-
-        private string BuildXml(string baseUrl, string token, string componentId, string documentId, string componentGuid, bool visualSign)
+        
+        private XElement BuildSignXml(string baseUrl, string documentId, string componentId, string componentGuid, bool visualSign)
         {
-            var stringBuilder = new StringBuilder();
+            var inputUrl = $"{BuildEndpointUrl(baseUrl, "download")}&componentId={componentId}";
+            var statusUrl = $"{BuildEndpointUrl(baseUrl, "status")}&componentId={componentGuid}_{componentId}";
+            var outputUrl = $"{BuildEndpointUrl(baseUrl, "upload")}&componentId={componentId}&documentId={documentId}&visual={visualSign.ToLowerString()}";
 
-            stringBuilder.AppendLine(visualSign ? "<external type='visual'>" : "<external type='sign'>");
-            stringBuilder.AppendLine($"<input type='url'>{$"{GetUrl("download")}&componentId={componentId}".ToBase64()}</input>");
-            stringBuilder.AppendLine($"<status type='url'>{$"{GetUrl("status")}&componentId={componentGuid}_{componentId}".ToBase64()}</status>");
-            stringBuilder.AppendLine($"<output type='url'>{$"{GetUrl("upload")}&componentId={componentId}&documentId={documentId}".ToBase64()}</output>");
-            stringBuilder.AppendLine("</external>");
-            
-            return stringBuilder.ToString();
-
-            string GetUrl(string endpoint) => $"{baseUrl}api/app/v1/signer-app/{endpoint}?token={_identityUser?.Token ?? token}";
+            return GenerateXml(inputUrl, statusUrl, outputUrl, visualSign);
         }
+
+        private XElement GenerateBatchXml(string inputUrl, string statusUrl) =>
+            new XElement(SpisumNames.Signer.External, XAttributeType(SpisumNames.Signer.Batch),
+                new XElement(SpisumNames.Signer.Input, XAttributeType(SpisumNames.Signer.Url), inputUrl.ToBase64()),
+                new XElement(SpisumNames.Signer.Status, XAttributeType(SpisumNames.Signer.Url), statusUrl.ToBase64())
+            );
+        
+        private XElement GenerateXml(string inputUrl, string statusUrl, string outputUrl, bool visualSign) =>
+            new XElement(SpisumNames.Signer.External, XAttributeType(visualSign ? SpisumNames.Signer.Visual : SpisumNames.Signer.Sign),
+                new XElement(SpisumNames.Signer.Input, XAttributeType(SpisumNames.Signer.Url), inputUrl.ToBase64()),
+                new XElement(SpisumNames.Signer.Status, XAttributeType(SpisumNames.Signer.Url), statusUrl.ToBase64()),
+                new XElement(SpisumNames.Signer.Output, XAttributeType(SpisumNames.Signer.Url), outputUrl.ToBase64())
+            );
+
+        private XAttribute XAttributeType(string type) => new XAttribute(SpisumNames.Signer.Type, type);
+        
+        private string BuildEndpointUrl(string baseUrl, string endpoint) => $"{baseUrl}api/app/v1/signer-app/{endpoint}?token={_identityUser?.Token}&requestGroup={_identityUser?.RequestGroup}";
 
         private NodeBodyUpdate GetSignerProperties(ValidateResponse pdfValidation, ValidateCertificateResponse certValidation, bool isSigned)
         {
-            var publisher = Dn.Parse(pdfValidation?.Report?.sigInfos[0]?.signCert?.Issuer);
-            var holder = Dn.Parse(pdfValidation?.Report?.sigInfos[0]?.signCert?.Subject);
+            var signInfo = pdfValidation?.Report?.sigInfos?.LastOrDefault();
+            var publisher = Dn.Parse(signInfo?.signCert?.Issuer);
+            var holder = Dn.Parse(signInfo?.signCert?.Subject);
             var verifier = Dn.Parse(GetVerifier(pdfValidation?.XMLReport));
             
             return new NodeBodyUpdate()
                 .AddProperty(SpisumNames.Properties.FileIsSigned, isSigned)
+                .AddProperty(SpisumNames.Properties.SafetyElementsCheck, true)
                 .AddProperty(SpisumNames.Properties.UsedTime, pdfValidation?.Report?.CreationDateTime)
                 .AddProperty(SpisumNames.Properties.VerificationTime, pdfValidation?.Report?.validationProperties?.ValidationTime)
                 .AddProperty(SpisumNames.Properties.ValiditySafetyElement, pdfValidation?.Report?.globalStatus switch
@@ -243,7 +210,9 @@ namespace ISFG.SpisUm.ClientSide.Services
                     SignerNames.Error => SpisumNames.Signer.NotValid, 
                     _ => null
                 })
-                .AddProperty(SpisumNames.Properties.AssessmentMoment, pdfValidation?.Report?.sigInfos[0]?.DecisiveMoment)
+                .AddProperty(SpisumNames.Properties.AssessmentMoment, signInfo?.DecisiveMoment)
+                .AddProperty(SpisumNames.Properties.SignLocation, string.IsNullOrEmpty(signInfo?.Location) ? null : signInfo?.Location)
+                .AddProperty(SpisumNames.Properties.SignReason, string.IsNullOrEmpty(signInfo?.Reason) ? null : signInfo?.Reason)
                 .AddProperty(SpisumNames.Properties.ValiditySafetyCert, pdfValidation?.Report?.globalStatus switch
                 {
                     SignerNames.Ok => SpisumNames.Signer.Valid,
@@ -252,7 +221,7 @@ namespace ISFG.SpisUm.ClientSide.Services
                     _ => null
                 })
                 .AddProperty(SpisumNames.Properties.RevocationState, certValidation?.certificateValidationInfo?.statusIndication == SignerNames.Revoked)
-                .AddProperty(SpisumNames.Properties.ValiditySafetyCertRevocation, SpisumNames.Signer.Valid)
+                .AddProperty(SpisumNames.Properties.ValiditySafetyCertRevocation, null)
                 .AddProperty(SpisumNames.Properties.CertValidityPath, certValidation?.certificateValidationInfo?.statusSubindication switch
                 {
                     var x when x == SignerNames.Ok ||
@@ -273,7 +242,7 @@ namespace ISFG.SpisUm.ClientSide.Services
                 .AddProperty(SpisumNames.Properties.VerifierOrgName, verifier.GetValue(SpisumNames.Dn.Organization))
                 .AddProperty(SpisumNames.Properties.VerifierOrgUnit, verifier.GetValue(SpisumNames.Dn.OrganizationalUnit))
                 .AddProperty(SpisumNames.Properties.VerifierOrgAddress, verifier.GetValue(SpisumNames.Dn.Locality))
-                .AddProperty(SpisumNames.Properties.SerialNumber, pdfValidation?.Report?.sigInfos[0]?.signCert?.Serial)
+                .AddProperty(SpisumNames.Properties.SerialNumber, signInfo?.signCert?.Serial)
                 .AddProperty(SpisumNames.Properties.PublisherAddress, publisher.GetValue(SpisumNames.Dn.Locality))
                 .AddProperty(SpisumNames.Properties.PublisherContact, publisher.GetValue(SpisumNames.Dn.Email))
                 .AddProperty(SpisumNames.Properties.PublisherName, publisher.GetValue(SpisumNames.Dn.CommonName))
@@ -284,8 +253,8 @@ namespace ISFG.SpisUm.ClientSide.Services
                 .AddProperty(SpisumNames.Properties.HolderName, holder.GetValue(SpisumNames.Dn.CommonName))
                 .AddProperty(SpisumNames.Properties.HolderOrgName, holder.GetValue(SpisumNames.Dn.Organization))
                 .AddProperty(SpisumNames.Properties.HolderOrgUnit, holder.GetValue(SpisumNames.Dn.OrganizationalUnit))
-                .AddProperty(SpisumNames.Properties.ValidityFrom, pdfValidation?.Report?.sigInfos[0]?.signCert?.NotBefore)
-                .AddProperty(SpisumNames.Properties.ValidityTo, pdfValidation?.Report?.sigInfos[0]?.signCert?.NotAfter)
+                .AddProperty(SpisumNames.Properties.ValidityFrom, signInfo?.signCert?.NotBefore)
+                .AddProperty(SpisumNames.Properties.ValidityTo, signInfo?.signCert?.NotAfter)
                 .AddProperty(SpisumNames.Properties.QualifiedCertType, certValidation?.certificateValidationInfo?.qualifiedCertType)
                 .AddProperty(SpisumNames.Properties.IsSign, certValidation?.certificateValidationInfo?.qualifiedCertType == SignerNames.ESign)
                 .AddProperty(SpisumNames.Properties.IsSealed, certValidation?.certificateValidationInfo?.qualifiedCertType == SignerNames.ESeal)
@@ -308,20 +277,6 @@ namespace ISFG.SpisUm.ClientSide.Services
             XmlNodeList subjectName = xDoc.GetElementsByTagName("ds:X509SubjectName");
 
             return subjectName.Count == 1 ? subjectName.Item(0).InnerText : string.Empty;
-        }
-
-        private async Task LockNode(AlfrescoHttpClient alfrescoClient, string nodeId)
-        {
-            await alfrescoClient.NodeLock(nodeId, new NodeBodyLock().AddLockType(NodeBodyLockType.FULL));          
-        }
-
-        private async Task UnlockNode(AlfrescoHttpClient alfrescoClient, string nodeId)
-        {
-            var nodeInfo = await alfrescoClient.GetNodeInfo(nodeId, ImmutableList<Parameter>.Empty
-                .Add(new Parameter(AlfrescoNames.Headers.Include, $"{AlfrescoNames.Includes.IsLocked}", ParameterType.QueryString)));
-            
-            if (nodeInfo?.Entry?.IsLocked != null && nodeInfo.Entry.IsLocked == true)
-                await alfrescoClient.NodeUnlock(nodeId);            
         }
 
         #endregion

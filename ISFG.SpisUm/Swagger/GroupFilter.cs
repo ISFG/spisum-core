@@ -20,7 +20,6 @@ namespace ISFG.SpisUm.Swagger
             nameof(GroupController),
             nameof(NodeController),
             nameof(PathsController),
-            nameof(SignerController),
             nameof(SignerAppController)
         };
 

@@ -86,7 +86,7 @@ namespace ISFG.SpisUm.ClientSide.Validators
                         .WithMessage($"NodeId must be type of {SpisumNames.NodeTypes.File}.");
 
                     RuleFor(x => x)
-                        .Must(x => _nodeEntry?.Entry?.Path?.Name?.StartsWith(AlfrescoNames.Prefixes.Path + SpisumNames.Paths.RepositoryFiles,
+                        .Must(x => _nodeEntry?.Entry?.Path?.Name?.StartsWith(AlfrescoNames.Prefixes.Path + SpisumNames.Paths.RepositoryRented,
                             StringComparison.OrdinalIgnoreCase) == true)
                         .OnAnyFailure(x => throw new BadRequestException("File must be in repository site."));
 

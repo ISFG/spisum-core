@@ -74,7 +74,7 @@ namespace ISFG.SpisUm.ClientSide.Validators
                             if (isLocked == true)
                                 return false;
 
-                            if (form == "analog" || documentType == "technicalDataCarries" || form == "digital" && senderType == SpisumNames.SenderType.Own)
+                            if (form == SpisumNames.Form.Analog || documentType == "technicalDataCarries" || form == SpisumNames.Form.Digital && senderType == SpisumNames.SenderType.Own)
                                 return true;
 
                             return false;

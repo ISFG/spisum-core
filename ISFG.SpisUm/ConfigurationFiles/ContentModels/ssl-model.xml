@@ -44,6 +44,42 @@
       </parameter>
     </constraint>
 
+    <constraint name="ssl:shipmentPostStateConstraint" type="LIST">
+      <parameter name="allowedValues">
+        <list>
+          <value>nevypraveno</value>
+          <value>vypraveno</value>
+          <value>doruceno</value>
+          <value>vraceno-jiny-duvod-overeno</value>
+          <value>vraceno-jiny-duvod-neovereno</value>
+          <value>vraceno-adresat-neznamy</value>
+          <value>vraceno-adresat-se-odstehoval</value>
+          <value>vraceno-neprijato</value>
+          <value>vraceno-nevyzadano</value>
+          <value>nedoruceno-zpracovano</value>
+          <value>vraceno-adresa-nedostatecna</value>
+          <value>stornovano</value>
+        </list>
+      </parameter>
+    </constraint>
+    
+    <constraint name="ssl:dataBoxStateConstraint" type="LIST">
+      <parameter name="allowedValues">
+        <list>
+          <value>1</value>
+          <value>2</value>
+          <value>3</value>
+          <value>4</value>
+          <value>5</value>
+          <value>6</value>
+          <value>7</value>
+          <value>8</value>
+          <value>9</value>
+          <value>10</value>
+        </list>
+      </parameter>
+    </constraint>
+
     <constraint name="ssl:databoxMessageTypeConstraint" type="LIST">
       <parameter name="allowedValues">
         <list>
@@ -62,6 +98,9 @@
           <value>ovm_notar</value>
           <value>ovm_exekut</value>
           <value>ovm_req</value>
+          <value>ovm_fo</value>
+          <value>ovm_pfo</value>
+          <value>ovm_po</value>
           <value>po</value>
           <value>po_zak</value>
           <value>po_req</value>
@@ -69,6 +108,7 @@
           <value>pfo_advok</value>
           <value>pfo_danpor</value>
           <value>pfo_insspr</value>
+          <value>pfo_auditor</value>          
           <value>fo</value>
         </list>
       </parameter>
@@ -128,6 +168,20 @@
           <value>original_inOutputFormat</value>
         </list>
       </parameter>
+    </constraint>
+
+    <constraint name="ssl:stateConstraint" type="LIST">
+      <parameter name="allowedValues">
+        <list>
+          <value>nevyrizen</value>
+          <value>vyrizen</value>
+          <value>uzavren</value>
+          <value>predanDoSpisovny</value>
+          <value>predanDoArchivu</value>
+          <value>stornovan</value>
+          <value>skartovan</value>
+        </list>
+      </parameter>      
     </constraint>
 
     <constraint name="ssl:postItemTypeConstraint" type="LIST">
@@ -841,6 +895,16 @@
             <facetable>true</facetable>
           </index>
         </property>
+        <property name="ssl:originalDestinationGroupHandover">
+          <title>Original Destination Group Handover</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
         <property name="ssl:originalDispatchDate">
           <title>Original Dispatch Date</title>
           <type>d:date</type>
@@ -1134,16 +1198,6 @@
             <facetable>true</facetable>
           </index>
         </property>
-        <property name="ssl:senderRegistrationNumber">
-          <title>Sender Registration number</title>
-          <type>d:text</type>
-          <index enabled="true">
-            <atomic>true</atomic>
-            <stored>false</stored>
-            <tokenised>both</tokenised>
-            <facetable>true</facetable>
-          </index>
-        </property>
         <property name="ssl:senderSSID">
           <title>Sender Serial Number</title>
           <type>d:text</type>
@@ -1236,7 +1290,7 @@
         </property>
         <property name="ssl:shreddingYear">
           <title>Shredding Year</title>
-          <type>d:int</type>
+          <type>d:date</type>
           <index enabled="true">
             <atomic>true</atomic>
             <stored>false</stored>
@@ -1283,6 +1337,9 @@
             <tokenised>both</tokenised>
             <facetable>true</facetable>
           </index>
+          <constraints>
+            <constraint ref="ssl:stateConstraint"/>
+          </constraints>
         </property>
         <property name="ssl:subject">
           <title>Subject</title>
@@ -1948,6 +2005,19 @@
           <title>Personal Delivery</title>
           <type>d:boolean</type>
         </property>
+        <property name="ssl:shipmentDataBoxState">
+          <title>Shipment State - DataBox</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+          <constraints>
+            <constraint ref="ssl:dataBoxStateConstraint"/>
+          </constraints>
+        </property>
       </properties>
     </type>
 
@@ -1959,6 +2029,21 @@
     <type name="ssl:shipmentPost">
       <title>Shipment Post</title>
       <parent>ssl:shipment</parent>
+      <properties>
+      <property name="ssl:shipmentPostState">
+        <title>Shipment State - Post</title>
+        <type>d:text</type>
+        <index enabled="true">
+          <atomic>true</atomic>
+          <stored>false</stored>
+          <tokenised>both</tokenised>
+          <facetable>true</facetable>
+        </index>
+        <constraints>
+          <constraint ref="ssl:shipmentPostStateConstraint"/>
+        </constraints>
+      </property>
+        </properties>
     </type>
 
     <type name="ssl:shipmentPublish">
@@ -2254,7 +2339,7 @@
             <facetable>true</facetable>
           </index>
           <constraints>
-            <constraint ref="ssl:databoxTypeConstraint"/>
+            <constraint ref="ssl:dataBoxStateConstraint"/>
           </constraints>
         </property>
         <property name="ssl:databoxMessageType">
@@ -2269,7 +2354,7 @@
           <constraints>
             <constraint ref="ssl:databoxMessageTypeConstraint"/>
           </constraints>
-        </property>
+        </property> 
         <property name="ssl:databoxNotRegisteredReason">
           <title>Not registered</title>
           <type>d:text</type>
@@ -2449,6 +2534,24 @@
         </property>
       </properties>
     </aspect>
+    <aspect name="ssl:pid_mailbox_counter">
+      <title>PID MailBox</title>
+      <properties>
+        <property name="ssl:pid_mailbox_counter_value">
+          <title>PID MailBox Counter Value</title>
+          <type>d:int</type>
+        </property>
+      </properties>
+    </aspect>
+    <aspect name="ssl:pid_databox_counter">
+      <title>PID DataBox</title>
+      <properties>
+        <property name="ssl:pid_databox_counter_value">
+          <title>PID Databox Counter Value</title>
+          <type>d:int</type>
+        </property>
+      </properties>
+    </aspect>
     <aspect name="ssl:pid_shreddingProposal_counter">
       <title>PID ShreddingProposal</title>
       <properties>
@@ -2594,6 +2697,32 @@
             <tokenised>false</tokenised>
             <facetable>true</facetable>
           </index>
+        </property>
+        <property name="ssl:fileIsInOutputFormatDocument">
+          <title>Is in output format</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+          <constraints>
+            <constraint ref="ssl:fileIsInOutputFoConstraint"/>
+          </constraints>
+        </property>
+        <property name="ssl:fileIsInOutputFormatFile">
+          <title>Is in output format</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+          <constraints>
+            <constraint ref="ssl:fileIsInOutputFoConstraint"/>
+          </constraints>
         </property>
         <property name="ssl:fileIsInOutputFormat">
           <title>Is in output format</title>
@@ -2855,6 +2984,16 @@
             <facetable>true</facetable>
           </index>
         </property>
+        <property name="ssl:safetyElementsCheck">
+          <title>Safety Elements Check</title>
+          <type>d:boolean</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
         <property name="ssl:securityType">
           <title>Security Type</title>
           <type>d:text</type>
@@ -2875,6 +3014,36 @@
             <facetable>true</facetable>
           </index>
         </property>
+        <property name="ssl:signLocation">
+          <title>Sign Location</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:signReason">
+          <title>Sign Reason</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:canBeSigned">
+          <title>Can be signed</title>
+          <type>d:boolean</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>        
         <property name="ssl:usedAlgorithm">
           <title>Used Algorithm</title>
           <type>d:text</type>

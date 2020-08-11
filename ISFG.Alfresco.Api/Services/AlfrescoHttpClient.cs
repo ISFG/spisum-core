@@ -342,6 +342,9 @@ namespace ISFG.Alfresco.Api.Services
         public async Task<CreateRuleARM> WebScriptsRuleCreate(string storeType, string storeId, string Id, CreateRuleAM body, IImmutableList<Parameter> parameters = null)
             => await ExecuteRequest<CreateRuleARM>(Method.POST,
                 $"/alfresco/service/api/node/{storeType}/{storeId}/{Id}/ruleset/rules", body, parameters);
+        public async Task<object> WebScriptsRuleInheritance(string storeType, string storeId, string Id)
+            => await ExecuteRequest<object>(Method.POST,
+                $"/alfresco/service/api/node/{storeType}/{storeId}/{Id}/ruleset/inheritrules/toggle");
 
         #endregion
 
@@ -370,14 +373,19 @@ namespace ISFG.Alfresco.Api.Services
 
         protected override object BuildResponse<T>(IRestResponse response)
         {
-            if (typeof(T) == typeof(FormDataParam))
+            if (typeof(T) != typeof(FormDataParam)) 
+                return base.BuildResponse<T>(response);
+            
+            var contentDisposition = response.Headers.FirstOrDefault(x => x.Name == HeaderNames.ContentDisposition)?.Value?.ToString();
+            if (!string.IsNullOrEmpty(contentDisposition))
             {
-                var contentDisposition = response.Headers.FirstOrDefault(x => x.Name == HeaderNames.ContentDisposition)?.Value?.ToString();
-
-                return new FormDataParam(response.RawBytes, contentDisposition != null ? new ContentDisposition(contentDisposition).FileName : null, null, response.ContentType);
+                var parseContentDisposition = ContentDispositionHeaderValue.Parse(contentDisposition);
+                
+                if (parseContentDisposition.FileNameStar != null || parseContentDisposition.FileName != null)
+                    return new FormDataParam(response.RawBytes, parseContentDisposition.FileNameStar != null ? parseContentDisposition.FileNameStar.ToString() : parseContentDisposition.FileName.ToString(), null, response.ContentType);
             }
-
-            return base.BuildResponse<T>(response);
+            
+            return new FormDataParam(response.RawBytes, null, null, response.ContentType);
         }
 
         protected override async Task<T> ExecuteRequest<T>(Method httpMethod, string url, object body = null, IImmutableList<Parameter> parameters = null)

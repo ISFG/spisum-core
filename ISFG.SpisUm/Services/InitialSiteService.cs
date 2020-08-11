@@ -44,8 +44,12 @@ namespace ISFG.SpisUm.Services
 
         #region Implementation of IInitialSiteService
 
-        public async Task CreateRMShreddingPlan(List<ShreddingPlanItemModel> items)
+        public async Task CreateRMShreddingPlan(ShreddingPlanModel shreddingPlan)
         {
+            if (!(shreddingPlan?.Items?.Count > 0) || shreddingPlan?.Id == null)
+                return;
+
+
             var rmSite = await _alfrescoHttpClient.GetRMSite(
                 ImmutableList<Parameter>.Empty
                     .Add(new Parameter(AlfrescoNames.Headers.MaxItems, "100", ParameterType.QueryString)));
@@ -70,12 +74,26 @@ namespace ISFG.SpisUm.Services
             // update permissions
             await SetPermissionInheritence(documentLibrary.Entry.Id);
 
-            foreach (var item in items)
+            // create shredding plan folder
+            var shreddingPlanId = await CreateShreddingPlan(documentLibraryId, shreddingPlan.Id, new RMNodeBodyCreateWithRelativePath
+            {
+                Name = shreddingPlan.Id,
+                NodeType = "rma:recordCategory",
+                Properties = new Dictionary<string, string>
+                {
+                    { AlfrescoNames.ContentModel.Title, shreddingPlan.Name }
+                }
+            });
+
+            // update permissions
+            await SetPermissionInheritence(shreddingPlanId);
+
+            foreach (var item in shreddingPlan.Items.Where(y => y.IsCaption != true && y.FileMark != null && y.Period != null).ToList())
             {
                 if (item.FileMark == null || item.Period == null)
                     continue;
 
-                var fileMarkId = await CreateShreddingPlan(documentLibraryId, item.FileMark, new RMNodeBodyCreateWithRelativePath
+                var fileMarkId = await CreateShreddingPlan(shreddingPlanId, item.FileMark, new RMNodeBodyCreateWithRelativePath
                 {
                     Name = item.FileMark,
                     NodeType = "rma:recordCategory",

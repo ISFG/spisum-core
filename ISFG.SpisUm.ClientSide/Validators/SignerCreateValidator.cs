@@ -4,6 +4,7 @@ using ISFG.Alfresco.Api.Interfaces;
 using ISFG.Alfresco.Api.Models.CoreApi.CoreApi;
 using ISFG.Exceptions.Exceptions;
 using ISFG.SpisUm.ClientSide.Models;
+using ISFG.SpisUm.ClientSide.Models.Signer;
 
 namespace ISFG.SpisUm.ClientSide.Validators
 {

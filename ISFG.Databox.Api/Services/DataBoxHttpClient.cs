@@ -34,13 +34,15 @@ namespace ISFG.DataBox.Api.Services
         public async Task<DataBoxSendResponse> Send(DataBoxSend input)
         {
             var accounts = await Accounts();
-            if (!accounts.Any(x => x.Username == input.SenderName))
+
+            var account = accounts.FirstOrDefault(x => x.Id == input.SenderId);
+            if (account == null)
                 return new DataBoxSendResponse(false, "Provided databox was not found in configuration");
 
             return await ExecuteRequest<DataBoxSendResponse>(Method.POST, "databox-message", input.Files, ImmutableList<Parameter>.Empty
             .Add(new Parameter("subject", input.Subject, ParameterType.QueryString))
             .Add(new Parameter("recipientId", input.RecipientId, ParameterType.QueryString))
-            .Add(new Parameter("senderName", input.SenderName, ParameterType.QueryString))
+            .Add(new Parameter("senderName", account.Username, ParameterType.QueryString))
             .Add(new Parameter("body", input.Body, ParameterType.QueryString))
                 );
         }

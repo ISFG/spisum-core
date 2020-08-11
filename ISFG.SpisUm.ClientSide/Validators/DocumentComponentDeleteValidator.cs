@@ -85,7 +85,7 @@ namespace ISFG.SpisUm.ClientSide.Validators
                             var isLocked = _nodeEntry?.Entry?.IsLocked;
 
                             if (isPathMailroom.Value)
-                                return form == "analog" || documentType == "technicalDataCarries";
+                                return form == SpisumNames.Form.Analog || documentType == "technicalDataCarries";
 
                             if (isLocked != null && !isLocked.Value && senderType == SpisumNames.SenderType.Own)
                                 return true;

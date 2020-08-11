@@ -8,7 +8,7 @@ using ISFG.Common.Extensions;
 using ISFG.Common.Interfaces;
 using ISFG.Data.Interfaces;
 using ISFG.SpisUm.ClientSide.Interfaces;
-using ISFG.SpisUm.ClientSide.Models;
+using ISFG.SpisUm.ClientSide.Models.TransactionHistory;
 using ISFG.Translations.Infrastructure;
 using Newtonsoft.Json;
 
@@ -119,7 +119,7 @@ namespace ISFG.SpisUm.ClientSide.Services
 
         private async Task LocalRecord(string nodeId, string nodeType, string pid, string nodeTypeCode, string eventType, string eventParameters)
         {
-            await _transactionHistoryRepository.CreateEvent(nodeId, nodeType, pid, nodeTypeCode, eventType,_identityUser.Id, _identityUser.RequestGroup, "SpisUm", eventParameters);
+            await _transactionHistoryRepository.CreateEvent(nodeId, nodeType, pid, nodeTypeCode, eventType,_identityUser?.Id, _identityUser?.RequestGroup, "SpisUm", eventParameters);
         }
 
         #endregion

@@ -26,7 +26,9 @@ namespace ISFG.SpisUm.ClientSide.Validators
         private readonly IIdentityUser _identityUser;
         private GroupPagingFixed _groupPagingCurrentUser;
         private GroupPagingFixed _groupPagingNextOwner;
+        private GroupMemberPaging _groupPagingRepository;
         private NodeEntry _nodeEntry;
+        private string _fileId;
 
         #endregion
 
@@ -37,7 +39,9 @@ namespace ISFG.SpisUm.ClientSide.Validators
             IIdentityUser identityUser, 
             IAlfrescoConfiguration alfrescoConfiguration,
             ISimpleMemoryCache simpleMemoryCache,
-            ISystemLoginService systemLoginService)
+            ISystemLoginService systemLoginService,
+            IDocumentService documentService
+            )
         {
             var adminHttpClient = new AlfrescoHttpClient(alfrescoConfiguration, new AdminAuthentification(simpleMemoryCache, alfrescoConfiguration, systemLoginService));
             _identityUser = identityUser;
@@ -49,16 +53,26 @@ namespace ISFG.SpisUm.ClientSide.Validators
                     _nodeEntry = await alfrescoHttpClient.GetNodeInfo(context.NodeId, ImmutableList<Parameter>.Empty
                         .Add(new Parameter(AlfrescoNames.Headers.Include, $"{AlfrescoNames.Includes.Properties},{AlfrescoNames.Includes.Permissions},{AlfrescoNames.Includes.Path}", ParameterType.QueryString)));
                     _groupPagingCurrentUser = await alfrescoHttpClient.GetPersonGroups(identityUser.Id);
-                    
+
+                    _fileId = await documentService.GetDocumentFileId(context.NodeId);
+
                     if (context?.Body?.NextOwner != null) 
                         _groupPagingNextOwner = await adminHttpClient.GetPersonGroups(context.Body.NextOwner);
-                    
+
+                    _groupPagingRepository = await adminHttpClient.GetGroupMembers(SpisumNames.Groups.RepositoryGroup,
+                        ImmutableList<Parameter>.Empty.Add(new Parameter(AlfrescoNames.Headers.Where, AlfrescoNames.MemberType.Group, ParameterType.QueryString)));
+
                     return _nodeEntry?.Entry?.Id != null && _groupPagingCurrentUser != null;
                 })
                 .WithName(x => nameof(x.NodeId))
                 .WithMessage("Something went wrong with alfresco server.")
                 .DependentRules(() => 
                 {
+                    RuleFor(x => x)
+                       .Must(y => !(_groupPagingRepository?.List?.Entries?.Any(q => q.Entry.Id == y.Body.NextGroup) ?? false))
+                       .WithName(x => "Group")
+                       .WithMessage("NextGroup is a Repository.");
+
                     RuleFor(x => x)
                         .Must(y =>
                         {
@@ -75,8 +89,9 @@ namespace ISFG.SpisUm.ClientSide.Validators
                         .WithMessage($"User isn't member of group {identityUser.RequestGroup}.");
 
                     RuleFor(x => x)
-                         .Must(x => _nodeEntry?.Entry?.Path?.Name?.StartsWith(AlfrescoNames.Prefixes.Path + SpisumNames.Paths.Evidence, StringComparison.OrdinalIgnoreCase) == true)
-                         .OnAnyFailure(x => throw new BadRequestException("Document must be in evidence site."));
+                         .Must(x => _nodeEntry?.Entry?.Path?.Name?.StartsWith(AlfrescoNames.Prefixes.Path + SpisumNames.Paths.Evidence, StringComparison.OrdinalIgnoreCase) == true 
+                            || _nodeEntry?.Entry?.Path?.Name?.StartsWith(AlfrescoNames.Prefixes.Path + SpisumNames.Paths.MailRoomNotPassed, StringComparison.OrdinalIgnoreCase) == true)
+                         .OnAnyFailure(x => throw new BadRequestException("Document must be in evidence/mailroom site."));
 
                     RuleFor(x => x.NodeId)
                         .Must(x => _nodeEntry?.Entry?.NodeType == SpisumNames.NodeTypes.Document || _nodeEntry?.Entry?.NodeType == SpisumNames.NodeTypes.File || _nodeEntry?.Entry?.NodeType == SpisumNames.NodeTypes.Concept)
@@ -90,6 +105,10 @@ namespace ISFG.SpisUm.ClientSide.Validators
                     RuleFor(x => x.NodeId)
                         .Must(CanUserMakeAction)
                         .WithMessage("User has no access to this action.");
+
+                    RuleFor(x => x.NodeId)
+                        .Must(x => string.IsNullOrWhiteSpace(_fileId))
+                        .WithMessage("Cannot handover a document that is in the file");
                 });
             
             RuleFor(x => x)

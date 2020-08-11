@@ -28,6 +28,8 @@
     <None Remove="ConfigurationFiles\ContentModels\modelSchema.xsd" />
     <None Remove="ConfigurationFiles\ContentModels\ssl-model.xml" />
     <None Remove="ConfigurationFiles\Scripts\PIDConceptGenerator.js" />
+    <None Remove="ConfigurationFiles\Scripts\PIDDataBoxGenerator.js" />
+    <None Remove="ConfigurationFiles\Scripts\PIDEmailGenerator.js" />
     <None Remove="ConfigurationFiles\Scripts\PIDGenerator.js" />
     <None Remove="ConfigurationFiles\Scripts\PIDShreddingProposalGenerator.js" />
     <None Remove="ConfigurationFiles\Scripts\PIDUniqueChecker.js" />
@@ -40,6 +42,12 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="ConfigurationFiles\ContentModels\ssl-model.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ConfigurationFiles\Scripts\PIDDataBoxGenerator.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ConfigurationFiles\Scripts\PIDEmailGenerator.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="ConfigurationFiles\Scripts\PIDShreddingProposalGenerator.js">

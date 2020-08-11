@@ -8,6 +8,7 @@ using ISFG.Alfresco.Api.Interfaces;
 using ISFG.Alfresco.Api.Models;
 using ISFG.Alfresco.Api.Models.CoreApi.CoreApi;
 using ISFG.Alfresco.Api.Models.CoreApiFixed;
+using ISFG.Exceptions.Exceptions;
 using ISFG.SpisUm.Attributes;
 using ISFG.SpisUm.ClientSide.Extensions;
 using ISFG.SpisUm.ClientSide.Interfaces;
@@ -55,6 +56,8 @@ namespace ISFG.SpisUm.Controllers.Admin.V1
         [HttpPost("create")]
         public async Task<PersonEntryFixed> CreateUser([FromBody] UserCreate body)
         {
+            CheckForbiddenUsers(body.UserId);
+
             var userInfo = await _alfrescoHttpClient.CreatePerson(new PersonBodyCreate
             {
                 Email = body.Email,
@@ -100,10 +103,33 @@ namespace ISFG.SpisUm.Controllers.Admin.V1
         [HttpPost("{userId}/deactivate")]
         public async Task<PersonEntryFixed> DeactivateUser([FromRoute] string userId)
         {
-            return await _alfrescoHttpClient.UpdatePerson(userId, new PersonBodyUpdate
+            CheckForbiddenUsers(userId, true);
+
+            var userInfo = await _alfrescoHttpClient.UpdatePerson(userId, new PersonBodyUpdate
             {
                 Enabled = false
             });
+
+            var userGroupsInfo = await _alfrescoHttpClient.GetPersonGroups(userId);
+
+            var userGroups = userGroupsInfo?.List?.Entries?.Select(x => x.Entry?.Id)?.Where(
+                x => Array.IndexOf(new[] { SpisumNames.Groups.Everyone }, x) == -1
+            )?.ToList() ?? new List<string>();
+
+            // remove all groups included in main groups
+            foreach (var group in userGroups)
+            {
+                try
+                {
+                    await _alfrescoHttpClient.DeleteGroupMember(group, userId);
+                }
+                catch
+                {
+
+                }
+            }
+
+            return userInfo;
         }
 
         /// <summary>
@@ -115,6 +141,8 @@ namespace ISFG.SpisUm.Controllers.Admin.V1
         [HttpGet("{userId}/groups")]
         public async Task<GroupPagingFixed> GetGroups([FromRoute] string userId, [FromQuery] BasicNodeQueryParams queryParams)
         {
+            CheckForbiddenUsers(userId);
+
             return await _alfrescoHttpClient.GetPersonGroups(userId, ImmutableList<Parameter>.Empty.AddQueryParams(queryParams));
         }
 
@@ -149,6 +177,8 @@ namespace ISFG.SpisUm.Controllers.Admin.V1
         [HttpPost("{userId}/update")]
         public async Task<PersonEntryFixed> UpdateUser([FromRoute] string userId, [FromBody] UserUpdate body)
         {
+            CheckForbiddenUsers(userId);
+
             var update = new PersonBodyUpdate
             {
                 Email = body.Email,
@@ -192,11 +222,11 @@ namespace ISFG.SpisUm.Controllers.Admin.V1
             for (int i = userGroups.Count - 1; i >= 0; i--)
             {
                 var group = userGroups[i];
-                if (allGroups.Exists(x => x.StartsWith(@group)) && !groupList.Contains(@group)
-                    || @group.EndsWith(SpisumNames.Postfixes.Sign) && !signGroups.Contains(@group))
+                if (allGroups.Exists(x => x.StartsWith(group)) && !groupList.Contains(group)
+                    || group.EndsWith(SpisumNames.Postfixes.Sign) && !signGroups.Contains(group))
                     try
                     {
-                        await _alfrescoHttpClient.DeleteGroupMember(@group, userId);
+                        await _alfrescoHttpClient.DeleteGroupMember(group, userId);
                         userGroups.RemoveAt(i);
                     }
                     catch
@@ -208,7 +238,7 @@ namespace ISFG.SpisUm.Controllers.Admin.V1
             foreach (var group in groupList.Where(x => !userGroups.Contains(x)))
                 try
                 {
-                    await _alfrescoHttpClient.CreateGroupMember(@group, new GroupMembershipBodyCreate { Id = userInfo.Entry.Id, MemberType = GroupMembershipBodyCreateMemberType.PERSON });
+                    await _alfrescoHttpClient.CreateGroupMember(group, new GroupMembershipBodyCreate { Id = userInfo.Entry.Id, MemberType = GroupMembershipBodyCreateMemberType.PERSON });
                 }
                 catch
                 {
@@ -218,7 +248,7 @@ namespace ISFG.SpisUm.Controllers.Admin.V1
             foreach (var group in signGroups.Where(x => !userGroups.Contains(x + SpisumNames.Postfixes.Sign)))
                 try
                 {
-                    await _initialUser.CheckCreateGroupAndAddPerson(userInfo.Entry.Id, @group + SpisumNames.Postfixes.Sign);
+                    await _initialUser.CheckCreateGroupAndAddPerson(userInfo.Entry.Id, group + SpisumNames.Postfixes.Sign);
                 }
                 catch
                 {
@@ -226,6 +256,27 @@ namespace ISFG.SpisUm.Controllers.Admin.V1
                 }
 
             return userInfo;
+        }
+
+        #endregion
+
+        #region 
+
+        private void CheckForbiddenUsers(string userId, bool includeSuperUser = false)
+        {
+            var users = new List<string>() 
+            { 
+                SpisumNames.SystemUsers.Admin, 
+                SpisumNames.SystemUsers.SAdmin.ToLower(), 
+                SpisumNames.SystemUsers.Databox, 
+                SpisumNames.SystemUsers.Emailbox 
+            };
+
+            if (includeSuperUser)
+                users.Add(SpisumNames.SystemUsers.Spisum);
+
+            if (users.Contains(userId?.ToLower()))
+                throw new ForbiddenException("403", "Forbidden user");
         }
 
         #endregion

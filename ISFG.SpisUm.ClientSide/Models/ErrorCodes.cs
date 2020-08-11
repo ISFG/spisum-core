@@ -22,6 +22,9 @@ namespace ISFG.SpisUm.ClientSide.Models
         public static string F_DOCUMENT_ASSOCIATION => nameof(F_DOCUMENT_ASSOCIATION);
         public static string V_FILE_CANCEL_CHILDREN => nameof(V_FILE_CANCEL_CHILDREN);
         public static string V_MAX_SIZE => nameof(V_MAX_SIZE);
+        public static string V_SETTLE_OUTPUTFORMAT => nameof(V_SETTLE_OUTPUTFORMAT);
+        public static string V_SETTLE_READABLE_TYPE => nameof(V_SETTLE_READABLE_TYPE);
+        public static string V_SETTLE_OUTPUTFORMAT_READABLE_TYPE => nameof(V_SETTLE_OUTPUTFORMAT_READABLE_TYPE);
 
         #endregion
     }

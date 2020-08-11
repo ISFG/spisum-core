@@ -65,7 +65,7 @@ namespace ISFG.SpisUm.ClientSide.Validators.Shipments
                         .OnAnyFailure(x => throw new BadRequestException("Document must be in evidence site."));
 
                     RuleFor(x => x.Body.Sender)
-                        .Must(y => _accounts?.Any(x => x.Username == y) ?? false)
+                        .Must(y => _accounts?.Any(x => x.Id == y) ?? false)
                         .WithMessage(x => "Sender was not found in databox configuration on databox server");
                 });
 

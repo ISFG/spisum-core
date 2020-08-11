@@ -635,5 +635,12 @@
   "codelist.ssl:senderType.postoupenim": "Postoupením",
   "codelist.ssl:senderType.vzetimNaVedomi": "Vzetím na vědomí",
   "codelist.ssl:senderType.zaznamemNaDokumentu": "Záznamem na dokumentu",
-  "codelist.ssl:senderType.jinyZpusob": "Jiný způsob"
+  "codelist.ssl:senderType.jinyZpusob": "Jiný způsob",
+  "codelist.ssl:state.nevyrizen": "Nevyřízen",
+  "codelist.ssl:state.vyrizen": "Vyřízen",
+  "codelist.ssl:state.uzavren": "Uzavřen",
+  "codelist.ssl:state.predanDoSpisovny": "Předán do spisovny",
+  "codelist.ssl:state.predanDoArchivu": "Předán do archivu",
+  "codelist.ssl:state.stornovan": "Stornován",
+  "codelist.ssl:state.skartovan": "Skartován"
 }

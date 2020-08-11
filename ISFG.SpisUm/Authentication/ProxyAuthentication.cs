@@ -16,8 +16,12 @@ namespace ISFG.SpisUm.Authentication
 
         #region Constructors
 
-        public ProxyAuthentication(IHttpContextAccessor httpContextAccessor) =>
+        public ProxyAuthentication(IHttpContextAccessor httpContextAccessor)
+        {
             _authorizationToken = httpContextAccessor?.HttpContext?.Request?.Headers[HeaderNames.Authorization];
+            if (string.IsNullOrWhiteSpace(_authorizationToken)) 
+                _authorizationToken = httpContextAccessor?.HttpContext?.Request?.Query["token"];
+        }
 
         #endregion
 

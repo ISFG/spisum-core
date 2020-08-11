@@ -89,6 +89,16 @@ namespace ISFG.SpisUm.InitialScripts
                     var fileAfterReplaces = GetScriptFileAfterReplaces(scriptFile.FilePath, scriptFile.Replaces);
                     await UploadPidGeneratorFile(fileAfterReplaces, scriptFile.FileName, scriptFile.FileNameNoExtensions, scriptFile.Rules);
                 }
+
+            //foreach (string disableInheritanceRules in _alfrescoConfig.ConfigurationFiles.Scripts.DisableInheritanceRules)
+            //{
+            //    var folderNodeId = await _alfrescoHttpClient.GetNodeInfo(AlfrescoNames.Aliases.Root, ImmutableList<Parameter>.Empty
+            //        .Add(new Parameter(AlfrescoNames.Headers.RelativePath, $"{disableInheritanceRules}", ParameterType.QueryString)));
+
+            //    if (folderNodeId != null)
+            //        await _alfrescoHttpClient.WebScriptsRuleInheritance(StoreType, StoreId, folderNodeId?.Entry?.Id);
+            //}
+                
         }
 
         #endregion

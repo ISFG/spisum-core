@@ -5,7 +5,7 @@ using ISFG.Alfresco.Api.Interfaces;
 using ISFG.Alfresco.Api.Models;
 using ISFG.Alfresco.Api.Models.CoreApi.CoreApi;
 using ISFG.SpisUm.Attributes;
-using ISFG.SpisUm.ClientSide.Models;
+using ISFG.SpisUm.ClientSide.Models.Query;
 using ISFG.SpisUm.Endpoints;
 using Microsoft.AspNetCore.Mvc;
 using RestSharp;

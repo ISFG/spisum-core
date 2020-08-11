@@ -28,6 +28,10 @@
         {
             #region Fields
 
+            public static readonly string Document = "dokumentem";
+            public static readonly string Referral = "postoupenim";
+            public static readonly string Acknowledge = "vzetimNaVedomi";
+            public static readonly string RecordOnDocument = "zaznamemNaDokumentu";
             public static readonly string Other = "jinyZpusob";
 
             #endregion
@@ -53,6 +57,8 @@
             public static readonly string RepositoryGroup = "GROUP_Repository";
             public static readonly string RolesGroup = "GROUP_Roles";
             public static readonly string SpisumAdmin = "GROUP_ESSL_Admin"; // for spisum admins
+            public static readonly string EmailBox = "GROUP_EMAILBOX";
+            public static readonly string DataBox = "GROUP_DATABOX";
 
             #endregion
         }
@@ -90,15 +96,15 @@
             public static readonly string MailRoomEmailArchived = "Sites/Mailroom/documentLibrary/MailBox/Archived";
             public static readonly string MailRoomEmailNotRegistered = "Sites/Mailroom/documentLibrary/MailBox/NotRegistered";
             public static readonly string MailRoomEmailUnprocessed = "Sites/Mailroom/documentLibrary/MailBox/Unprocessed";
+            public static readonly string MailRoomNotPassed = "Sites/Mailroom/documentLibrary/NotPassed";
             public static readonly string MailRoomUnfinished = "Sites/Mailroom/documentLibrary/Unfinished";
-            public static readonly string RepositoryFilesDocuments = "Sites/Repository/documentLibrary/Files/Documents";
-            public static readonly string RepositoryFilesStored = "Sites/Repository/documentLibrary/Files/Stored";
-            public static readonly string RepositoryFilesRented = "Sites/Repository/documentLibrary/Files/Rented";
-            public static readonly string RepositoryFiles = "Sites/Repository/documentLibrary/Files";
-            public static readonly string RepositoryDocumentsStored = "Sites/Repository/documentLibrary/Documents/Stored";
-            public static readonly string RepositoryDocumentsRented = "Sites/Repository/documentLibrary/Documents/Rented";
-            public static readonly string RepositoryDocuments = "Sites/Repository/documentLibrary/Documents";
+            public static readonly string MailRoomWaitingForTakeOver = "Sites/Mailroom/documentLibrary/WaitingForTakeOver";
+            public static readonly string RepositoryArchived = "Sites/Repository/documentLibrary/Archived";
+            public static readonly string RepositoryDocumentsInFiles = "Sites/Repository/documentLibrary/DocumentsInFiles";
+            public static readonly string RepositoryRented = "Sites/Repository/documentLibrary/Rented";
+            public static readonly string RepositoryShredded = "Sites/Repository/documentLibrary/Shredded";
             public static readonly string RepositoryShreddingProposal = "Sites/Repository/documentLibrary/ShreddingProposal";
+            public static readonly string RepositoryStored = "Sites/Repository/documentLibrary/Stored";
             public static readonly string RMDocumentLibrary = "Sites/rm/documentLibrary";
             public static readonly string RMShreddingPlan = "Sites/rm/documentLibrary/ShreddingPlan";
 
@@ -112,7 +118,6 @@
             public static string EvidenceDocuments(string group) { return $"Sites/Evidence/documentLibrary/{group}/Documents"; }
             public static string EvidenceDocumentsForProcessing(string group) { return $"Sites/Evidence/documentLibrary/{group}/Documents/ForProcessing"; }
             public static string EvidenceDocumentsForProcessingForSignature(string group) { return $"Sites/Evidence/documentLibrary/{group}/Documents/ForProcessing/ForSignature"; }
-            public static string EvidenceDocumentsForProcessingToAprove(string group) { return $"Sites/Evidence/documentLibrary/{group}/Documents/ForProcessing/ToAprove"; }
             public static string EvidenceDocumentsForProcessingWaitingForTakeOver(string group) { return $"Sites/Evidence/documentLibrary/{group}/Documents/ForProcessing/WaitingForTakeOver"; }
             public static string EvidenceDocumentsProcessed(string group) { return $"Sites/Evidence/documentLibrary/{group}/Documents/Processed"; }
             public static string EvidenceDocumentsProcessedWaitingForTakeOver(string group) { return $"Sites/Evidence/documentLibrary/{group}/Documents/Processed/WaitingForTakeOver"; }
@@ -124,7 +129,6 @@
             public static string EvidenceFilesDocumentsCancelled(string group) { return $"Sites/Evidence/documentLibrary/{group}/Files/Documents/Cancelled"; }
             public static string EvidenceFilesDocumentsForProcessing(string group) { return $"Sites/Evidence/documentLibrary/{group}/Files/Documents/ForProcessing"; }
             public static string EvidenceFilesDocumentsForProcessingForSignature(string group) { return $"Sites/Evidence/documentLibrary/{group}/Files/Documents/ForProcessing/ForSignature"; }
-            public static string EvidenceFilesDocumentsForProcessingToAprove(string group) { return $"Sites/Evidence/documentLibrary/{group}/Files/Documents/ForProcessing/ToAprove"; }
             public static string EvidenceFilesDocumentsProcessed(string group) { return $"Sites/Evidence/documentLibrary/{group}/Files/Documents/Processed"; }
             public static string EvidenceFilesDocumentsStored(string group) { return $"Sites/Evidence/documentLibrary/{group}/Files/Documents/Stored"; }
             public static string EvidenceFilesOpen(string group) { return $"Sites/Evidence/documentLibrary/{group}/Files/Open"; }
@@ -132,11 +136,13 @@
             public static string EvidenceFilesStored(string group) { return $"Sites/Evidence/documentLibrary/{group}/Files/Stored"; }
             public static string EvidenceLostDestroyed(string group) { return $"Sites/Evidence/documentLibrary/{group}/LostDestroyed"; }
             public static string EvidenceFilesLostDestroyed(string group) { return $"Sites/Evidence/documentLibrary/{group}/Files/Documents/LostDestroyed"; }
+            public static string EvidenceForSignature(string group) { return $"Sites/Evidence/documentLibrary/{group}/ForSignature"; }
             public static string EvidenceToTakeOver(string group) { return $"Sites/Evidence/documentLibrary/{group}/ToTakeOver"; }
             public static string EvidenceGroup(string group) { return $"Sites/Evidence/documentLibrary/{group}"; }
             public static string EvidenceWaitingForTakeOver(string group) { return $"Sites/Evidence/documentLibrary/{group}/WaitingForTakeOver"; }
-            public static string RMShreddingPlanFolder(string folder) => $"Sites/rm/documentLibrary/ShreddingPlan/{folder}";
-            public static string RMShreddingPlanFolderContents(string folder) => $"Sites/rm/documentLibrary/ShreddingPlan/{folder}/Contents";
+            public static string EvidenceWaitingForSignature(string group) { return $"Sites/Evidence/documentLibrary/{group}/WaitingForSignature"; }
+            public static string RMShreddingPlanFolder(string filePlan, string fileMark) => $"Sites/rm/documentLibrary/ShreddingPlan/{filePlan}/{fileMark}";
+            public static string RMShreddingPlanFolderContents(string filePlan, string fileMark) => $"Sites/rm/documentLibrary/ShreddingPlan/{filePlan}/{fileMark}/Contents";
 
             #endregion
         }
@@ -222,6 +228,7 @@
             public static readonly string Borrower = "ssl:borrower";
             public static readonly string BorrowGroup = "ssl:borrowGroup";
             public static readonly string BorrowReturnDate = "ssl:borrowReturnDate";
+            public static readonly string CanBeSigned = "ssl:canBeSigned";              
             public static readonly string CancelDate = "ssl:cancelDate";
             public static readonly string CancelReason = "ssl:cancelReason";
             public static readonly string CertValidity = "ssl:certValidity";
@@ -265,6 +272,8 @@
             public static readonly string FileIdentificator = "ssl:fileIdentificator";
             public static readonly string FileIsReadable = "ssl:fileIsReadable";
             public static readonly string FileIsInOutputFormat = "ssl:fileIsInOutputFormat";
+            public static readonly string FileIsInOutputFormatDocument = "ssl:fileIsInOutputFormatDocument";
+            public static readonly string FileIsInOutputFormatFile = "ssl:fileIsInOutputFormatFile";
             public static readonly string FileMark = "ssl:fileMark";
             public static readonly string FileName = "ssl:fileName";
             public static readonly string FilePlan = "ssl:filePlan";
@@ -327,7 +336,9 @@
             public static readonly string ReturnedForReworkDate = "ssl:returnedForReworkDate";
             public static readonly string Recipient = "ssl:recipient";
             public static readonly string ReturnedDate = "ssl:returnedDate";
+            public static readonly string RepositoryName = "ssl:repositoryName";
             public static readonly string RevocationState = "ssl:revocationState";
+            public static readonly string SafetyElementsCheck = "ssl:safetyElementsCheck";
             public static readonly string SerialNumber = "ssl:serialNumber";
             public static readonly string Sender = "ssl:sender";
             public static readonly string Sender_Address = "ssl:sender_address";
@@ -349,11 +360,15 @@
             public static readonly string ShreddingDate = "ssl:shreddingDate";
             public static readonly string ShreddingResolution = "ssl:shreddingResolution";
             public static readonly string ShreddingYear = "ssl:shreddingYear";
+            public static readonly string SignLocation = "ssl:signLocation";
+            public static readonly string SignReason = "ssl:signReason";
             public static readonly string Ssid = "ssl:ssid";
             public static readonly string SenderSSID = "ssl:senderSSID";
             public static readonly string SendMode = "ssl:sendMode";
             public static readonly string SsidNumber = "ssl:ssidNumber";
             public static readonly string State = "ssl:state";
+            public static readonly string ShipmentPostState = "ssl:shipmentPostState";
+            public static readonly string ShipmentDataboxState = "ssl:shipmentDataBoxState";
             public static readonly string Subject = "ssl:subject";
             public static readonly string TakeRef = "ssl:takeRef";
             public static readonly string TClose = "ssl:tClose";
@@ -411,6 +426,8 @@
             public static readonly string CompanyImplementingDataFormat = "ssl:companyImplementingDataFormat";
             public static readonly string AuthorChangeOfDataFormat = "ssl:autorChangeOfDataFormat";
             public static readonly string OriginalDataFormat = "ssl:originalDataFormat";
+            public static readonly string OriginalDestinationHandover = "ssl:originalDestinationHandover";
+            public static readonly string OriginalDestinationGroupHandover = "ssl:originalDestinationGroupHandover";
             public static readonly string DataCompleteVerificationItem = "ssl:dateCompleteVerificationItem";
             public static readonly string ImprintFile = "ssl:imprintFile";
             public static readonly string UsedAlgorithm = "ssl:usedAlgorithm";
@@ -430,15 +447,45 @@
             #endregion
         }
 
+        public static class ShipmentPostState
+        {
+            public static readonly string Nevypraveno = "nevypraveno";
+            public static readonly string Vypraveno = "vypraveno";
+            public static readonly string Doruceno = "doruceno";
+            public static readonly string VracenoJinyDuvodOvereno = "vraceno-jiny-duvod-overeno";
+            public static readonly string VracenoJinyDuvodNeovereno = "vraceno-jiny-duvod-neovereno";
+            public static readonly string VracenoAdresatNeznamy = "vraceno-adresat-neznamy";
+            public static readonly string VracenoAdresatSeOdstehoval = "vraceno-adresat-se-odstehoval";
+            public static readonly string VracenoNeprijato = "vraceno-neprijato";
+            public static readonly string VracenoNevyzadano = "vraceno-nevyzadano";
+            public static readonly string NedorucenoZpracovano = "nedoruceno-zpracovano";
+            public static readonly string VracenoAdresaNedostatecna = "vraceno-adresa-nedostatecna";
+            public static readonly string Stornovano = "stornovano";
+        }
+        public static class ShipmentDataboxState
+        {
+            public static readonly string One = "1";
+            public static readonly string Two = "2";
+            public static readonly string Three = "3";
+            public static readonly string Four = "4";
+            public static readonly string Five = "5";
+            public static readonly string Six = "6";
+            public static readonly string Seven = "7";
+            public static readonly string Eight = "8";
+            public static readonly string Nine = "9";
+            public static readonly string Ten = "10";
+        }
         public static class State
         {
             #region Fields
 
+            public static readonly string Unprocessed = "nevyrizen";
             public static readonly string Settled = "vyrizen";
             public static readonly string Closed = "uzavren";
-            public static readonly string NotDispatched = "nevypraveno";
-            public static readonly string Unprocessed = "nevyrizen";
-            public static readonly string Dispatched = "vypraveno";
+            public static readonly string HandoverToRepository = "predanDoSpisovny";
+            public static readonly string HandoverToArchive = "predanDoArchivu";
+            public static readonly string Cancel = "stornovan";
+            public static readonly string Shredded = "skartovan";
 
             #endregion
         }
@@ -461,43 +508,13 @@
             #region Fields
 
             public static readonly string Admin = "admin";
+            public static readonly string Databox = "databox";
+            public static readonly string Emailbox = "emailbox";
+            public static readonly string SAdmin = "sAdmin";
             public static readonly string Spisum = "spisum";
 
             #endregion
         }
-
-        public static class TransactionHistoryCodes
-        {
-            #region Fields
-
-            public static readonly string EM_AUD_1 = "EM_AUD_1";
-            public static readonly string AddedToFile = "VlozeniDoSpisu";
-            public static readonly string RemovedFromfile = "VyjmutiZeSpisu";
-            public static readonly string RemovedFromDispatch = "VyjmutiZVypraveni";
-            public static readonly string Storno = "Storno";
-            public static readonly string Created = "Zalozeni";
-            public static readonly string Cancellation = "Zruseni";
-            public static readonly string HandOverToRepository = "PredaniNaSpisovnu";
-            public static readonly string HandOverToDispatch = "PredaniVypravne";
-            public static readonly string Open = "Otevreni";
-            public static readonly string Destroy = "Zniceni";
-            public static readonly string Dispatch = "Vyrizeni";
-            public static readonly string Dispatched = "Vypraveno";
-            public static readonly string Closed = "Uzavreni";
-            public static readonly string ShipmentCreated = "Zalozeni";
-            public static readonly string ShipmentCancel = "Zruseni";
-            public static readonly string Change = "Uprava";
-            public static readonly string Delivered = "Doruceno";
-            public static readonly string ReturnedFromAgency = "VraceniZAgendy";
-            public static readonly string AddedAgency = "PostoupeniAgende";
-            public static readonly string AddedToSaveUnit = "VlozeniDoUkladaciJednotky";
-            public static readonly string RemovedFromSaveUnit = "VyjmutiZUkladaciJednotky";
-            public static readonly string CancelShreddingOperation = "PozastaveniSkartacniOperace";
-            public static readonly string CancelShreddingDiscardOperation = "ZruseniPozastaveniSkartacniOperace";
-
-            #endregion
-        }
-
         public static class Component
         {
             #region Fields
@@ -541,10 +558,8 @@
         {
             #region Fields
 
-            public static readonly string Storno = "stornovan";
             public static readonly string Unprocessed = "nevyrizen";
             public static readonly string Priorace = "Priorace";
-            public static readonly string HandOverToRepository = "predanDoSpisovny";
             public static readonly string Own = "Vlastni";
 
             #endregion
@@ -573,6 +588,19 @@
             public static readonly string InternalStorage = "certifikát pocházející z interního úložiště";
             public static readonly string Unknown = "neznámý certifikát";
 
+            public static readonly string External = "external";
+            public static readonly string Type = "type";
+            public static readonly string Url = "url";
+            public static readonly string Input = "input";
+            public static readonly string Status = "status";
+            public static readonly string Output = "output";
+            public static readonly string Batch = "batch";
+            
+            public static readonly string Visual = "visual";
+            public static readonly string Sign = "sign";
+
+            public static readonly string CallSigner = "call-signer";
+            
             #endregion
         }
 
@@ -590,6 +618,18 @@
             public static readonly string Surname = "SN";
             public static readonly string GivenName = "GN";
 
+            #endregion
+        }
+        
+        public static class Global
+        {
+            #region Fields
+
+            public static readonly string Yes = "yes";
+            public static readonly string No = "no";
+            public static readonly string Impossible = "impossible";
+            public static readonly string Sha256 = "SHA-256";
+            
             #endregion
         }
 

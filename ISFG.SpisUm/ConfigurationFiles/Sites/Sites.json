@@ -145,11 +145,53 @@
       },
       {
         "Body": {
+          "Name": "NotPassed",
+          "NodeType": "cm:folder",
+          "Properties": {
+            "cm:title": "Nepředané",
+            "cm:description": "Contains not passed documents"
+          }
+        },
+        "Permissions": [
+          {
+            "Id": "GROUP_ESSL_Admin",
+            "Role": "SiteManager"
+          },
+          {
+            "Id": "GROUP_Mailroom",
+            "Role": "Contributor"
+          }
+        ],
+        "ReturnInNodesInfo": true
+      },
+      {
+        "Body": {
           "Name": "Unfinished",
           "NodeType": "cm:folder",
           "Properties": {
             "cm:title": "Rozpracované",
             "cm:description": "Contains Unfinished documents"
+          }
+        },
+        "Permissions": [
+          {
+            "Id": "GROUP_ESSL_Admin",
+            "Role": "SiteManager"
+          },
+          {
+            "Id": "GROUP_Mailroom",
+            "Role": "Contributor"
+          }
+        ],
+        "ReturnInNodesInfo": true
+      },
+      {
+        "Body": {
+          "Name": "WaitingForTakeOver",
+          "NodeType": "cm:folder",
+          "Properties": {
+            "cm:title": "Čeká na převzetí",
+            "cm:description": "Contains Documents waiting for take-over"
           }
         },
         "Permissions": [
@@ -215,27 +257,6 @@
                   "Properties": {
                     "cm:title": "K podepsání",
                     "cm:description": "Contains documents for signature"
-                  }
-                },
-                "Permissions": [
-                  {
-                    "Id": "GROUP_ESSL_Admin",
-                    "Role": "SiteManager"
-                  },
-                  {
-                    "Id": "GROUP_Spisum",
-                    "Role": "Contributor"
-                  }
-                ],
-                "ReturnInNodesInfo": true
-              },
-              {
-                "Body": {
-                  "Name": "ToAprove",
-                  "NodeType": "cm:folder",
-                  "Properties": {
-                    "cm:title": "Ke schválení",
-                    "cm:description": "Contains documents to aprove"
                   }
                 },
                 "Permissions": [
@@ -477,27 +498,6 @@
                       }
                     ],
                     "ReturnInNodesInfo": true
-                  },
-                  {
-                    "Body": {
-                      "Name": "ToAprove",
-                      "NodeType": "cm:folder",
-                      "Properties": {
-                        "cm:title": "Ke schválení",
-                        "cm:description": "Contains documents to aprove"
-                      }
-                    },
-                    "Permissions": [
-                      {
-                        "Id": "GROUP_ESSL_Admin",
-                        "Role": "SiteManager"
-                      },
-                      {
-                        "Id": "GROUP_Spisum",
-                        "Role": "Contributor"
-                      }
-                    ],
-                    "ReturnInNodesInfo": true
                   }
                 ],
                 "Permissions": [
@@ -691,11 +691,53 @@
       },
       {
         "Body": {
+          "Name": "ForSignature",
+          "NodeType": "cm:folder",
+          "Properties": {
+            "cm:title": "K podepsání",
+            "cm:description": "Contains Files/Documents/Concepts for signature"
+          }
+        },
+        "Permissions": [
+          {
+            "Id": "GROUP_ESSL_Admin",
+            "Role": "SiteManager"
+          },
+          {
+            "Id": "GROUP_Spisum",
+            "Role": "Contributor"
+          }
+        ],
+        "ReturnInNodesInfo": true
+      },
+      {
+        "Body": {
           "Name": "ToTakeOver",
           "NodeType": "cm:folder",
           "Properties": {
             "cm:title": "K převzetí",
             "cm:description": "Contains Files/Documents/Concepts to take over"
+          }
+        },
+        "Permissions": [
+          {
+            "Id": "GROUP_ESSL_Admin",
+            "Role": "SiteManager"
+          },
+          {
+            "Id": "GROUP_Spisum",
+            "Role": "Contributor"
+          }
+        ],
+        "ReturnInNodesInfo": true
+      },
+      {
+        "Body": {
+          "Name": "WaitingForSignature",
+          "NodeType": "cm:folder",
+          "Properties": {
+            "cm:title": "Čeká k podepsání",
+            "cm:description": "Contains Files/Documents/Concepts waiting for signature"
           }
         },
         "Permissions": [
@@ -912,115 +954,13 @@
     "Childs": [
       {
         "Body": {
-          "Name": "Documents",
+          "Name": "Archived",
           "NodeType": "cm:folder",
           "Properties": {
-            "cm:title": "Dokumenty",
-            "cm:description": "Contains documents"
+            "cm:title": "Archivované",
+            "cm:description": "Contains archived documents and files"
           }
         },
-        "Childs": [
-          {
-            "Body": {
-              "Name": "Archived",
-              "NodeType": "cm:folder",
-              "Properties": {
-                "cm:title": "Archivované",
-                "cm:description": "Contains archived documents"
-              }
-            },
-            "Permissions": [
-              {
-                "Id": "GROUP_ESSL_Admin",
-                "Role": "SiteManager"
-              },
-              {
-                "Id": "GROUP_Repository",
-                "Role": "SiteManager"
-              },
-              {
-                "Id": "GROUP_Spisum",
-                "Role": "SiteConsumer"
-              }
-            ],
-            "ReturnInNodesInfo": true
-          },
-          {
-            "Body": {
-              "Name": "Shredded",
-              "NodeType": "cm:folder",
-              "Properties": {
-                "cm:title": "Skartované",
-                "cm:description": "Contains shredded documents"
-              }
-            },
-            "Permissions": [
-              {
-                "Id": "GROUP_ESSL_Admin",
-                "Role": "SiteManager"
-              },
-              {
-                "Id": "GROUP_Repository",
-                "Role": "SiteManager"
-              },
-              {
-                "Id": "GROUP_Spisum",
-                "Role": "SiteConsumer"
-              }
-            ],
-            "ReturnInNodesInfo": true
-          },
-          {
-            "Body": {
-              "Name": "Rented",
-              "NodeType": "cm:folder",
-              "Properties": {
-                "cm:title": "Zapůjčené",
-                "cm:description": "Contains rented documents"
-              }
-            },
-            "Permissions": [
-              {
-                "Id": "GROUP_ESSL_Admin",
-                "Role": "SiteManager"
-              },
-              {
-                "Id": "GROUP_Repository",
-                "Role": "SiteManager"
-              },
-              {
-                "Id": "GROUP_Spisum",
-                "Role": "SiteConsumer"
-              }
-            ],
-            "ReturnInNodesInfo": true
-          },
-          {
-            "Body": {
-              "Name": "Stored",
-              "NodeType": "cm:folder",
-              "Properties": {
-                "cm:title": "Uložené",
-                "cm:description": "Contains stored documents"
-              }
-            },
-            "Permissions": [
-              {
-                "Id": "GROUP_ESSL_Admin",
-                "Role": "SiteManager"
-              },
-              {
-                "Id": "GROUP_Repository",
-                "Role": "SiteManager"
-              },
-              {
-                "Id": "GROUP_Spisum",
-                "Role": "SiteConsumer"
-              }
-            ],
-            "ReturnInNodesInfo": true
-          }
-        ],
         "Permissions": [
           {
             "Id": "GROUP_ESSL_Admin",
@@ -1039,140 +979,63 @@
       },
       {
         "Body": {
-          "Name": "Files",
+          "Name": "DocumentsInFiles",
           "NodeType": "cm:folder",
           "Properties": {
-            "cm:title": "Spisy",
-            "cm:description": "Contains files"
+            "cm:title": "Dokumenty ve spisu",
+            "cm:description": "Contains documents in files"
           }
         },
-        "Childs": [
+        "Permissions": [
           {
-            "Body": {
-              "Name": "Archived",
-              "NodeType": "cm:folder",
-              "Properties": {
-                "cm:title": "Archivované",
-                "cm:description": "Contains archived files"
-              }
-            },
-            "Permissions": [
-              {
-                "Id": "GROUP_ESSL_Admin",
-                "Role": "SiteManager"
-              },
-              {
-                "Id": "GROUP_Repository",
-                "Role": "SiteManager"
-              },
-              {
-                "Id": "GROUP_Spisum",
-                "Role": "SiteConsumer"
-              }
-            ],
-            "ReturnInNodesInfo": true
+            "Id": "GROUP_ESSL_Admin",
+            "Role": "SiteManager"
           },
           {
-            "Body": {
-              "Name": "Shredded",
-              "NodeType": "cm:folder",
-              "Properties": {
-                "cm:title": "Skartované",
-                "cm:description": "Contains shredded files"
-              }
-            },
-            "Permissions": [
-              {
-                "Id": "GROUP_ESSL_Admin",
-                "Role": "SiteManager"
-              },
-              {
-                "Id": "GROUP_Repository",
-                "Role": "SiteManager"
-              },
-              {
-                "Id": "GROUP_Spisum",
-                "Role": "SiteConsumer"
-              }
-            ],
-            "ReturnInNodesInfo": true
+            "Id": "GROUP_Repository",
+            "Role": "SiteManager"
           },
           {
-            "Body": {
-              "Name": "Documents",
-              "NodeType": "cm:folder",
-              "Properties": {
-                "cm:title": "Dokumenty",
-                "cm:description": "Contains documents in files"
-              }
-            },
-            "Permissions": [
-              {
-                "Id": "GROUP_ESSL_Admin",
-                "Role": "SiteManager"
-              },
-              {
-                "Id": "GROUP_Repository",
-                "Role": "SiteManager"
-              },
-              {
-                "Id": "GROUP_Spisum",
-                "Role": "SiteConsumer"
-              }
-            ],
-            "ReturnInNodesInfo": true
-          },
-          {
-            "Body": {
-              "Name": "Rented",
-              "NodeType": "cm:folder",
-              "Properties": {
-                "cm:title": "Zapůjčené",
-                "cm:description": "Contains rented files"
-              }
-            },
-            "Permissions": [
-              {
-                "Id": "GROUP_ESSL_Admin",
-                "Role": "SiteManager"
-              },
-              {
-                "Id": "GROUP_Repository",
-                "Role": "SiteManager"
-              },
-              {
-                "Id": "GROUP_Spisum",
-                "Role": "SiteConsumer"
-              }
-            ],
-            "ReturnInNodesInfo": true
-          },
-          {
-            "Body": {
-              "Name": "Stored",
-              "NodeType": "cm:folder",
-              "Properties": {
-                "cm:title": "Uložené",
-                "cm:description": "Contains stored files"
-              }
-            },
-            "Permissions": [
-              {
-                "Id": "GROUP_ESSL_Admin",
-                "Role": "SiteManager"
-              },
-              {
-                "Id": "GROUP_Repository",
-                "Role": "SiteManager"
-              },
-              {
-                "Id": "GROUP_Spisum",
-                "Role": "SiteConsumer"
-              }
-            ],
-            "ReturnInNodesInfo": true
+            "Id": "GROUP_Spisum",
+            "Role": "SiteConsumer"
           }
         ],
+        "ReturnInNodesInfo": true
+      },
+      {
+        "Body": {
+          "Name": "Rented",
+          "NodeType": "cm:folder",
+          "Properties": {
+            "cm:title": "Zapůjčené",
+            "cm:description": "Contains rented documents and files"
+          }
+        },
+        "Permissions": [
+          {
+            "Id": "GROUP_ESSL_Admin",
+            "Role": "SiteManager"
+          },
+          {
+            "Id": "GROUP_Repository",
+            "Role": "SiteManager"
+          },
+          {
+            "Id": "GROUP_Spisum",
+            "Role": "SiteConsumer"
+          }
+        ],
+        "ReturnInNodesInfo": true
+      },
+      {
+        "Body": {
+          "Name": "Shredded",
+          "NodeType": "cm:folder",
+          "Properties": {
+            "cm:title": "Skartované",
+            "cm:description": "Contains shredded documents and files"
+          }
+        },
         "Permissions": [
           {
             "Id": "GROUP_ESSL_Admin",
@@ -1196,6 +1059,31 @@
           "Properties": {
             "cm:title": "Skartační plán",
             "cm:description": "Contains shreding proposals"
+          }
+        },
+        "Permissions": [
+          {
+            "Id": "GROUP_ESSL_Admin",
+            "Role": "SiteManager"
+          },
+          {
+            "Id": "GROUP_Repository",
+            "Role": "SiteManager"
+          },
+          {
+            "Id": "GROUP_Spisum",
+            "Role": "SiteConsumer"
+          }
+        ],
+        "ReturnInNodesInfo": true
+      },
+      {
+        "Body": {
+          "Name": "Stored",
+          "NodeType": "cm:folder",
+          "Properties": {
+            "cm:title": "Uložené",
+            "cm:description": "Contains stored documents and files"
           }
         },
         "Permissions": [

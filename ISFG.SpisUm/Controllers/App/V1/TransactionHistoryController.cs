@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using ISFG.SpisUm.ClientSide.Interfaces;
-using ISFG.SpisUm.ClientSide.Models;
+using ISFG.SpisUm.ClientSide.Models.TransactionHistory;
 using ISFG.SpisUm.Endpoints;
 using Microsoft.AspNetCore.Mvc;
 

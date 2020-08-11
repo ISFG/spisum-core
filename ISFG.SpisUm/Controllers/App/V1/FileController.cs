@@ -17,6 +17,7 @@ using ISFG.SpisUm.ClientSide.Models;
 using ISFG.SpisUm.ClientSide.Models.File;
 using ISFG.SpisUm.ClientSide.Models.Nodes;
 using ISFG.SpisUm.ClientSide.Models.Shipments;
+using ISFG.SpisUm.ClientSide.Models.TransactionHistory;
 using ISFG.SpisUm.Endpoints;
 using ISFG.SpisUm.Models.V1;
 using Microsoft.AspNetCore.Mvc;
