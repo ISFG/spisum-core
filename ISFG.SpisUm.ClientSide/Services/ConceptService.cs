@@ -106,11 +106,11 @@ namespace ISFG.SpisUm.ClientSide.Services
                 conceptProperties.Remove(SpisumNames.Properties.State);
                 conceptProperties.Remove(SpisumNames.Properties.ComponentVersion);
                 conceptProperties.Remove(SpisumNames.Properties.ComponentVersionOperation);
-                conceptProperties.Remove(SpisumNames.Properties.ComponentVersionJSON);
+                conceptProperties.Remove(SpisumNames.Properties.ComponentVersionJSON);                
             }
             catch { }
 
-            parameters = _nodesService.CloneProperties(conceptProperties, parameters);
+            parameters = _nodesService.CloneProperties(conceptProperties, parameters, true);
 
             parameters = parameters
                 .Add(new Parameter(SpisumNames.Properties.Author, authorId, ParameterType.GetOrPost))
@@ -124,11 +124,6 @@ namespace ISFG.SpisUm.ClientSide.Services
                 .Add(new Parameter(SpisumNames.Properties.AuthorJob, authorProperties.GetNestedValueOrDefault(SpisumNames.Properties.UserJob)?.ToString(), ParameterType.GetOrPost))
                 .Add(new Parameter(SpisumNames.Properties.AuthorOrgAddress, authorProperties.GetNestedValueOrDefault(SpisumNames.Properties.UserOrgAddress)?.ToString(), ParameterType.GetOrPost))
                 .Add(new Parameter(SpisumNames.Properties.KeepForm, SpisumNames.StoreForm.Original, ParameterType.GetOrPost))
-                .Add(new Parameter(SpisumNames.Properties.SenderType, SpisumNames.SenderType.Own, ParameterType.GetOrPost))
-                .Add(new Parameter(SpisumNames.Properties.Sender, SpisumNames.Other.Own, ParameterType.GetOrPost))
-                .Add(new Parameter(SpisumNames.Properties.Sender_Name, SpisumNames.Other.Own, ParameterType.GetOrPost))
-                .Add(new Parameter(SpisumNames.Properties.Sender_Address, SpisumNames.Other.Own, ParameterType.GetOrPost))
-                .Add(new Parameter(SpisumNames.Properties.Sender_Contact, SpisumNames.Other.Own, ParameterType.GetOrPost))
                 .Add(new Parameter(SpisumNames.Properties.State, SpisumNames.State.Unprocessed, ParameterType.GetOrPost))
                 .Add(new Parameter(SpisumNames.Properties.ComponentVersionJSON, JsonConvert.SerializeObject(componentsVersionList), ParameterType.GetOrPost))
                 .Add(new Parameter(AlfrescoNames.ContentModel.Owner, properties.GetNestedValueOrDefault(AlfrescoNames.ContentModel.Owner, "id")?.ToString(), ParameterType.GetOrPost))
@@ -158,7 +153,8 @@ namespace ISFG.SpisUm.ClientSide.Services
             });
 
             // Create permissions for the node
-            await _nodesService.CreatePermissions(documentEntry?.Entry?.Id, _identityUser.RequestGroup, _identityUser.Id);
+            // Must be under admin because head of department can do this action
+            await _nodesService.CreatePermissionsAsAdmin(documentEntry?.Entry?.Id, _identityUser.RequestGroup, _identityUser.Id);
 
             // Generate Ssid
             var conceptEntry = await _nodesService.GenerateSsid(documentEntry?.Entry?.Id, ssidConfiguration);
@@ -167,7 +163,8 @@ namespace ISFG.SpisUm.ClientSide.Services
             var deletedComponents = await _nodesService.GetSecondaryChildren(conceptId, SpisumNames.Associations.DeletedComponents);
             await deletedComponents.ForEachAsync(async x =>
             {
-                await _nodesService.DeleteNodePermanent(x?.Entry?.Id);
+                // As admin because of the head of department is not an owner of the componnents
+                await _nodesService.DeleteNodeAsAdmin(x?.Entry?.Id);
             });
 
             // Delete concept

@@ -1,18 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Net;
-using System.Net.Mime;
-using System.Threading.Tasks;
 using ISFG.Alfresco.Api.Interfaces;
 using ISFG.Alfresco.Api.Models;
-using ISFG.Alfresco.Api.Models.CodeList;
 using ISFG.Alfresco.Api.Models.CoreApi.AuthApi;
 using ISFG.Alfresco.Api.Models.CoreApi.CoreApi;
 using ISFG.Alfresco.Api.Models.CoreApi.SearchApi;
 using ISFG.Alfresco.Api.Models.CoreApiFixed;
-using ISFG.Alfresco.Api.Models.GsApi.GsApi;
 using ISFG.Alfresco.Api.Models.Rules;
 using ISFG.Alfresco.Api.Models.WebScripts;
 using ISFG.Common.Exceptions;
@@ -24,6 +15,12 @@ using Newtonsoft.Json;
 using RestSharp;
 using Serilog;
 using Serilog.Events;
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace ISFG.Alfresco.Api.Services
 {
@@ -44,44 +41,6 @@ namespace ISFG.Alfresco.Api.Services
         #endregion
 
         #region Implementation of IAlfrescoHttpClient
-
-        public async Task<CodeListCreateARM> CodeListCreate(CodeListCreateAM body, IImmutableList<Parameter> parameters = null)
-            => await ExecuteRequest<CodeListCreateARM>(Method.POST,
-                "alfresco/service/api/rma/admin/rmconstraints",
-                body, parameters);
-
-        public async Task<CodeListDummyModel> CodeListDelete(string listName, IImmutableList<Parameter> parameters = null)
-            => await ExecuteRequest<CodeListDummyModel>(Method.DELETE,
-                $"alfresco/service/api/rma/admin/rmconstraints/{listName}",
-                null, parameters);
-
-        public async Task<CodeListAllARM> CodeListGetAll(IImmutableList<Parameter> parameters = null)
-            => await ExecuteRequest<CodeListAllARM>(Method.GET, "alfresco/service/api/rma/admin/rmconstraints",
-                null, parameters);
-
-        public async Task<CodeListValuesARM> CodeListGetWithValues(string listName, IImmutableList<Parameter> parameters = null)
-            => await ExecuteRequest<CodeListValuesARM>(Method.GET,
-                $"alfresco/service/api/rma/admin/rmconstraints/{listName}/values",
-                null, parameters);
-
-        public async Task<CodeListUpdateARM> CodeListUpdate(string listName, CodeListUpdateAM body, IImmutableList<Parameter> parameters = null)
-            => await ExecuteRequest<CodeListUpdateARM>(Method.PUT,
-                $"alfresco/service/api/rma/admin/rmconstraints/{listName}",
-                body, parameters);
-
-        public async Task<CodeListUpdateValuesARM> CodeListUpdateValues(string listName, CodeListUpdateValuesAM body, IImmutableList<Parameter> parameters = null)
-            => await ExecuteRequest<CodeListUpdateValuesARM>(Method.PUT,
-                $"alfresco/service/api/rma/admin/rmconstraints/{listName}",
-                body, parameters);
-
-        public async Task<CodeListUpdateValuesAthoritiesARM> CodeListUpdateValuesWithAuthority(string listName, CodeListUpdateValuesAuthorityAM body, IImmutableList<Parameter> parameters = null)
-            => await ExecuteRequest<CodeListUpdateValuesAthoritiesARM>(Method.POST,
-                $"alfresco/service/api/rma/admin/rmconstraints/{listName}/values",
-                body, parameters);
-
-        public async Task<RecordEntry> CompleteRecord(string recordId, IImmutableList<Parameter> parameters = null)
-            => await ExecuteRequest<RecordEntry>(Method.POST,
-                $"alfresco/api/-default-/public/gs/versions/1/records/{recordId}/complete", null, parameters);
 
         public async Task<CommentEntryFixed> CreateComment(string nodeId, CommentBody body, IImmutableList<Parameter> parameters = null)
             => await ExecuteRequest<CommentEntryFixed>(Method.POST,
@@ -111,28 +70,10 @@ namespace ISFG.Alfresco.Api.Services
            => await ExecuteRequest<PersonEntryFixed>(Method.POST,
                "alfresco/api/-default-/public/alfresco/versions/1/people", body, parameters);
 
-        public async Task<RecordEntry> CreateRecord(string recordFolderId, RMNodeBodyCreate body, IImmutableList<Parameter> parameters = null)
-            => await ExecuteRequest<RecordEntry>(Method.POST,
-                $"alfresco/api/-default-/public/gs/versions/1/record-folders/{recordFolderId}/records", body, parameters);
-
-        public async Task<RecordCategoryEntry> CreateRecordCategory(string filePlanId, object body,
-            IImmutableList<Parameter> parameters = null)
-            => await ExecuteRequest<RecordCategoryEntry>(Method.POST,
-                $"alfresco/api/-default-/public/gs/versions/1/file-plans/{filePlanId}/categories", body, parameters);
-
-        public async Task<RecordCategoryChildEntry> CreateRecordCategoryChild(string nodeId, object body, IImmutableList<Parameter> parameters = null)
-            => await ExecuteRequest<RecordCategoryChildEntry>(Method.POST,
-                $"alfresco/api/-default-/public/gs/versions/1/record-categories/{nodeId}/children", body, parameters);
-
         public async Task<SiteEntry>
             CreateSite(object body, IImmutableList<Parameter> parameters = null)
             => await ExecuteRequest<SiteEntry>(Method.POST,
                 "alfresco/api/-default-/public/alfresco/versions/1/sites", body, parameters);
-
-        public async Task<RMSiteEntry>
-            CreateSiteRM(object body, IImmutableList<Parameter> parameters = null)
-            => await ExecuteRequest<RMSiteEntry>(Method.POST,
-                "alfresco/api/-default-/public/gs/versions/1/gs-sites", body, parameters);
 
         public async Task DeleteGroup(string groupId, IImmutableList<Parameter> parameters = null)
             => await ExecuteRequest<object>(Method.DELETE,
@@ -154,10 +95,6 @@ namespace ISFG.Alfresco.Api.Services
           => await ExecuteRequest<object>(Method.DELETE,
               $"alfresco/api/-default-/public/alfresco/versions/1/nodes/{nodeId}/secondary-children/{childId}", null, parameters);
 
-        public async Task DispositionActionDefinitions(string nodeId, DispositionActionDefinitions body, IImmutableList<Parameter> parameters = null)
-            => await ExecuteRequest<object>(Method.POST,
-                $"alfresco/s/api/node/workspace/SpacesStore/{nodeId}/dispositionschedule/dispositionactiondefinitions", body, parameters);
-
         public async Task<DownloadEntry> Download(DownloadBodyCreate body)
             => await ExecuteRequest<DownloadEntry>(Method.POST,
                 "alfresco/api/-default-/public/alfresco/versions/1/downloads", body);
@@ -169,10 +106,6 @@ namespace ISFG.Alfresco.Api.Services
         public async Task<DownloadEntry> DownloadInfo(string downloadId)
             => await ExecuteRequest<DownloadEntry>(Method.GET,
                 $"alfresco/api/-default-/public/alfresco/versions/1/downloads/{downloadId}");
-
-        public async Task ExecutionQueue(ExecutionQueue body, IImmutableList<Parameter> parameters = null)
-            => await ExecuteRequest<object>(Method.POST,
-                "alfresco/s/api/rma/actions/ExecutionQueue", body, parameters);
 
         public async Task<FavoriteEntry> FavoriteAdd(string personId, FavoriteBodyCreate body, IImmutableList<Parameter> parameters = null)
           => await ExecuteRequest<FavoriteEntry>(Method.POST,
@@ -189,10 +122,6 @@ namespace ISFG.Alfresco.Api.Services
         public async Task<CommentPagingFixed> GetComments(string nodeId, IImmutableList<Parameter> parameters = null)
             => await ExecuteRequest<CommentPagingFixed>(Method.GET,
                 $"alfresco/api/-default-/public/alfresco/versions/1/nodes/{nodeId}/comments", null, parameters);
-
-        public async Task<FilePlanEntry> GetFilePlan(string filePlanId, IImmutableList<Parameter> parameters = null)
-            => await ExecuteRequest<FilePlanEntry>(Method.GET,
-                $"alfresco/api/-default-/public/gs/versions/1/file-plans/{filePlanId}", null, parameters);
 
         public async Task<GroupEntry> GetGroup(string groupId, IImmutableList<Parameter> parameters = null)
             => await ExecuteRequest<GroupEntry>(Method.GET,
@@ -234,18 +163,6 @@ namespace ISFG.Alfresco.Api.Services
         public async Task<PersonPaging> GetQueriesPeople(IImmutableList<Parameter> parameters = null)
             => await ExecuteRequest<PersonPaging>(Method.GET,
                 "alfresco/api/-default-/public/alfresco/versions/1/queries/people", null, parameters);
-
-        public async Task<RecordCategoryEntry> GetRecordCategory(string nodeId, IImmutableList<Parameter> parameters = null)
-            => await ExecuteRequest<RecordCategoryEntry>(Method.GET,
-                $"alfresco/api/-default-/public/gs/versions/1/record-categories/{nodeId}", null, parameters);
-
-        public async Task<RecordCategoryChildPaging> GetRecordCategoryChildren(string nodeId, IImmutableList<Parameter> parameters = null)
-            => await ExecuteRequest<RecordCategoryChildPaging>(Method.GET,
-                $"alfresco/api/-default-/public/gs/versions/1/record-categories/{nodeId}/children", null, parameters);
-
-        public async Task<RMSiteEntry> GetRMSite(IImmutableList<Parameter> parameters = null)
-            => await ExecuteRequest<RMSiteEntry>(Method.GET, "alfresco/api/-default-/public/gs/versions/1/gs-sites/rm",
-                null, parameters);
 
         public async Task<SitePaging> GetSites(IImmutableList<Parameter> parameters = null)
             => await ExecuteRequest<SitePaging>(Method.GET, "alfresco/api/-default-/public/alfresco/versions/1/sites",
@@ -408,24 +325,22 @@ namespace ISFG.Alfresco.Api.Services
             if (!(ex is HttpClientException httpException))
                 return;
             
-            var errorBody = JsonConvert.DeserializeObject<Models.CoreApi.AuthApi.Error>(httpException.Content);
-            if (errorBody == null)
-                return;
-            
+            var errorBody = JsonConvert.DeserializeObject<Models.CoreApi.AuthApi.Error>(httpException.Content);            
+
             if (httpException.HttpStatusCode == HttpStatusCode.Unauthorized)
-                throw new NotAuthenticatedException(errorBody.Error1.StatusCode.ToString(), errorBody.Error1.BriefSummary);
+                throw new NotAuthenticatedException(errorBody?.Error1?.StatusCode.ToString(), errorBody?.Error1?.BriefSummary);
 
             if (httpException.HttpStatusCode == HttpStatusCode.Forbidden)
-                throw new ForbiddenException(errorBody.Error1.StatusCode.ToString(), errorBody.Error1.BriefSummary);
-            
+                throw new ForbiddenException(errorBody?.Error1?.StatusCode.ToString(), errorBody?.Error1?.BriefSummary);
+
             if (httpException.HttpStatusCode == HttpStatusCode.NotFound)
-                throw new BadRequestException(errorBody.Error1.StatusCode.ToString(), errorBody.Error1.BriefSummary);
-            
+                throw new BadRequestException(errorBody?.Error1?.StatusCode.ToString(), errorBody.Error1?.BriefSummary);
+
             if (httpException.HttpStatusCode == HttpStatusCode.BadRequest)
-                throw new BadRequestException(errorBody.Error1.StatusCode.ToString(), errorBody.Error1.BriefSummary);
+                throw new BadRequestException(errorBody?.Error1?.StatusCode.ToString(), errorBody?.Error1?.BriefSummary);
 
             if (httpException.HttpStatusCode == HttpStatusCode.UnprocessableEntity)
-                throw new BadRequestException(errorBody.Error1.StatusCode.ToString(), errorBody.Error1.BriefSummary);
+                throw new BadRequestException(errorBody?.Error1?.StatusCode.ToString(), errorBody?.Error1?.BriefSummary);
         }
 
         protected override void LogHttpRequest(IRestResponse response)

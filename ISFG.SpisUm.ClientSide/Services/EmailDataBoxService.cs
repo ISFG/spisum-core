@@ -78,13 +78,7 @@ namespace ISFG.SpisUm.ClientSide.Services
                     if (emlNode?.Entry?.Path?.Name.StartsWith(AlfrescoNames.Prefixes.Path + SpisumNames.Paths.MailRoomEmail, StringComparison.OrdinalIgnoreCase) == false)
                         throw new BadRequestException("", "Node is not in Mailbox");
 
-                    body = new NodeBodyUpdate
-                    {
-                        Properties = new Dictionary<string, object>
-                        {
-                            { SpisumNames.Properties.EmailNotRegisteredReason, parameters.Body.Reason }
-                        }
-                    };
+
                     path = SpisumNames.Paths.MailRoomEmailNotRegistered;
                     break;
 
@@ -92,16 +86,17 @@ namespace ISFG.SpisUm.ClientSide.Services
                     if (emlNode?.Entry?.Path?.Name.StartsWith(AlfrescoNames.Prefixes.Path + SpisumNames.Paths.MailRoomDataBox, StringComparison.OrdinalIgnoreCase) == false)
                         throw new BadRequestException("", "Node is not in Databox");
 
-                    body = new NodeBodyUpdate
-                    {
-                        Properties = new Dictionary<string, object>
-                        {
-                            { SpisumNames.Properties.DataBoxNotRegisteredReason, parameters.Body.Reason }
-                        }
-                    };
                     path = SpisumNames.Paths.MailRoomDataBoxNotRegistered;
                     break;
             }
+
+            body = new NodeBodyUpdate
+            {
+                Properties = new Dictionary<string, object>
+                        {
+                            { SpisumNames.Properties.DigitalDeliveryNotRegisteredReasion, parameters.Body.Reason }
+                        }
+            };
 
             await _alfrescoHttpClient.UpdateNode(parameters.NodeId, body);
             await _nodesService.MoveChildrenByPath(parameters.NodeId, path);
@@ -131,7 +126,7 @@ namespace ISFG.SpisUm.ClientSide.Services
             var pathRegex = new Regex($"({SpisumNames.Paths.MailRoomUnfinished})$", RegexOptions.IgnoreCase);
 
             if (pathRegex.IsMatch(nodeInfo?.Entry?.Path?.Name ?? ""))
-                return await CreateArhiveAndMoveAllFiles(body, archiveFolder, nodeType);
+                return await CreateArhiveAndMoveAllFiles(body, archiveFolder);
             throw new BadRequestException("", "Node is not in expected path");
         }
 
@@ -139,82 +134,51 @@ namespace ISFG.SpisUm.ClientSide.Services
 
         #region Private Methods
 
-        private async Task<NodeEntry> CreateArhiveAndMoveAllFiles(NodeUpdate body, string archiveFolder, string nodeType)
+        private async Task<NodeEntry> CreateArhiveAndMoveAllFiles(NodeUpdate body, string archiveFolder)
         {
-            var copiedNodes = new List<NodeEntry>();
-            var updatedNodes = new List<NodeEntry>();
-            var connections = new List<Tuple<string, string>>();
-
             var alfrescoBody = _mapper.Map<NodeBodyUpdate>(body);
-            var documentInfo = await _alfrescoHttpClient.UpdateNode(body.NodeId, alfrescoBody, ImmutableList<Parameter>.Empty
-               .Add(new Parameter(AlfrescoNames.Headers.Include, AlfrescoNames.Includes.Path, ParameterType.QueryString)));
-
-            var parentFolderInfo = await _alfrescoHttpClient.GetNodeInfo(documentInfo.Entry.ParentId);
-
-            // create folder in archive because copy folder violation
-            var copyFolderInfo = await _nodesService.CreateFolder(archiveFolder);
 
             AlfrescoPagingRequest<NodeChildAssociationPagingFixed, List19Fixed, NodeChildAssociationEntry> request;
 
-            // copy and remove all associations - Copies .eml/.zfo and all it's children to the archive folder
-            var entries = (await _alfrescoHttpClient.GetNodeChildren(body.NodeId, ImmutableList<Parameter>.Empty
-                .Add(new Parameter(AlfrescoNames.Headers.MaxItems, 1, ParameterType.QueryString))
-                .Add(new Parameter(AlfrescoNames.Headers.Where, $"(nodeType='{nodeType}')", ParameterType.QueryString))))
-                ?.List?.Entries?.ToList();
+            // Move all originals to archive
+            var originalFiles = await _alfrescoHttpClient.GetNodeParents(body.NodeId, ImmutableList<Parameter>.Empty
+                    .Add(new Parameter(AlfrescoNames.Headers.Where, $"(assocType='{SpisumNames.Associations.DigitalDeliveryDocumentsUnfinished}')", ParameterType.QueryString))
+                    );
 
-            if (entries?.Count > 0)
+            await originalFiles?.List?.Entries?.ForEachAsync(async x =>
             {
-                var nodeId = entries[0]?.Entry?.Id;
+                // Remove old association (Unifinished)
+                await _alfrescoHttpClient.DeleteSecondaryChildren(x?.Entry?.Id, body.NodeId, ImmutableList<Parameter>.Empty
+                            .Add(new Parameter(AlfrescoNames.Headers.Where, $"(assocType='{SpisumNames.Associations.DigitalDeliveryDocumentsUnfinished}')", ParameterType.QueryString)));
 
-                request = new AlfrescoPagingRequest<NodeChildAssociationPagingFixed, List19Fixed, NodeChildAssociationEntry>(
-                    parameters => _alfrescoHttpClient.GetNodeSecondaryChildren(nodeId, parameters)
-                );
-
-                while (await request.Next())
+                // Create new association
+                await _alfrescoHttpClient.CreateNodeSecondaryChildren(x?.Entry?.Id, new ChildAssociationBody
                 {
-                    var response = request.Response();
-                    if (!(response?.List?.Entries?.Count > 0))
-                        break;
-
-                    foreach (var item in response.List.Entries.ToList())
-                    {
-                        await _alfrescoHttpClient.DeleteSecondaryChildren(nodeId, item.Entry.Id);
-                        var copyInfo = await _alfrescoHttpClient.NodeCopy(item.Entry.Id, new NodeBodyCopy
-                        {
-                            TargetParentId = copyFolderInfo.Entry.Id
-                        });
-                        var properties = copyInfo.Entry.Properties.As<JObject>().ToDictionary();
-                        var pid = properties.GetNestedValueOrDefault(SpisumNames.Properties.Pid)?.ToString();
-                        await _alfrescoHttpClient.UpdateNode(copyInfo.Entry.Id, new NodeBodyUpdate()
-                            .AddProperty(SpisumNames.Properties.Pid, null)
-                            .AddProperty(SpisumNames.Properties.PidRef, pid)
-                            .AddProperty(SpisumNames.Properties.Ref, item.Entry.Id));
-                        copiedNodes.Add(copyInfo);
-                    }
-                }
-
-                // Copy .eml / .zfo
-                var copyEmlZfo = await _alfrescoHttpClient.NodeCopy(nodeId, new NodeBodyCopy
-                {
-                    TargetParentId = copyFolderInfo.Entry.Id
+                    AssocType = SpisumNames.Associations.DigitalDeliveryDocuments,
+                    ChildId = body.NodeId
                 });
 
-                var propertiesEmlZfo = copyEmlZfo.Entry.Properties.As<JObject>().ToDictionary();
-                var pidEmlZfo = propertiesEmlZfo.GetNestedValueOrDefault(SpisumNames.Properties.Pid)?.ToString();
+                // Move all attachments of the original file
+                var attachments = await _alfrescoHttpClient.GetNodeSecondaryChildren(x?.Entry?.Id, ImmutableList<Parameter>.Empty
+                    .Add(new Parameter(AlfrescoNames.Headers.Where, $"(assocType='{SpisumNames.Associations.DigitalDeliveryAttachments}')", ParameterType.QueryString)));
 
-                await _alfrescoHttpClient.UpdateNode(copyEmlZfo?.Entry?.Id, new NodeBodyUpdate()
-                    .AddProperty(SpisumNames.Properties.Pid, null)
-                    .AddProperty(SpisumNames.Properties.PidRef, pidEmlZfo)
-                    .AddProperty(SpisumNames.Properties.Ref, nodeId));
+                attachments?.List?.Entries?.ForEachAsync(async attachment =>
+                {
+                    await _nodesService.MoveByPath(attachment?.Entry?.Id, archiveFolder);
 
-                copiedNodes.Add(copyEmlZfo);
-            }
+                    await _alfrescoHttpClient.NodeLock(attachment?.Entry?.Id, new NodeBodyLock().AddLockType(NodeBodyLockType.FULL));
+                });
 
-            // Take all files and move them to the new location 
-            // find all children and rename + change node type
+                await _nodesService.MoveByPath(x?.Entry?.Id, archiveFolder);
+
+                await _alfrescoHttpClient.NodeLock(x?.Entry?.Id, new NodeBodyLock().AddLockType(NodeBodyLockType.FULL));
+            });
+
             request = new AlfrescoPagingRequest<NodeChildAssociationPagingFixed, List19Fixed, NodeChildAssociationEntry>(
-               parameters => _alfrescoHttpClient.GetNodeSecondaryChildren(body.NodeId, parameters)
-            );
+               parameters => _alfrescoHttpClient.GetNodeSecondaryChildren(body.NodeId, ImmutableList<Parameter>.Empty
+                    .Add(new Parameter(AlfrescoNames.Headers.Include, $"{AlfrescoNames.Includes.Properties},{AlfrescoNames.Includes.Path}", ParameterType.QueryString))
+                    .Add(new Parameter(AlfrescoNames.Headers.Where, $"(assocType='{SpisumNames.Associations.Components}')", ParameterType.QueryString))
+            ));
 
             while (await request.Next())
             {
@@ -224,20 +188,8 @@ namespace ISFG.SpisUm.ClientSide.Services
 
                 foreach (var item in response.List.Entries.ToList())
                 {
-                    if (item.Entry.NodeType == SpisumNames.NodeTypes.Component)
-                        continue;
-
-                    connections.Add(new Tuple<string, string>(item.Entry.Id, copiedNodes.FirstOrDefault(x => x.Entry.Name == item.Entry.Name)?.Entry?.Id));
-
                     var updateBody = new NodeBodyUpdate();
-
-                    if (item.Entry.NodeType == AlfrescoNames.ContentModel.Content)
-                        updateBody.NodeType = SpisumNames.NodeTypes.Component;
-                    if (item.Entry.NodeType == SpisumNames.NodeTypes.Email)
-                        updateBody.NodeType = SpisumNames.NodeTypes.EmailComponent;
-                    if (item.Entry.NodeType == SpisumNames.NodeTypes.DataBox)
-                        updateBody.NodeType = SpisumNames.NodeTypes.DataBoxComponent;
-
+                    
                     var personGroup = await GetCreateUserGroup();
 
                     updateBody.Permissions = _nodesService.SetPermissions(personGroup.GroupPrefix, _identityUser.Id, true).Permissions;
@@ -248,43 +200,13 @@ namespace ISFG.SpisUm.ClientSide.Services
                         { SpisumNames.Properties.Group, _identityUser.RequestGroup }
                     };
                     
-                    updatedNodes.Add(await _alfrescoHttpClient.UpdateNode(item.Entry.Id, updateBody));
-
-                    if (item.Entry.NodeType == AlfrescoNames.ContentModel.Content)
-                    {
-                        
-                    }
+                    await _alfrescoHttpClient.UpdateNode(item.Entry.Id, updateBody);
                 }
             }
 
             // Set PID to archive
-            List<NodeEntry> movedNodes = new List<NodeEntry>();
-            movedNodes.Add(await _nodesService.MoveByPath(body.NodeId, SpisumNames.Paths.MailRoomNotPassed));
-            movedNodes.AddRange(await _nodesService.MoveAllComponets(body.NodeId));
-
-            foreach (var copy in copiedNodes)
-            {
-                var id = connections.First(x => x.Item2 == copy.Entry.Id);
-
-                var node = movedNodes.FirstOrDefault(x => x.Entry.Id == id.Item1);
-
-                if (node == null)
-                    continue;
-
-                var properties = node.Entry.Properties.As<JObject>().ToDictionary();
-                var pid = properties.GetNestedValueOrDefault(SpisumNames.Properties.Pid)?.ToString();
-
-                if (string.IsNullOrWhiteSpace(pid))
-                    continue;
-
-                await _alfrescoHttpClient.UpdateNode(copy.Entry.Id, new NodeBodyUpdate
-                {
-                    Properties = new Dictionary<string, object>
-                    {
-                        { SpisumNames.Properties.PidArchive, pid }
-                    }
-                });
-            }
+            await _nodesService.MoveByPath(body.NodeId, SpisumNames.Paths.MailRoomNotPassed);
+            await _nodesService.MoveAllComponets(body.NodeId);
 
             await _nodesService.Update(body);
 

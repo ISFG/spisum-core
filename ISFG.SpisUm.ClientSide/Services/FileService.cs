@@ -123,7 +123,6 @@ namespace ISFG.SpisUm.ClientSide.Services
                     if (nodeInfo.Entry.Path.Name.Equals(AlfrescoNames.Prefixes.Path + SpisumNames.Paths.EvidenceDocumentsForProcessing(_identityUser.RequestGroup), StringComparison.OrdinalIgnoreCase) ||
                     nodeInfo.Entry.Path.Name.Equals(AlfrescoNames.Prefixes.Path + SpisumNames.Paths.EvidenceDocumentsProcessed(_identityUser.RequestGroup), StringComparison.OrdinalIgnoreCase))
                     {
-                        fileForm = GetFileFormFromDocument(nodeInfo, fileForm);
 
                         try
                         {
@@ -144,6 +143,7 @@ namespace ISFG.SpisUm.ClientSide.Services
                                     SpisumNames.Paths.EvidenceFilesDocumentsForProcessing(_identityUser.RequestGroup) : SpisumNames.Paths.EvidenceFilesDocumentsProcessed(_identityUser.RequestGroup));
 
                             await _validationService.UpdateFileOutputFormat(fileNodeId);
+                            await _validationService.UpdateFileSecurityFeatures(fileNodeId);
                             
                             try
                             {
@@ -178,6 +178,8 @@ namespace ISFG.SpisUm.ClientSide.Services
                 {
                     var secondaryChildrens = await _alfrescoHttpClient.GetNodeSecondaryChildren(fileNodeId, ImmutableList<Parameter>.Empty
                                 .Add(new Parameter(AlfrescoNames.Headers.Where, $"(assocType='{SpisumNames.Associations.Documents}')", ParameterType.QueryString)));
+
+                    fileForm = await GetFileFormFromDocument(fileNodeId);
 
                     await _alfrescoHttpClient.UpdateNode(fileNodeId, new NodeBodyUpdate()
                             .AddProperty(SpisumNames.Properties.AssociationCount, secondaryChildrens?.List?.Entries?.Count)
@@ -252,9 +254,6 @@ namespace ISFG.SpisUm.ClientSide.Services
 
         public async Task<NodeEntry> Close(string nodeId, string settleMethod, DateTime settleDate, string customSettleMethod = null, string settleReason = null)
         {
-            string[] documentData = { settleMethod, settleDate.ToUniversalTime().ToString(CultureInfo.InvariantCulture), customSettleMethod, settleReason, _identityUser.Id };
-            string[] fileData = { DateTime.UtcNow.ToAlfrescoDateTimeString(), _identityUser.Id };
-
             var documents = await GetDocuments(nodeId, true, true);
             var validator = new DocumentPropertiesValidator(_alfrescoHttpClient, _identityUser, _nodesService);
 
@@ -288,9 +287,8 @@ namespace ISFG.SpisUm.ClientSide.Services
                 .AddProperty(SpisumNames.Properties.ProcessorOrgUnit, _identityUser.OrganizationUnit)
                 .AddProperty(SpisumNames.Properties.ProcessorOrgAddress, _identityUser.OrganizationAddress)
                 .AddProperty(SpisumNames.Properties.ProcessorJob, _identityUser.Job)
-                .AddProperty(SpisumNames.Properties.ShreddingYear, new DateTime(settleDate.Year + 1 + retentionPeriod, 1, 1).ToAlfrescoDateTimeString())
-                .AddProperty(SpisumNames.Properties.TSettle, string.Join("; ", documentData.Where(x => x != null)))
-                .AddProperty(SpisumNames.Properties.TClose, string.Join("; ", fileData.Where(x => x != null)));
+                .AddProperty(SpisumNames.Properties.ShreddingYear, new DateTime(settleDate.Year + 1 + retentionPeriod, 1, 1).ToAlfrescoDateTimeString()
+                );
 
             await _alfrescoHttpClient.UpdateNode(nodeId, nodeBody);
             await _nodesService.MoveByPath(nodeId, SpisumNames.Paths.EvidenceFilesClosed(_identityUser.RequestGroup));
@@ -386,8 +384,6 @@ namespace ISFG.SpisUm.ClientSide.Services
                     .Add(new Parameter(SpisumNames.Properties.RetentionPeriod, properties.GetNestedValueOrDefault(SpisumNames.Properties.RetentionPeriod)?.ToString(), ParameterType.GetOrPost))
                     .Add(new Parameter(SpisumNames.Properties.FileMark, properties.GetNestedValueOrDefault(SpisumNames.Properties.FileMark)?.ToString(), ParameterType.GetOrPost))
                     .Add(new Parameter(SpisumNames.Properties.FilePlan, properties.GetNestedValueOrDefault(SpisumNames.Properties.FilePlan)?.ToString(), ParameterType.GetOrPost)));
-
-                await _validationService.UpdateFileOutputFormat(nodeFile?.Entry?.Id);
                 
                 try
                 {
@@ -433,6 +429,9 @@ namespace ISFG.SpisUm.ClientSide.Services
                     .AddProperty(SpisumNames.Properties.Ref, nodeFile.Entry.Id)
                     .AddProperty(SpisumNames.Properties.IsInFile, true));
 
+                await _validationService.UpdateFileOutputFormat(nodeFile?.Entry?.Id);
+                await _validationService.UpdateFileSecurityFeatures(nodeFile?.Entry?.Id);
+                
                 try
                 {
                     var fileInfo = await _alfrescoHttpClient.GetNodeInfo(nodeFile?.Entry?.Id);
@@ -685,8 +684,6 @@ namespace ISFG.SpisUm.ClientSide.Services
 
                     await _nodesService.MoveByPath(documentNodeId, pathToMove);
 
-                    fileForm = GetFileFormFromDocument(documentInfo, fileForm);
-
                     if (documentInfo?.Entry?.IsLocked == true)
                         await _alfrescoHttpClient.NodeLock(documentNodeId, new NodeBodyLock() { Type = NodeBodyLockType.FULL });
 
@@ -715,10 +712,15 @@ namespace ISFG.SpisUm.ClientSide.Services
             // Not any has been removed - return
             if (unprocessedIds.Count == nodeIds.Count())
                 return unprocessedIds;
+            
+            await _validationService.UpdateFileOutputFormat(fileNodeId);
+            await _validationService.UpdateFileSecurityFeatures(fileNodeId);
 
             var childrens = await _alfrescoHttpClient.GetNodeSecondaryChildren(fileNodeId, ImmutableList<Parameter>.Empty
                 .Add(new Parameter(AlfrescoNames.Headers.MaxItems, "1", ParameterType.QueryString))
                 .Add(new Parameter(AlfrescoNames.Headers.Where, $"(assocType='{SpisumNames.Associations.Documents}')", ParameterType.QueryString)));
+
+            fileForm = await GetFileFormFromDocument(fileNodeId);
 
             await _alfrescoHttpClient.UpdateNode(fileNodeId, new NodeBodyUpdate()
                 .AddProperty(SpisumNames.Properties.AssociationCount, childrens?.List.Pagination?.TotalItems ?? 0)
@@ -821,10 +823,10 @@ namespace ISFG.SpisUm.ClientSide.Services
 
             await documents.ForEachAsync(async document =>
             {
-                await _documentService.ShreddingCancelDiscard(document?.Entry?.Id, SpisumNames.Associations.DocumentInRepository , true);
+                await _documentService.ShreddingCancelDiscard(document?.Entry?.Id);
             });
 
-            return await _documentService.ShreddingCancelDiscard(nodeId, SpisumNames.Associations.FileInRepository);
+            return await _documentService.ShreddingCancelDiscard(nodeId);
         }
 
         public async Task<NodeEntry> ShreddingDiscard(string nodeId, DateTime date, string reason)
@@ -835,10 +837,10 @@ namespace ISFG.SpisUm.ClientSide.Services
 
             await documents.ForEachAsync(async document =>
             {
-                await _documentService.ShreddingDiscard(document?.Entry?.Id, date, reason, shreddingDate, SpisumNames.Associations.DocumentInRepository , true);
+                await _documentService.ShreddingDiscard(document?.Entry?.Id, date, reason, shreddingDate);
             });
 
-            return await _documentService.ShreddingDiscard(nodeId, date, reason, shreddingDate, SpisumNames.Associations.FileInRepository);
+            return await _documentService.ShreddingDiscard(nodeId, date, reason, shreddingDate);
         }
 
         public async Task ShreddingChange(string nodeId, string retentionMark)
@@ -1000,8 +1002,7 @@ namespace ISFG.SpisUm.ClientSide.Services
                    .Add(new Parameter(AlfrescoNames.Headers.Include, AlfrescoNames.Includes.Properties, ParameterType.QueryString)));
 
             return await GetFileForm(fileNodeInfo);
-        }
-
+        }     
         private async Task<FileForm?> GetFileForm(NodeEntry nodeEntry)
         {
             try
@@ -1028,27 +1029,32 @@ namespace ISFG.SpisUm.ClientSide.Services
             catch { return null; }
         }
 
-        private FileForm GetFileFormFromDocument(NodeEntry documentInfo, FileForm? lastFileForm = null)
+        private async Task<FileForm?> GetFileFormFromDocument(string fileId)
         {
-            if (lastFileForm == FileForm.Hybrid)
-                return FileForm.Hybrid;
+            List<string> forms = new List<string>();
 
-            var properties = documentInfo.Entry.Properties.As<JObject>().ToDictionary();
-            var form = properties.GetNestedValueOrDefault(SpisumNames.Properties.Form)?.ToString();
+            var documents = await _nodesService.GetSecondaryChildren(fileId, SpisumNames.Associations.Documents, false, true);
 
-            if (form == CodeLists.DocumentTypes.Analog && lastFileForm == FileForm.Analog ||
-                form == CodeLists.DocumentTypes.Analog && lastFileForm == null)
+            documents.ForEach(x =>
+            {
+                var properties = x?.Entry?.Properties?.As<JObject>().ToDictionary();
+                var form = properties?.GetNestedValueOrDefault(SpisumNames.Properties.Form)?.ToString();
+
+                if (form != null)
+                    forms.Add(form);
+                else
+                    Log.Error($"Document {x?.Entry?.Id} in file {fileId} has null property {SpisumNames.Properties.Form}");
+            });
+
+            if (documents.Count == 0)
+                return await GetFileForm(fileId);
+
+            if (forms.All(x => x.Equals(SpisumNames.Form.Analog)))
                 return FileForm.Analog;
-
-            if (form == CodeLists.DocumentTypes.Digital && lastFileForm == FileForm.Digital ||
-                form == CodeLists.DocumentTypes.Digital && lastFileForm == null)
+            else if (forms.All(x => x.Equals(SpisumNames.Form.Digital)))
                 return FileForm.Digital;
-
-            if (form == CodeLists.DocumentTypes.Digital && lastFileForm == FileForm.Analog ||
-                form == CodeLists.DocumentTypes.Analog && lastFileForm == FileForm.Digital)
+            else
                 return FileForm.Hybrid;
-
-            return FileForm.Hybrid;
         }
 
         private bool IsDocumentPropertiesFilled(NodeEntry documentInfo)

@@ -1,15 +1,13 @@
-using System.Collections.Immutable;
-using System.Threading.Tasks;
 using ISFG.Alfresco.Api.Models;
-using ISFG.Alfresco.Api.Models.CodeList;
 using ISFG.Alfresco.Api.Models.CoreApi.AuthApi;
 using ISFG.Alfresco.Api.Models.CoreApi.CoreApi;
 using ISFG.Alfresco.Api.Models.CoreApi.SearchApi;
 using ISFG.Alfresco.Api.Models.CoreApiFixed;
-using ISFG.Alfresco.Api.Models.GsApi.GsApi;
 using ISFG.Alfresco.Api.Models.Rules;
 using ISFG.Alfresco.Api.Models.WebScripts;
 using RestSharp;
+using System.Collections.Immutable;
+using System.Threading.Tasks;
 
 namespace ISFG.Alfresco.Api.Interfaces
 {
@@ -17,14 +15,6 @@ namespace ISFG.Alfresco.Api.Interfaces
     {
         #region Public Methods
 
-        Task<CodeListCreateARM> CodeListCreate(CodeListCreateAM body, IImmutableList<Parameter> parameters = null);
-        Task<CodeListDummyModel> CodeListDelete(string listName, IImmutableList<Parameter> parameters = null);
-        Task<CodeListAllARM> CodeListGetAll(IImmutableList<Parameter> parameters = null);
-        Task<CodeListValuesARM> CodeListGetWithValues(string listName, IImmutableList<Parameter> parameters = null);
-        Task<CodeListUpdateARM> CodeListUpdate(string listName, CodeListUpdateAM body, IImmutableList<Parameter> parameters = null);
-        Task<CodeListUpdateValuesARM> CodeListUpdateValues(string listName, CodeListUpdateValuesAM body, IImmutableList<Parameter> parameters = null);
-        Task<CodeListUpdateValuesAthoritiesARM> CodeListUpdateValuesWithAuthority(string listName, CodeListUpdateValuesAuthorityAM body, IImmutableList<Parameter> parameters = null);
-        Task<RecordEntry> CompleteRecord(string recordId, IImmutableList<Parameter> parameters = null);
         Task<CommentEntryFixed> CreateComment(string nodeId, CommentBody body, IImmutableList<Parameter> parameters = null);
         Task<GroupEntry> CreateGroup(GroupBodyCreate body, IImmutableList<Parameter> parameters = null);
         Task<GroupMemberEntry> CreateGroupMember(string groupId, GroupMembershipBodyCreate body, IImmutableList<Parameter> parameters = null);
@@ -32,27 +22,20 @@ namespace ISFG.Alfresco.Api.Interfaces
         Task<AssociationEntry> CreateNodeAssociation(string parentNodeId, object body, IImmutableList<Parameter> parameters = null);
         Task<ChildAssociationEntry> CreateNodeSecondaryChildren(string parentNodeId, ChildAssociationBody body, IImmutableList<Parameter> parameters = null);
         Task<PersonEntryFixed> CreatePerson(PersonBodyCreate body, IImmutableList<Parameter> parameters = null);
-        Task<RecordEntry> CreateRecord(string recordFolderId, RMNodeBodyCreate body, IImmutableList<Parameter> parameters = null);
-        Task<RecordCategoryEntry> CreateRecordCategory(string filePlanId, object body, IImmutableList<Parameter> parameters = null);
-        Task<RecordCategoryChildEntry> CreateRecordCategoryChild(string nodeId, object body, IImmutableList<Parameter> parameters = null);
         Task<SiteEntry> CreateSite(object body, IImmutableList<Parameter> parameters = null);
-        Task<RMSiteEntry> CreateSiteRM(object body, IImmutableList<Parameter> parameters = null);
         Task DeleteGroup(string groupId, IImmutableList<Parameter> parameters = null);
         Task DeleteGroupMember(string groupId, string groupMemberId);
         Task DeleteNode(string nodeId, IImmutableList<Parameter> parameters = null);
         Task DeletePerson(string personId, IImmutableList<Parameter> parameters = null);
         Task DeleteSecondaryChildren(string nodeId, string childId, IImmutableList<Parameter> parameters = null);
-        Task DispositionActionDefinitions(string nodeId, DispositionActionDefinitions body, IImmutableList<Parameter> parameters = null);
         Task<DownloadEntry> Download(DownloadBodyCreate body);
         Task DownloadDelete(string downloadId);
         Task<DownloadEntry> DownloadInfo(string downloadId);
-        Task ExecutionQueue(ExecutionQueue body, IImmutableList<Parameter> parameters = null);
         Task<FavoriteEntry> FavoriteAdd(string personId, FavoriteBodyCreate body, IImmutableList<Parameter> parameters = null);
         Task FavoriteRemove(string personId, string favouriteId);
         Task FormProcessor(string nodeId, FormProcessor body, IImmutableList<Parameter> parameters = null);
         Task<CommentPagingFixed> GetComments(string nodeId, IImmutableList<Parameter> parameters = null);
 
-        Task<FilePlanEntry> GetFilePlan(string filePlanId, IImmutableList<Parameter> parameters = null);
         Task<GroupEntry> GetGroup(string groupId, IImmutableList<Parameter> parameters = null);
         Task<GroupMemberPaging> GetGroupMembers(string groupId, IImmutableList<Parameter> parameters = null);
         Task<NodeChildAssociationPaging> GetNodeChildren(string nodeId, IImmutableList<Parameter> parameters = null);
@@ -63,9 +46,6 @@ namespace ISFG.Alfresco.Api.Interfaces
         Task<PersonEntryFixed> GetPerson(string personId, IImmutableList<Parameter> parameters = null);
         Task<GroupPagingFixed> GetPersonGroups(string personId, IImmutableList<Parameter> parameters = null);
         Task<PersonPaging> GetQueriesPeople(IImmutableList<Parameter> parameters = null);
-        Task<RecordCategoryEntry> GetRecordCategory(string nodeId, IImmutableList<Parameter> parameters = null);
-        Task<RecordCategoryChildPaging> GetRecordCategoryChildren(string nodeId, IImmutableList<Parameter> parameters = null);
-        Task<RMSiteEntry> GetRMSite(IImmutableList<Parameter> parameters = null);
         Task<SitePaging> GetSites(IImmutableList<Parameter> parameters = null);
         Task<FormDataParam> GetThumbnailPdf(string nodeId, IImmutableList<Parameter> parameters = null);
         Task<VersionPaging> GetVersions(string nodeId, IImmutableList<Parameter> parameters = null);

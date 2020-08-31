@@ -7,8 +7,7 @@
         public static class Associations
         {
             #region Fields
-
-            public static readonly string EmailAttachments = "ssl:emailAttachments";
+            
             public static readonly string Components = "ssl:components";
             public static readonly string DeletedComponents = "ssl:deletedComponents";
             public static readonly string Documents = "ssl:documents";
@@ -17,9 +16,11 @@
             public static readonly string ShipmentsDispatched = "ssl:shipmentsDispatched";
             public static readonly string ShipmentsToReturn = "ssl:shipmentsReturned";
             public static readonly string ShipmentsComponents = "ssl:shComponents";
-            public static readonly string DocumentInRepository = "ssl:documentInRepository";
-            public static readonly string FileInRepository = "ssl:fileInRepository";
             public static readonly string ShreddingObjects = "ssl:shreddingObjects";
+            public static readonly string DigitalDeliveryDocuments = "ssl:digitalDeliveryDocuments";
+            public static readonly string DigitalDeliveryCopies = "ssl:digitalDeliveryCopies";
+            public static readonly string DigitalDeliveryDocumentsUnfinished = "ssl:digitalDeliveryDocumentsUnfinished";
+            public static readonly string DigitalDeliveryAttachments = "ssl:digitalDeliveryAttachments";
 
             #endregion
         }
@@ -86,6 +87,7 @@
             public static readonly string FilesClosed = "/Files/Closed";
             public static readonly string FilesClosedWaitingForTakeOver = "/Files/Closed/WaitingForTakeOver";
             public static readonly string FilesDocumentsForProcessing = "/Files/Documents/ForProcessing";
+            public static readonly string FilesDocumentsForProcessed = "/Files/Documents/Processed";
             public static readonly string FilesOpen = "/Files/Open";
             public static readonly string FilesOpenWaitingForTakeOver = "/Files/Open/WaitingForTakeOver";
             public static readonly string MailRoomDataBox = "Sites/Mailroom/documentLibrary/DataBox";
@@ -241,12 +243,8 @@
             public static readonly string CustomSettleMethod = "ssl:customSettleMethod";
             public static readonly string DateFrom = "ssl:dateFrom";
             public static readonly string DateTo = "ssl:dateTo";
-            public static readonly string DataboxAttachmentsCount = "ssl:databoxAttachmentsCount";
-            public static readonly string DataboxDeliveryDate = "ssl:databoxDeliveryDate";
-            public static readonly string DataBoxNotRegisteredReason = "ssl:databoxNotRegisteredReason";
             public static readonly string DataboxSender = "ssl:databoxSender";
             public static readonly string DataboxSenderName = "ssl:databoxSenderName";
-            public static readonly string DataboxSubject = "ssl:databoxSubject";
             public static readonly string DecisionDA = "ssl:decisionDA";
             public static readonly string DeliveryDate = "ssl:deliveryDate";
             public static readonly string DeliveryMode = "ssl:deliveryMode";
@@ -262,18 +260,16 @@
             public static readonly string ComponentVersionId = "ssl:componentVersionId";
             public static readonly string ComponentVersionOperation = "ssl:componentVersionOperation";
             public static readonly string ShipmentCounter = "ssl:shipmentCounter";
-            public static readonly string EmailAttachmentsCount = "ssl:emailAttachmentsCount";
-            public static readonly string EmailDeliveryDate = "ssl:emailDeliveryDate";
-            public static readonly string EmailNotRegisteredReason = "ssl:emailNotRegisteredReason";
+            public static readonly string DigitalDeliveryAttachmentsCount = "ssl:digitalDeliveryAttachmentsCount";
+            public static readonly string DigitalDeliveryDeliveryDate = "ssl:digitalDeliveryDeliveryDate";
+            public static readonly string DigitalDeliveryNotRegisteredReasion = "ssl:digitalDeliveryNotRegisteredReason";
             public static readonly string EmailRecipient = "ssl:emailRecipient";
             public static readonly string EmailSender = "ssl:emailSender";
-            public static readonly string EmailSubject = "ssl:emailSubject";
+            public static readonly string DigitalDeliverySubject = "ssl:digitalDeliverySubject";
             public static readonly string EraseDate = "ssl:eraseDate";
             public static readonly string FileIdentificator = "ssl:fileIdentificator";
             public static readonly string FileIsReadable = "ssl:fileIsReadable";
             public static readonly string FileIsInOutputFormat = "ssl:fileIsInOutputFormat";
-            public static readonly string FileIsInOutputFormatDocument = "ssl:fileIsInOutputFormatDocument";
-            public static readonly string FileIsInOutputFormatFile = "ssl:fileIsInOutputFormatFile";
             public static readonly string FileMark = "ssl:fileMark";
             public static readonly string FileName = "ssl:fileName";
             public static readonly string FilePlan = "ssl:filePlan";
@@ -371,14 +367,12 @@
             public static readonly string ShipmentDataboxState = "ssl:shipmentDataBoxState";
             public static readonly string Subject = "ssl:subject";
             public static readonly string TakeRef = "ssl:takeRef";
-            public static readonly string TClose = "ssl:tClose";
             public static readonly string TimeStampText = "ssl:timestampText";
             public static readonly string ToDispatchDate = "ssl:toDispatchDate";
             public static readonly string ToHands = "ssl:toHands";
             public static readonly string ToArchiveShreddingDate = "ssl:toArchiveShreddingDate";
             public static readonly string ToRepositoryDate = "ssl:toRepositoryDate";
             public static readonly string TriggerActionYear = "ssl:triggerActionYear";
-            public static readonly string TSettle = "ssl:tSettle";
             public static readonly string UsedTime = "ssl:usedTime";
             public static readonly string UserId = "ssl:user_id";
             public static readonly string UserName = "ssl:user_name";
@@ -628,6 +622,7 @@
             public static readonly string Yes = "yes";
             public static readonly string No = "no";
             public static readonly string Impossible = "impossible";
+            public static readonly string Converted = "converted";
             public static readonly string Sha256 = "SHA-256";
             
             #endregion

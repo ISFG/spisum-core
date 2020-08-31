@@ -3,7 +3,9 @@
  using System.Net.Mime;
  using System.Text;
  using System.Threading.Tasks;
+ using ISFG.Alfresco.Api.Extensions;
  using ISFG.Alfresco.Api.Interfaces;
+ using ISFG.Alfresco.Api.Models.CoreApi.CoreApi;
  using ISFG.Common.Extensions;
  using ISFG.Common.Interfaces;
  using ISFG.Exceptions.Exceptions;
@@ -29,6 +31,9 @@
         private readonly IApiConfiguration _apiConfiguration;
         private readonly ISignerService _signerService;
         private readonly ISimpleMemoryCache _simpleMemoryCache;
+        private readonly IValidationService _validationService;
+        private readonly IDocumentService _documentService;
+        private readonly INodesService _nodesService;
 
         #endregion
 
@@ -38,12 +43,18 @@
             ISimpleMemoryCache simpleMemoryCache,
             IApiConfiguration apiConfiguration,
             ISignerService signerService, 
-            IAlfrescoHttpClient alfrescoHttpClient)
+            IAlfrescoHttpClient alfrescoHttpClient, 
+            IValidationService validationService, 
+            IDocumentService documentService, 
+            INodesService nodesService)
         {
             _simpleMemoryCache = simpleMemoryCache;
             _apiConfiguration = apiConfiguration;
             _signerService = signerService;
             _alfrescoHttpClient = alfrescoHttpClient;
+            _validationService = validationService;
+            _documentService = documentService;
+            _nodesService = nodesService;
         }
 
         #endregion
@@ -100,10 +111,35 @@
         [HttpPost("upload")]
         public async Task UploadFile([FromQuery] string token, [FromQuery] string requestGroup, [FromQuery] string documentId, [FromQuery] string componentId, [FromQuery] bool visual)
         {
+            bool documentLocked = false;
+            bool componentLocked = false;
+            
             await using var memoryStream = new MemoryStream();
             await Request.Body.CopyToAsync(memoryStream);
-            
+
+            if (await _nodesService.IsNodeLocked(documentId))
+            {
+                documentLocked = true;
+                await _alfrescoHttpClient.NodeUnlock(documentId);
+            }
+
+            if (await _nodesService.IsNodeLocked(componentId))
+            {
+                componentLocked = true;
+                await _alfrescoHttpClient.NodeUnlock(componentId);
+            }
+ 
             await _signerService.UploadFile(documentId, componentId, memoryStream.ToArray(), visual);
+            await _validationService.UpdateDocumentSecurityFeatures(documentId);
+            
+            var fileId = await _documentService.GetDocumentFileId(documentId);
+            if (fileId != null)
+                await _validationService.UpdateFileSecurityFeatures(fileId);
+            
+            if (documentLocked)
+                await _alfrescoHttpClient.NodeLock(documentId, new NodeBodyLock().AddLockType(NodeBodyLockType.FULL));
+            if (componentLocked)
+                await _alfrescoHttpClient.NodeLock(componentId, new NodeBodyLock().AddLockType(NodeBodyLockType.FULL)); 
         }
 
         #endregion

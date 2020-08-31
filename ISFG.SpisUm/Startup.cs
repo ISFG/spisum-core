@@ -181,7 +181,6 @@ namespace ISFG.SpisUm
             services.AddScoped<IInicializationScript, InitialGroups>();
             services.AddScoped<IInicializationScript, InitialUsers>();
             services.AddScoped<IInicializationScript, InitialSites>();
-            services.AddScoped<IInicializationScript, InitialCodeLists>();
             services.AddScoped<IInicializationScript, InitialScriptFiles>();
 
             if (_environment.IsEnvironment("Localhost"))

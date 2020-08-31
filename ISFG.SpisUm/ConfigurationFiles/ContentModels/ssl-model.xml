@@ -134,6 +134,7 @@
           <value>yes</value>
           <value>no</value>
           <value>impossible</value>
+          <value>converted</value>
         </list>
       </parameter>
     </constraint>
@@ -1451,14 +1452,6 @@
             <facetable>true</facetable>
           </index>
         </property>
-        <property name="ssl:tClose">
-          <title>tClose</title>
-          <type>d:text</type>
-        </property>
-        <property name="ssl:tSettle">
-          <title>tSettle</title>
-          <type>d:text</type>
-        </property>
         <property name="ssl:version">
           <title>Version</title>
           <type>d:int</type>
@@ -1523,6 +1516,107 @@
       </associations>
     </type>
 
+    <!-- SSL DIGITAL DELIVERY -->
+    <type name="ssl:digitalDelivery">
+      <title>Digital Delivery</title>
+      <parent>ssl:parent</parent>
+      <properties>
+        <property name="ssl:digitalDeliveryAttachmentsCount">
+          <title>Digital Delivery Attachment Count</title>
+          <type>d:int</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:digitalDeliveryDeliveryDate">
+          <title>Digital Delivery Delivery Date</title>
+          <type>d:date</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>false</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:digitalDeliverySubject">
+          <title>Subject (Annotation)</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+        <property name="ssl:digitalDeliveryNotRegisteredReason">
+          <title>Not registered</title>
+          <type>d:text</type>
+          <index enabled="true">
+            <atomic>true</atomic>
+            <stored>false</stored>
+            <tokenised>both</tokenised>
+            <facetable>true</facetable>
+          </index>
+        </property>
+      </properties>
+      <associations>
+        <child-association name="ssl:digitalDeliveryDocuments">
+          <title>Documents created</title>
+          <description>Documents that were created from this files and they are registered</description>
+          <source>
+            <mandatory>true</mandatory>
+            <many>true</many>
+          </source>
+          <target>
+            <class>ssl:parent</class>
+            <mandatory>false</mandatory>
+            <many>true</many>
+          </target>
+        </child-association>
+        <child-association name="ssl:digitalDeliveryDocumentsUnfinished">
+          <title>Documents (unfinished) created</title>
+          <description>Documents that were created from this files and they are unifinished</description>
+          <source>
+            <mandatory>true</mandatory>
+            <many>true</many>
+          </source>
+          <target>
+            <class>ssl:parent</class>
+            <mandatory>false</mandatory>
+            <many>true</many>
+          </target>
+        </child-association>
+          <child-association name="ssl:digitalDeliveryCopies">
+            <title>Digitaly delivered copies</title>
+            <description>Created copies from this file</description>
+            <source>
+              <mandatory>true</mandatory>
+              <many>false</many>
+            </source>
+            <target>
+              <class>cm:content</class>
+              <mandatory>false</mandatory>
+              <many>true</many>
+            </target>
+          </child-association>
+          <child-association name="ssl:digitalDeliveryAttachments">
+            <title>Digital delivery attachments</title>
+            <source>
+              <mandatory>true</mandatory>
+              <many>false</many>
+            </source>
+            <target>
+              <class>cm:content</class>
+              <mandatory>false</mandatory>
+              <many>true</many>
+            </target>
+          </child-association>
+      </associations>
+    </type>
+
     <!-- SSL DOCUMENT -->
 
     <type name="ssl:document">
@@ -1548,25 +1642,6 @@
     <type name="ssl:documentDestroyed">
       <title>Destroyed Document</title>
       <parent>ssl:document</parent>
-    </type>
-
-    <type name="ssl:documentRM">
-      <title>Document Record Management</title>
-      <parent>ssl:parent</parent>
-      <associations>
-        <child-association name="ssl:documentInRepository">
-        <title>Record Management Records</title>
-        <source>
-          <mandatory>true</mandatory>
-          <many>false</many>
-        </source>
-        <target>
-          <class>ssl:parent</class>
-          <mandatory>false</mandatory>
-          <many>false</many>
-        </target>
-      </child-association>
-      </associations>
     </type>
 
     <type name="ssl:shredding">
@@ -2091,31 +2166,12 @@
       <title>Destroyed File</title>
       <parent>ssl:file</parent>
     </type>
-
-    <type name="ssl:fileRM">
-      <title>File Record Management</title>
-      <parent>ssl:parent</parent>
-      <associations>
-        <child-association name="ssl:fileInRepository">
-        <title>Record Management Records</title>
-        <source>
-          <mandatory>true</mandatory>
-          <many>false</many>
-        </source>
-        <target>
-          <class>ssl:parent</class>
-          <mandatory>false</mandatory>
-          <many>false</many>
-        </target>
-      </child-association>
-      </associations>
-    </type>
-
+    
     <!-- SSL COMPONENT -->
 
     <type name="ssl:component">
       <title>Component</title>
-      <parent>cm:content</parent>
+      <parent>ssl:parent</parent>
       <mandatory-aspects>
         <aspect>ssl:originInfo</aspect>
       </mandatory-aspects>
@@ -2145,40 +2201,10 @@
 
     <type name="ssl:email">
       <title>Email</title>
-      <parent>ssl:parent</parent>
+      <parent>ssl:digitalDelivery</parent>
       <properties>
-        <property name="ssl:emailAttachmentsCount">
-          <title>Attachment Count</title>
-          <type>d:int</type>
-          <index enabled="true">
-            <atomic>true</atomic>
-            <stored>false</stored>
-            <tokenised>false</tokenised>
-            <facetable>true</facetable>
-          </index>
-        </property>
-        <property name="ssl:emailDeliveryDate">
-          <title>Delivery Date</title>
-          <type>d:date</type>
-          <index enabled="true">
-            <atomic>true</atomic>
-            <stored>false</stored>
-            <tokenised>false</tokenised>
-            <facetable>true</facetable>
-          </index>
-        </property>
         <property name="ssl:emailMessageId">
           <title>Message Id</title>
-          <type>d:text</type>
-          <index enabled="true">
-            <atomic>true</atomic>
-            <stored>false</stored>
-            <tokenised>both</tokenised>
-            <facetable>true</facetable>
-          </index>
-        </property>
-        <property name="ssl:emailNotRegisteredReason">
-          <title>Not registered reason</title>
           <type>d:text</type>
           <index enabled="true">
             <atomic>true</atomic>
@@ -2227,32 +2253,7 @@
             <facetable>true</facetable>
           </index>
         </property>
-        <property name="ssl:emailSubject">
-          <title>Subject</title>
-          <type>d:text</type>
-          <index enabled="true">
-            <atomic>true</atomic>
-            <stored>false</stored>
-            <tokenised>both</tokenised>
-            <facetable>true</facetable>
-          </index>
-        </property>
       </properties>
-
-      <associations>
-        <child-association name="ssl:emailAttachments">
-          <title>Emails Attachments </title>
-          <source>
-            <mandatory>true</mandatory>
-            <many>false</many>
-          </source>
-          <target>
-            <class>cm:content</class>
-            <mandatory>false</mandatory>
-            <many>true</many>
-          </target>
-        </child-association>
-      </associations>
     </type>
 
     <!-- SSL DATA BOX as COMPONENT -->
@@ -2266,7 +2267,7 @@
 
     <type name="ssl:databox">
       <title>Databox</title>
-      <parent>ssl:parent</parent>
+      <parent>ssl:digitalDelivery</parent>
       <properties>
         <property name="ssl:databoxAcceptanceTime">
           <title>Acceptance Time</title>
@@ -2282,26 +2283,6 @@
           <title>Allow Subst Delivery</title>
           <type>d:boolean</type>
           <default>false</default>
-          <index enabled="true">
-            <atomic>true</atomic>
-            <stored>false</stored>
-            <tokenised>false</tokenised>
-            <facetable>true</facetable>
-          </index>
-        </property>
-        <property name="ssl:databoxAttachmentsCount">
-          <title>Attachment Count</title>
-          <type>d:int</type>
-          <index enabled="true">
-            <atomic>true</atomic>
-            <stored>false</stored>
-            <tokenised>false</tokenised>
-            <facetable>true</facetable>
-          </index>
-        </property>
-        <property name="ssl:databoxDeliveryDate">
-          <title>Delivery Date</title>
-          <type>d:date</type>
           <index enabled="true">
             <atomic>true</atomic>
             <stored>false</stored>
@@ -2355,16 +2336,6 @@
             <constraint ref="ssl:databoxMessageTypeConstraint"/>
           </constraints>
         </property> 
-        <property name="ssl:databoxNotRegisteredReason">
-          <title>Not registered</title>
-          <type>d:text</type>
-          <index enabled="true">
-            <atomic>true</atomic>
-            <stored>false</stored>
-            <tokenised>both</tokenised>
-            <facetable>true</facetable>
-          </index>
-        </property>
         <property name="ssl:databoxPersonalDelivery">
           <title>Personal Delivery</title>
           <type>d:boolean</type>
@@ -2476,36 +2447,11 @@
           <title>Sender's document ref number</title>
           <type>d:text</type>
         </property>
-        <property name="ssl:databoxSubject">
-          <title>Subject (Annotation)</title>
-          <type>d:text</type>
-          <index enabled="true">
-            <atomic>true</atomic>
-            <stored>false</stored>
-            <tokenised>both</tokenised>
-            <facetable>true</facetable>
-          </index>
-        </property>
         <property name="ssl:databoxToHands">
           <title>To Hands</title>
           <type>d:text</type>
         </property>
       </properties>
-
-      <associations>
-        <child-association name="ssl:databoxAttachments">
-          <title>DataBox Attachments</title>
-          <source>
-            <mandatory>true</mandatory>
-            <many>false</many>
-          </source>
-          <target>
-            <class>cm:content</class>
-            <mandatory>false</mandatory>
-            <many>true</many>
-          </target>
-        </child-association>
-      </associations>
 
       <mandatory-aspects>
         <aspect>ssl:originInfo</aspect>
@@ -2583,7 +2529,24 @@
             <facetable>true</facetable>
           </index>
         </property>
-      </properties>
+      </properties>      
+    </aspect>
+    <aspect name="ssl:originFile">
+      <title>Original file</title>
+      <associations>
+        <child-association name="ssl:originalFile">
+          <title>Original file</title>
+          <source>
+            <mandatory>true</mandatory>
+            <many>false</many>
+          </source>
+          <target>
+            <class>cm:content</class>
+            <mandatory>false</mandatory>
+            <many>true</many>
+          </target>
+        </child-association>
+      </associations>
     </aspect>
     <aspect name="ssl:reference">
       <title>Reference</title>
@@ -2697,32 +2660,6 @@
             <tokenised>false</tokenised>
             <facetable>true</facetable>
           </index>
-        </property>
-        <property name="ssl:fileIsInOutputFormatDocument">
-          <title>Is in output format</title>
-          <type>d:text</type>
-          <index enabled="true">
-            <atomic>true</atomic>
-            <stored>false</stored>
-            <tokenised>both</tokenised>
-            <facetable>true</facetable>
-          </index>
-          <constraints>
-            <constraint ref="ssl:fileIsInOutputFoConstraint"/>
-          </constraints>
-        </property>
-        <property name="ssl:fileIsInOutputFormatFile">
-          <title>Is in output format</title>
-          <type>d:text</type>
-          <index enabled="true">
-            <atomic>true</atomic>
-            <stored>false</stored>
-            <tokenised>both</tokenised>
-            <facetable>true</facetable>
-          </index>
-          <constraints>
-            <constraint ref="ssl:fileIsInOutputFoConstraint"/>
-          </constraints>
         </property>
         <property name="ssl:fileIsInOutputFormat">
           <title>Is in output format</title>

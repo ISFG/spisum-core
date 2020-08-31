@@ -10,6 +10,9 @@ namespace ISFG.Common.Extensions
         // Format ISO 8601 - that is used by Alfresco
         public static string ToAlfrescoDateTimeString(this DateTime input)
         {
+            if (input == null)
+                return null;
+
             return input.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss.fffK", CultureInfo.InvariantCulture);
         }
 

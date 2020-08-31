@@ -4,7 +4,7 @@
 
 ## Version
 
-v1.0-beta2
+v1.0-beta3
 
 ## Prerequisities
 

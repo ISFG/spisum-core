@@ -5,9 +5,6 @@ var runScript = !document.properties["ssl:pid"]
     && (
         document.typeShort == "ssl:document"
         || document.typeShort == "ssl:file"
-        || document.typeShort == "ssl:component"
-        || document.typeShort == "ssl:emailComponent"
-        || document.typeShort == "ssl:databoxComponent"
     );
 
 if (runScript) {

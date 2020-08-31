@@ -62,25 +62,6 @@ namespace ISFG.SpisUm.ClientSide.Services
                 if (!string.IsNullOrWhiteSpace(proposalName))
                     throw new BadRequestException("", "One or more of the ids cannot be used because they were used previously.");
 
-                var parentRm = await _nodesService.GetParentsByAssociation(x, new List<string>
-                {
-                    SpisumNames.Associations.DocumentInRepository,
-                    SpisumNames.Associations.FileInRepository
-                });
-
-                var rmRef = parentRm.FirstOrDefault()?.Entry?.Id;
-
-                if (string.IsNullOrWhiteSpace(rmRef))
-                    throw new BadRequestException("", "One or more of the ids are not in record management.");
-
-                var rmNodeInfo = await _alfrescoHttpClient.GetNodeInfo(rmRef);
-
-                var propertiesRm = rmNodeInfo.Entry.Properties.As<JObject>().ToDictionary();
-                var cutOffDate = propertiesRm.GetNestedValueOrDefault(AlfrescoNames.ContentModel.CutOffDate)?.ToString();
-
-                if (string.IsNullOrWhiteSpace(cutOffDate))
-                    throw new BadRequestException("", "One or more of the ids has not been cut off yet.");
-
                 if (!string.IsNullOrWhiteSpace(discardReason) ||
                     !string.IsNullOrWhiteSpace(discardTo) ||
                     !string.IsNullOrWhiteSpace(discardDate) ||

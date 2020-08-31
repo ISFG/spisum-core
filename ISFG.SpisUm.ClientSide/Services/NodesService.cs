@@ -1,10 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using ISFG.Alfresco.Api.Extensions;
 using ISFG.Alfresco.Api.Interfaces;
@@ -28,6 +21,13 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ISFG.SpisUm.ClientSide.Services
 {
@@ -42,7 +42,6 @@ namespace ISFG.SpisUm.ClientSide.Services
         private readonly IAuditLogService _auditLogService;
         private readonly IIdentityUser _identityUser;
         private readonly IMapper _mapper;
-        private readonly IRepositoryService _repositoryService;
         private readonly ISimpleMemoryCache _simpleMemoryCache;
         private readonly ITransactionHistoryService _transactionHistoryService;
 
@@ -58,8 +57,7 @@ namespace ISFG.SpisUm.ClientSide.Services
             IMapper mapper,
             ISimpleMemoryCache simpleMemoryCache,
             ITransactionHistoryService transactionHistoryService,
-            ISystemLoginService systemLoginService,
-            IRepositoryService repositoryService
+            ISystemLoginService systemLoginService
         )
         {
             _alfrescoConfiguration = alfrescoConfiguration;
@@ -69,7 +67,6 @@ namespace ISFG.SpisUm.ClientSide.Services
             _mapper = mapper;
             _simpleMemoryCache = simpleMemoryCache;
             _transactionHistoryService = transactionHistoryService;
-            _repositoryService = repositoryService;
             _adminAlfrescoHttpClient = new AlfrescoHttpClient(alfrescoConfiguration, new AdminAuthentification(simpleMemoryCache, alfrescoConfiguration, systemLoginService));
         }
 
@@ -141,12 +138,6 @@ namespace ISFG.SpisUm.ClientSide.Services
 
             if (isMemberOfRepository)
             {
-                // Create a record in repository
-                if (nodeInfo.Entry.NodeType == SpisumNames.NodeTypes.Document)
-                    await _repositoryService.CreateDocumentRecord(filePlan, fileMark, nodeId);
-                else if (nodeInfo.Entry.NodeType == SpisumNames.NodeTypes.File)
-                    await _repositoryService.CreateFileRecord(filePlan, fileMark, nodeId);
-
                 // final lock
                 await LockAll(nodeId);
             }
@@ -235,15 +226,6 @@ namespace ISFG.SpisUm.ClientSide.Services
             await LockAll(nodeId);
         }
 
-        public async Task<NodeEntry> ComponentUpdate(ComponentUpdate body, IImmutableList<Parameter> parameters = null)
-        {
-            var nodeInfo = await _alfrescoHttpClient.GetNodeInfo(body.ComponentId);
-            var alfrescoBody = _mapper.Map<NodeBodyUpdate>(body);
-            alfrescoBody.Properties = PropertiesProtector.Filter(nodeInfo.Entry.NodeType, alfrescoBody.Properties?.As<Dictionary<string, object>>());
-
-            return await _alfrescoHttpClient.UpdateNode(body.ComponentId, alfrescoBody, parameters);
-        }
-
         public async Task CreateAssociation(string parentId, string childId, string assocType)
         {
             await CreateAssociation(parentId, new List<string> { childId }, assocType);
@@ -270,14 +252,22 @@ namespace ISFG.SpisUm.ClientSide.Services
                 RelativePath = relativePath
             });
         }
-
+        public async Task<NodeEntry> CreateNodeAsAdmin(string parentNodeId, object body, IImmutableList<Parameter> parameters = null)
+        {
+            return await _adminAlfrescoHttpClient.CreateNode(AlfrescoNames.Aliases.Root, new FormDataParam(new byte[] { 01 }), parameters);
+        }
         public async Task<NodeEntry> CreatePermissions(string nodeId, string prefix = null, string owner = null, bool isInheritanceEnabled = false)
         {
             var updateBody = SetPermissions(prefix, owner, isInheritanceEnabled);
 
             return await _alfrescoHttpClient.UpdateNode(nodeId, updateBody);
         }
+        public async Task<NodeEntry> CreatePermissionsAsAdmin(string nodeId, string prefix = null, string owner = null, bool isInheritanceEnabled = false)
+        {
+            var updateBody = SetPermissions(prefix, owner, isInheritanceEnabled);
 
+            return await _adminAlfrescoHttpClient.UpdateNode(nodeId, updateBody);
+        }
         public async Task<NodeEntry> CreatePermissionsWithoutPostfixes(string nodeId, string prefix = null, string owner = null, bool isInheritanceEnabled = false)
         {
             var updateBody = SetPermissionsWithoutPostfixes(prefix, owner, isInheritanceEnabled);
@@ -473,8 +463,31 @@ namespace ISFG.SpisUm.ClientSide.Services
 
                     if (nodeInfo.Entry.NodeType == SpisumNames.NodeTypes.File)
                     {
-                        var childrenIds = (await GetSecondaryChildren(nodeId, SpisumNames.Associations.Documents)).Select(x => x.Entry.Id).ToList();
-                        await childrenIds.ForEachAsync(async document => await MoveByPath(document, previousPath));
+                        var childrenIds = await GetSecondaryChildren(nodeId, SpisumNames.Associations.Documents, true, true);
+                        await childrenIds.ForEachAsync(async document =>
+                        {
+                            var documentInfo = await _alfrescoHttpClient.GetNodeInfo(document?.Entry?.Id, ImmutableList<Parameter>.Empty
+                                .Add(new Parameter(AlfrescoNames.Headers.Include, $"{AlfrescoNames.Includes.IsLocked}", ParameterType.QueryString)));
+
+                            if (documentInfo?.Entry?.IsLocked == true)
+                                await _alfrescoHttpClient.NodeUnlock(document?.Entry?.Id);
+
+                            var properties = document.Entry.Properties.As<JObject>().ToDictionary();
+                            var previousState = properties.GetNestedValueOrDefault(SpisumNames.Properties.PreviousState)?.ToString();
+                            var previousPath = properties.GetNestedValueOrDefault(SpisumNames.Properties.PreviousPath)?.ToString();
+                            var previousIsLocked = properties.GetNestedValueOrDefault(SpisumNames.Properties.PreviousIsLocked)?.ToString();
+
+                            var node = await _alfrescoHttpClient.UpdateNode(nodeId, new NodeBodyUpdate()
+                                .AddProperty(SpisumNames.Properties.State, previousState)
+                                .AddProperty(SpisumNames.Properties.PreviousState, null)
+                                .AddProperty(SpisumNames.Properties.PreviousPath, null)
+                                .AddProperty(SpisumNames.Properties.PreviousIsLocked, null));
+
+                            await MoveByPath(document?.Entry?.Id, previousPath);
+
+                            if (previousIsLocked == bool.TrueString)
+                                await _alfrescoHttpClient.NodeLock(document?.Entry?.Id, new NodeBodyLock().AddLockType(NodeBodyLockType.FULL));                            
+                        });
                     }
 
                     if (previousIsLocked == bool.TrueString)
@@ -627,8 +640,7 @@ namespace ISFG.SpisUm.ClientSide.Services
                 if (includePath && includeProperties)
                     parameters = ImmutableList<Parameter>.Empty.AddRange(new List<Parameter>
                     {
-                        new Parameter(AlfrescoNames.Headers.Include, AlfrescoNames.Includes.Properties, ParameterType.QueryString),
-                        new Parameter(AlfrescoNames.Headers.Include, AlfrescoNames.Includes.Path, ParameterType.QueryString),
+                        new Parameter(AlfrescoNames.Headers.Include, $"{AlfrescoNames.Includes.Properties},{AlfrescoNames.Includes.Path}", ParameterType.QueryString),
                         new Parameter(AlfrescoNames.Headers.Where, $"(assocType='{association}')", ParameterType.QueryString)
                     });
 
@@ -732,8 +744,28 @@ namespace ISFG.SpisUm.ClientSide.Services
             {
                 await MoveByPath(nodeId, SpisumNames.Paths.EvidenceLostDestroyed(_identityUser.RequestGroup));
 
-                var childrenIds = (await GetSecondaryChildren(nodeId, SpisumNames.Associations.Documents)).Select(x => x.Entry.Id).ToList();
-                await childrenIds.ForEachAsync(async document => await MoveByPath(document, SpisumNames.Paths.EvidenceFilesLostDestroyed(_identityUser.RequestGroup)));
+                var childrenIds = (await GetSecondaryChildren(nodeId, SpisumNames.Associations.Documents, true, true));
+                await childrenIds.ForEachAsync(async document =>
+                {
+                    var properties = document?.Entry?.Properties.As<JObject>().ToDictionary();
+                    var state = properties.GetNestedValueOrDefault(SpisumNames.Properties.State)?.ToString();
+
+                    var documentInfo = await _alfrescoHttpClient.GetNodeInfo(document?.Entry?.Id, ImmutableList<Parameter>.Empty
+                                    .Add(new Parameter(AlfrescoNames.Headers.Include, $"{AlfrescoNames.Includes.IsLocked}", ParameterType.QueryString)));
+
+                    if (documentInfo?.Entry?.IsLocked == true)
+                        await _alfrescoHttpClient.NodeUnlock(document?.Entry?.Id);
+
+                    await _alfrescoHttpClient.UpdateNode(document?.Entry?.Id, new NodeBodyUpdate()
+                           .AddProperty(SpisumNames.Properties.PreviousState, state)
+                           .AddProperty(SpisumNames.Properties.PreviousIsLocked, documentInfo?.Entry?.IsLocked)
+                           .AddProperty(SpisumNames.Properties.PreviousPath,
+                       document?.Entry?.Path?.Name?.StartsWith(AlfrescoNames.Prefixes.Path) == true ?
+                       document?.Entry?.Path?.Name.Substring(AlfrescoNames.Prefixes.Path.Length, document.Entry.Path.Name.Length - AlfrescoNames.Prefixes.Path.Length) :
+                       document?.Entry?.Path?.Name));
+
+                    await MoveByPath(document?.Entry?.Id, SpisumNames.Paths.EvidenceFilesLostDestroyed(_identityUser.RequestGroup));
+                });
 
                 try
                 {
@@ -968,18 +1000,21 @@ namespace ISFG.SpisUm.ClientSide.Services
             else if (path.EndsWith(SpisumNames.Paths.FilesOpen, StringComparison.OrdinalIgnoreCase))
             {
                 await MoveByPath(nodeId, SpisumNames.Paths.EvidenceFilesOpenWaitingForTakeOver(group));
+
                 nodeType = SpisumNames.NodeTypes.TakeFileOpen;
             }
 
             else if (path.EndsWith(SpisumNames.Paths.FilesClosed, StringComparison.OrdinalIgnoreCase))
             {
                 await MoveByPath(nodeId, SpisumNames.Paths.EvidenceFilesClosedWaitingForTakeOver(group));
+
                 nodeType = SpisumNames.NodeTypes.TakeFileClosed;
             }
 
             else if (path.EndsWith(SpisumNames.Paths.Concepts, StringComparison.OrdinalIgnoreCase))
             {
                 await MoveByPath(nodeId, SpisumNames.Paths.EvidenceConceptsWaitingForTakeOver(group));
+
                 nodeType = SpisumNames.NodeTypes.TakeConcept;
             }
 
@@ -1023,7 +1058,7 @@ namespace ISFG.SpisUm.ClientSide.Services
                  .Add(new Parameter(reference, nodeId, ParameterType.GetOrPost))
                  .Add(new Parameter(SpisumNames.Properties.CurrentOwner, properties.GetNestedValueOrDefault(AlfrescoNames.ContentModel.Owner, "id")?.ToString(), ParameterType.GetOrPost));
 
-            parameters = CloneProperties(properties, parameters);
+            parameters = CloneProperties(properties, parameters, true);
 
             return await _alfrescoHttpClient.CreateNode(AlfrescoNames.Aliases.Root, new FormDataParam(new byte[] { 01 }), parameters);
         }
@@ -1098,11 +1133,13 @@ namespace ISFG.SpisUm.ClientSide.Services
             else if (path.EndsWith(SpisumNames.Paths.FilesOpenWaitingForTakeOver, StringComparison.OrdinalIgnoreCase))
             {
                 await MoveByPath(nodeId, SpisumNames.Paths.EvidenceFilesOpen(group));
+                await MoveHandOverFileDocuments(nodeId, group);
             }
 
             else if (path.EndsWith(SpisumNames.Paths.FilesClosedWaitingForTakeOver, StringComparison.OrdinalIgnoreCase))
             {
                 await MoveByPath(nodeId, SpisumNames.Paths.EvidenceFilesClosed(group));
+                await MoveHandOverFileDocuments(nodeId, group);
             }
 
             else if (path.EndsWith(SpisumNames.Paths.ConceptsWaitingForTakeOver, StringComparison.OrdinalIgnoreCase))
@@ -1130,7 +1167,6 @@ namespace ISFG.SpisUm.ClientSide.Services
         }
         public async Task<NodeEntry> OpenFile(string nodeId, string reason)
         {
-            var lockedComponents = new List<string>();
             var finnalyLock = false;
 
             try
@@ -1160,20 +1196,6 @@ namespace ISFG.SpisUm.ClientSide.Services
                     .AddProperty(SpisumNames.Properties.ShreddingYear, null)
                     .AddProperty(SpisumNames.Properties.ProcessorJob, null));
 
-                await TraverseAllChildren(nodeId, async locNodeId =>
-                {
-                    var nodeInfo = await _alfrescoHttpClient.GetNodeInfo(locNodeId, ImmutableList<Parameter>.Empty
-                        .Add(new Parameter(AlfrescoNames.Headers.Include, AlfrescoNames.Includes.IsLocked, ParameterType.QueryString)));
-
-                    if (nodeInfo.Entry.IsLocked == true)
-                    {
-                        await _alfrescoHttpClient.NodeUnlock(locNodeId);
-                        lockedComponents.Add(nodeInfo.Entry.Id);
-                    }
-
-                    return nodeInfo;
-                });
-
                 var node = await MoveByPath(nodeId, SpisumNames.Paths.EvidenceFilesOpen(_identityUser.RequestGroup));
 
                 try
@@ -1191,8 +1213,6 @@ namespace ISFG.SpisUm.ClientSide.Services
             }
             catch (Exception ex)
             {
-                if (lockedComponents.Count > 0)
-                    await lockedComponents.ForEachAsync(async locNodeId => await _alfrescoHttpClient.NodeLock(locNodeId, new NodeBodyLock().AddLockType(NodeBodyLockType.FULL)));
                 if (finnalyLock)
                     await _alfrescoHttpClient.NodeLock(nodeId, new NodeBodyLock().AddLockType(NodeBodyLockType.FULL));
                 throw ex;
@@ -1441,7 +1461,7 @@ namespace ISFG.SpisUm.ClientSide.Services
             return await _adminAlfrescoHttpClient.UpdateNode(nodeId, updateBody);
         }
 
-        public ImmutableList<Parameter> CloneProperties(Dictionary<string, object> properties, ImmutableList<Parameter> parameters)
+        public ImmutableList<Parameter> CloneProperties(Dictionary<string, object> properties, ImmutableList<Parameter> parameters, bool pidToPidRef = false)
         {
             if (properties.ContainsKey(SpisumNames.Properties.Pid) && properties.ContainsKey(SpisumNames.Properties.PidRef))
                 properties.Remove(SpisumNames.Properties.PidRef);
@@ -1452,10 +1472,42 @@ namespace ISFG.SpisUm.ClientSide.Services
                     if (DateTime.TryParse(item.Value?.ToString(), out DateTime datetime))
                         parameters = parameters.Add(new Parameter(item.Key, datetime.ToAlfrescoDateTimeString(), ParameterType.GetOrPost));
                     else
-                        parameters = parameters.Add(new Parameter(item.Key == SpisumNames.Properties.Pid ? SpisumNames.Properties.PidRef : item.Key, item.Value, ParameterType.GetOrPost));
+                        parameters = parameters.Add(new Parameter(item.Key == SpisumNames.Properties.Pid && pidToPidRef ? SpisumNames.Properties.PidRef : item.Key, item.Value, ParameterType.GetOrPost));                    
                 }
 
             return parameters;
+        }
+
+        public async Task<NodeEntry> CopyNode(string relativePath, string nodeId, string nodeType, bool pidToPidRef = false, List<string> removePropertiesKey = null)
+        {
+            var nodeToCopyEntry = await _alfrescoHttpClient.GetNodeInfo(nodeId);
+
+            return await CopyNode(relativePath, nodeToCopyEntry, nodeType, pidToPidRef, removePropertiesKey);
+        }
+
+        public async Task<NodeEntry> CopyNode(string relativePath, NodeEntry nodeToCopy, string nodeType, bool pidToPidRef = false, List<string> removePropertiesKey = null)
+        {
+            var contentToCopy = await _alfrescoHttpClient.NodeContent(nodeToCopy?.Entry?.Id);
+
+            // Generate new name for the copy
+            contentToCopy = new FormDataParam(contentToCopy.File, $"{IdGenerator.GenerateId()}{ System.IO.Path.GetExtension(contentToCopy.FileName) }", contentToCopy.Name, contentToCopy.ContentType);
+
+            var parameters = ImmutableList<Parameter>.Empty
+                .Add(new Parameter(AlfrescoNames.Headers.NodeType, nodeType, ParameterType.GetOrPost))
+                .Add(new Parameter(AlfrescoNames.Headers.RelativePath, relativePath, ParameterType.GetOrPost))
+                ;
+
+            var properties = nodeToCopy?.Entry.Properties.As<JObject>().ToDictionary();
+
+            removePropertiesKey?.ForEach(key =>
+            {
+                if (properties.ContainsKey(key))
+                    properties.Remove(key);
+            });
+
+            parameters = CloneProperties(properties, parameters, pidToPidRef);
+
+            return await _alfrescoHttpClient.CreateNode(AlfrescoNames.Aliases.Root, contentToCopy, parameters);
         }
 
         #endregion
@@ -1587,6 +1639,19 @@ namespace ISFG.SpisUm.ClientSide.Services
                 .AddProperty(SpisumNames.Properties.ReasonForRework, null);
 
             return await _alfrescoHttpClient.UpdateNode(nodeId, updateBody);
+        }
+
+        private async Task MoveHandOverFileDocuments(string fileId, string group)
+        {
+            var childrens = await GetSecondaryChildren(fileId, SpisumNames.Associations.Documents, true);
+
+            await childrens.ForEachAsync(async x =>
+            {
+                if (x?.Entry?.Path?.Name?.EndsWith(SpisumNames.Paths.FilesDocumentsForProcessing) == false)
+                    await MoveByPath(x?.Entry?.Id, SpisumNames.Paths.EvidenceFilesDocumentsForProcessing(group));
+                else if (x?.Entry?.Path?.Name?.EndsWith(SpisumNames.Paths.FilesDocumentsForProcessed) == false)
+                    await MoveByPath(x?.Entry?.Id, SpisumNames.Paths.EvidenceFilesDocumentsProcessed(group));
+            });
         }
 
         #endregion

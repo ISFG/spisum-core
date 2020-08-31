@@ -38,6 +38,7 @@ namespace ISFG.SpisUm.ClientSide.Services
         private readonly IEmailHttpClient _emailHttpClient;
         private readonly IIdentityUser _identityUser;
         private readonly INodesService _nodesService;
+        private readonly IDataBoxService _dataBoxService;
         private readonly ITransactionHistoryService _transactionHistoryService;
 
         #endregion
@@ -54,7 +55,8 @@ namespace ISFG.SpisUm.ClientSide.Services
             IIdentityUser identityUser,
             IAuditLogService auditLogService,
             IDocumentService documentService,
-            IAlfrescoModelComparer alfrescoModelComparer
+            IAlfrescoModelComparer alfrescoModelComparer,
+            IDataBoxService dataBoxService
         )
         {
             _nodesService = nodesService;
@@ -67,6 +69,7 @@ namespace ISFG.SpisUm.ClientSide.Services
             _auditLogService = auditLogService;
             _documentService = documentService;
             _alfrescoModelComparer = alfrescoModelComparer;
+            _dataBoxService = dataBoxService;
         }
 
         #endregion
@@ -171,7 +174,8 @@ namespace ISFG.SpisUm.ClientSide.Services
                       ToHands = toHands
                   });
 
-                var shipmentCreate = await _alfrescoHttpClient.CreateNode(AlfrescoNames.Aliases.Root, new FormDataParam(new byte[] { 01 }), parameters);
+                // Create shipment
+                var shipmentCreate = await _nodesService.CreateNodeAsAdmin(AlfrescoNames.Aliases.Root, new FormDataParam(new byte[] { 01 }), parameters);
 
                 await CreateShipmentPermission(nodeInfo, shipmentCreate?.Entry?.Id);
 
@@ -248,7 +252,7 @@ namespace ISFG.SpisUm.ClientSide.Services
                     });
 
                 // Create shipment
-                var shipmentCreate = await _alfrescoHttpClient.CreateNode(AlfrescoNames.Aliases.Root, new FormDataParam(new byte[] { 01 }), parameters);
+                var shipmentCreate = await _nodesService.CreateNodeAsAdmin(AlfrescoNames.Aliases.Root, new FormDataParam(new byte[] { 01 }), parameters);
 
                 // Shipment parameters
                 await CreateShipmentPermission(nodeInfo, shipmentCreate?.Entry?.Id);
@@ -330,7 +334,7 @@ namespace ISFG.SpisUm.ClientSide.Services
                     });
 
                 // Create shipment
-                var shipmentCreate = await _alfrescoHttpClient.CreateNode(AlfrescoNames.Aliases.Root, new FormDataParam(new byte[] { 01 }), parameters);
+                var shipmentCreate = await _nodesService.CreateNodeAsAdmin(AlfrescoNames.Aliases.Root, new FormDataParam(new byte[] { 01 }), parameters);
 
                 // Shipment parameters
                 await CreateShipmentPermission(nodeInfo, shipmentCreate?.Entry?.Id);
@@ -421,7 +425,7 @@ namespace ISFG.SpisUm.ClientSide.Services
                     });
 
                 // Create shipment
-                var shipmentCreate = await _alfrescoHttpClient.CreateNode(AlfrescoNames.Aliases.Root, new FormDataParam(new byte[] { 01 }), parameters);
+                var shipmentCreate = await _nodesService.CreateNodeAsAdmin(AlfrescoNames.Aliases.Root, new FormDataParam(new byte[] { 01 }), parameters);
 
                 // Shipment parameters
                 await CreateShipmentPermission(nodeInfo, shipmentCreate?.Entry?.Id);
@@ -492,7 +496,7 @@ namespace ISFG.SpisUm.ClientSide.Services
                     nodeInfo, components, dateFrom, days, note, nodeId);
 
                 // Create shipment
-                var shipmentCreate = await _alfrescoHttpClient.CreateNode(AlfrescoNames.Aliases.Root, new FormDataParam(new byte[] { 01 }), parameters);
+                var shipmentCreate = await _nodesService.CreateNodeAsAdmin(AlfrescoNames.Aliases.Root, new FormDataParam(new byte[] { 01 }), parameters);
 
                 // Shipment parameters
                 await CreateShipmentPermission(nodeInfo, shipmentCreate?.Entry?.Id);
@@ -767,19 +771,26 @@ namespace ISFG.SpisUm.ClientSide.Services
                     var shipmentInfo = await _alfrescoHttpClient.GetNodeInfo(shipmentId, ImmutableList<Parameter>.Empty
                               .Add(new Parameter(AlfrescoNames.Headers.Include, $"{AlfrescoNames.Includes.Path},{AlfrescoNames.Includes.Permissions}", ParameterType.QueryString)));
 
+
                     if (shipmentInfo?.Entry?.Path?.Name != AlfrescoNames.Prefixes.Path + SpisumNames.Paths.DispatchReturned)
                     {
                         unprocessedIds.Add(shipmentId);
                         return;
                     }
 
-                    var nodeParents = await _nodesService.GetParentsByAssociation(shipmentId, new List<string> { SpisumNames.Associations.ShipmentsToReturn });
+                    var nodeParent = (await _nodesService.GetParentsByAssociation(shipmentId, new List<string> { SpisumNames.Associations.ShipmentsToReturn },
+                                                ImmutableList<Parameter>.Empty
+                                  .Add(new Parameter(AlfrescoNames.Headers.Include, $"{AlfrescoNames.Includes.IsLocked}", ParameterType.QueryString))))?.FirstOrDefault();
 
-                    if (nodeParents == null || nodeParents?.Count == 0)
+
+                    if (nodeParent == null)
                     {
                         unprocessedIds.Add(shipmentId);
                         return;
                     }
+
+                    if (nodeParent?.Entry?.IsLocked == true)
+                        await _alfrescoHttpClient.NodeUnlock(nodeParent?.Entry?.Id);
 
                     var locallySet = shipmentInfo?.Entry?.Permissions?.LocallySet;
                     var updateBody = new NodeBodyUpdateFixed
@@ -787,7 +798,6 @@ namespace ISFG.SpisUm.ClientSide.Services
                         Permissions = { LocallySet = locallySet != null && locallySet.Any() ? locallySet.ToList() : new List<PermissionElement>() }
                     };
 
-                    var nodeParent = nodeParents?.FirstOrDefault();
                     var nodeInfo = await _alfrescoHttpClient.GetNodeInfo(nodeParent?.Entry?.Id);
 
                     var shipmentAfterUpdate = await _alfrescoHttpClient.UpdateNode(shipmentId, updateBody
@@ -797,21 +807,20 @@ namespace ISFG.SpisUm.ClientSide.Services
                         .AddProperty(SpisumNames.Properties.ReturnedDate, null)
                     );
 
-                    await nodeParents.ForEachAsync(async x =>
+                    await _nodesService.DeleteSecondaryChildrenAsAdmin(nodeParent?.Entry?.Id, shipmentId, ImmutableList<Parameter>.Empty
+                        .Add(new Parameter(AlfrescoNames.Headers.Where, $"(assocType='{SpisumNames.Associations.ShipmentsToReturn}')", ParameterType.QueryString)));
+                    await _nodesService.CreateSecondaryChildrenAsAdmin(nodeParent?.Entry?.Id, new ChildAssociationBody
                     {
-                        await _nodesService.DeleteSecondaryChildrenAsAdmin(x?.Entry?.Id, shipmentId, ImmutableList<Parameter>.Empty
-                            .Add(new Parameter(AlfrescoNames.Headers.Where, $"(assocType='{SpisumNames.Associations.ShipmentsToReturn}')", ParameterType.QueryString)));
-                        await _nodesService.CreateSecondaryChildrenAsAdmin(x?.Entry?.Id, new ChildAssociationBody
-                        {
-                            AssocType = SpisumNames.Associations.ShipmentsToDispatch,
-                            ChildId = shipmentId
-                        });
-                    });
+                        AssocType = SpisumNames.Associations.ShipmentsToDispatch,
+                        ChildId = shipmentId
+                    });        
 
                     await _nodesService.MoveByPath(shipmentInfo?.Entry?.Id, SpisumNames.Paths.DispatchToDispatch);
 
                     await AddToDispatchPermissions(nodeInfo, shipmentId);
 
+                    if (nodeParent?.Entry?.IsLocked == true)
+                        await _nodesService.NodeLockAsAdmin(nodeParent?.Entry?.Id);
                     try
                     {
                         var shipmentPid = shipmentAfterUpdate?.GetPid();
@@ -911,7 +920,7 @@ namespace ISFG.SpisUm.ClientSide.Services
                         ChildId = shipmentId
                     });
 
-                    await _nodesService.MoveByPath(shipmentInfo?.Entry?.Id, SpisumNames.Paths.DispatchReturned);
+                    await _nodesService.MoveByPathAsAdmin(shipmentInfo?.Entry?.Id, SpisumNames.Paths.DispatchReturned);
 
                     if (nodeParents?.Entry?.IsLocked == true)
                         await _nodesService.NodeLockAsAdmin(nodeParents?.Entry?.Id);
@@ -1547,8 +1556,9 @@ namespace ISFG.SpisUm.ClientSide.Services
         {
             var properties = nodeEntry?.Entry?.Properties.As<JObject>().ToDictionary();
             var group = properties.GetNestedValueOrDefault(SpisumNames.Properties.Group)?.ToString();
+            var owner = properties.GetNestedValueOrDefault(AlfrescoNames.ContentModel.Owner, "id")?.ToString();
 
-            var body =  _nodesService.SetPermissions(group, _identityUser.Id);
+            var body =  _nodesService.SetPermissions(group, owner);
 
             await _nodesService.UpdateNodeAsAdmin(shipmentId, body);
         }
@@ -1970,7 +1980,7 @@ namespace ISFG.SpisUm.ClientSide.Services
             // DATABOX
                 try
                 {
-                    var response = await _dataBoxHttpClient.Send(new DataBox.Api.Models.DataBoxSend(recipient, sender, subject, attachments));
+                    var response = await _dataBoxService.SendMessage(new DataBox.Api.Models.DataBoxSend(recipient, sender, subject, attachments));
                     if (!response?.IsSuccessfullySent ?? true)
                     {
                         await EmailDataBoxSendFailedAction(nodeId, shipmentInfo);

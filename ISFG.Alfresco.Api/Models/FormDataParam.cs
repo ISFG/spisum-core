@@ -10,7 +10,7 @@ namespace ISFG.Alfresco.Api.Models
         {
             Name = name ?? "filedata";
             FileName = fileName ?? IdGenerator.GenerateId();
-            File = file;
+            File = file ?? new byte[0];
             ContentType = contentType;
         }
 

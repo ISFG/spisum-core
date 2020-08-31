@@ -37,7 +37,6 @@ namespace ISFG.SpisUm.ClientSide.Services
         private readonly IAuditLogService _auditLogService;
         private readonly IComponentService _componentService;
         private readonly IIdentityUser _identityUser;
-        private readonly INodesService _nodesService;
         private readonly ISignerClient _signerClient;
 
         #endregion
@@ -49,14 +48,12 @@ namespace ISFG.SpisUm.ClientSide.Services
             IIdentityUser identityUser,
             IAuditLogService auditLogService,
             IAlfrescoHttpClient alfrescoHttpClient,
-            INodesService nodesService, 
             IComponentService componentService)
         {
             _signerClient = signerClient;
             _identityUser = identityUser;
             _auditLogService = auditLogService;
             _alfrescoHttpClient = alfrescoHttpClient;
-            _nodesService = nodesService;
             _componentService = componentService;
         }
 
@@ -97,14 +94,43 @@ namespace ISFG.SpisUm.ClientSide.Services
                 select BuildSignXml(baseUrl, documentId, component.Split('_')[1], component.Split('_')[0], visual)).ToString()
             );
 
+        public async Task<NodeBodyUpdate> GetBodyCheckComponent(byte[] component, bool isSigned = false)
+        {
+            var pdfValidation = await _signerClient.Validate(component);
+            var certValidation = await _signerClient.ValidateCertificate(pdfValidation?.Report?.sigInfos?.LastOrDefault()?.signCert?.Data);
+
+            return GetSignerProperties(pdfValidation, certValidation, isSigned);
+        }
+        public async Task<Dictionary<string, object>> CheckComponentProperties(byte[] component, bool isSigned = false)
+        {
+            var pdfValidation = await _signerClient.Validate(component);
+            var certValidation = await _signerClient.ValidateCertificate(pdfValidation?.Report?.sigInfos?.LastOrDefault()?.signCert?.Data);
+
+            return GetSignerPropertiesDictionary(pdfValidation, certValidation, isSigned);
+        }
+        public async Task<ImmutableList<Parameter>> CheckComponentParameters(byte[] component, bool isSigned = false)
+        {
+            var pdfValidation = await _signerClient.Validate(component);
+            var certValidation = await _signerClient.ValidateCertificate(pdfValidation?.Report?.sigInfos?.LastOrDefault()?.signCert?.Data);
+
+            var properties = GetSignerPropertiesDictionary(pdfValidation, certValidation, isSigned);
+
+            ImmutableList<Parameter> parameters = ImmutableList.Create<Parameter>();
+
+            foreach(var property in properties)
+            {
+                parameters = parameters.Add(new Parameter(property.Key, property.Value, ParameterType.GetOrPost));
+            }
+
+            return parameters;
+        }
         public async Task<bool> CheckAndUpdateComponent(string componentId, byte[] component)
         {
             try
             {
-                var pdfValidation = await _signerClient.Validate(component);
-                var certValidation = await _signerClient.ValidateCertificate(pdfValidation?.Report?.sigInfos?.LastOrDefault()?.signCert?.Data);
-            
-                await _alfrescoHttpClient.UpdateNode(componentId, GetSignerProperties(pdfValidation, certValidation, false));
+                var body = await GetBodyCheckComponent(component, false);
+
+                await _alfrescoHttpClient.UpdateNode(componentId, body);
                 
                 return true;
             }
@@ -123,18 +149,10 @@ namespace ISFG.SpisUm.ClientSide.Services
             var pdfValidation = await _signerClient.Validate(newComponent);
             var certValidation = await _signerClient.ValidateCertificate(pdfValidation?.Report?.sigInfos?.LastOrDefault()?.signCert?.Data);
 
-            if (await _nodesService.IsNodeLocked(documentId))
-                await _alfrescoHttpClient.NodeUnlock(documentId);
-            
-            if (await _nodesService.IsNodeLocked(componentId))
-                await _alfrescoHttpClient.NodeUnlock(componentId);            
+            var parameters = GetSignerPropertiesParameters(pdfValidation, certValidation, true);
 
             await _componentService.UploadNewVersionComponent(documentId, componentId, newComponent, 
-                Path.ChangeExtension(properties.GetNestedValueOrDefault(SpisumNames.Properties.FileName)?.ToString(), ".pdf"), MediaTypeNames.Application.Pdf);
-            var node = await _alfrescoHttpClient.UpdateNode(componentId, GetSignerProperties(pdfValidation, certValidation, true));
-            
-            await _alfrescoHttpClient.NodeLock(documentId, new NodeBodyLock().AddLockType(NodeBodyLockType.FULL)); 
-            await _alfrescoHttpClient.NodeLock(componentId, new NodeBodyLock().AddLockType(NodeBodyLockType.FULL)); 
+                Path.ChangeExtension(properties.GetNestedValueOrDefault(SpisumNames.Properties.FileName)?.ToString(), ".pdf"), MediaTypeNames.Application.Pdf, parameters);
 
             try
             {
@@ -193,36 +211,54 @@ namespace ISFG.SpisUm.ClientSide.Services
 
         private NodeBodyUpdate GetSignerProperties(ValidateResponse pdfValidation, ValidateCertificateResponse certValidation, bool isSigned)
         {
+            return new NodeBodyUpdate().AddProperties(GetSignerPropertiesDictionary(pdfValidation, certValidation, isSigned));
+        }
+        private ImmutableList<Parameter> GetSignerPropertiesParameters(ValidateResponse pdfValidation, ValidateCertificateResponse certValidation, bool isSigned)
+        {
+            var properties = GetSignerPropertiesDictionary(pdfValidation, certValidation, isSigned);
+
+            ImmutableList<Parameter> parameters = ImmutableList.Create<Parameter>();
+
+            foreach (var property in properties)
+            {
+                parameters = parameters.Add(new Parameter(property.Key, property.Value, ParameterType.GetOrPost));
+            }
+
+            return parameters;
+        }
+        private Dictionary<string, object> GetSignerPropertiesDictionary(ValidateResponse pdfValidation, ValidateCertificateResponse certValidation, bool isSigned)
+        {
+            Dictionary<string, object> properties = new Dictionary<string, object>();
+
             var signInfo = pdfValidation?.Report?.sigInfos?.LastOrDefault();
             var publisher = Dn.Parse(signInfo?.signCert?.Issuer);
             var holder = Dn.Parse(signInfo?.signCert?.Subject);
             var verifier = Dn.Parse(GetVerifier(pdfValidation?.XMLReport));
-            
-            return new NodeBodyUpdate()
-                .AddProperty(SpisumNames.Properties.FileIsSigned, isSigned)
-                .AddProperty(SpisumNames.Properties.SafetyElementsCheck, true)
-                .AddProperty(SpisumNames.Properties.UsedTime, pdfValidation?.Report?.CreationDateTime)
-                .AddProperty(SpisumNames.Properties.VerificationTime, pdfValidation?.Report?.validationProperties?.ValidationTime)
-                .AddProperty(SpisumNames.Properties.ValiditySafetyElement, pdfValidation?.Report?.globalStatus switch
-                {
-                    SignerNames.Ok => SpisumNames.Signer.Valid, 
-                    SignerNames.Warning => SpisumNames.Signer.ValidityAssessed,
-                    SignerNames.Error => SpisumNames.Signer.NotValid, 
-                    _ => null
-                })
-                .AddProperty(SpisumNames.Properties.AssessmentMoment, signInfo?.DecisiveMoment)
-                .AddProperty(SpisumNames.Properties.SignLocation, string.IsNullOrEmpty(signInfo?.Location) ? null : signInfo?.Location)
-                .AddProperty(SpisumNames.Properties.SignReason, string.IsNullOrEmpty(signInfo?.Reason) ? null : signInfo?.Reason)
-                .AddProperty(SpisumNames.Properties.ValiditySafetyCert, pdfValidation?.Report?.globalStatus switch
-                {
-                    SignerNames.Ok => SpisumNames.Signer.Valid,
-                    SignerNames.Warning => SpisumNames.Signer.ValidityAssessed,
-                    SignerNames.Error => SpisumNames.Signer.NotValid,
-                    _ => null
-                })
-                .AddProperty(SpisumNames.Properties.RevocationState, certValidation?.certificateValidationInfo?.statusIndication == SignerNames.Revoked)
-                .AddProperty(SpisumNames.Properties.ValiditySafetyCertRevocation, null)
-                .AddProperty(SpisumNames.Properties.CertValidityPath, certValidation?.certificateValidationInfo?.statusSubindication switch
+
+            properties.Add(SpisumNames.Properties.FileIsSigned, isSigned);
+            properties.Add(SpisumNames.Properties.SafetyElementsCheck, true);
+            properties.Add(SpisumNames.Properties.UsedTime, pdfValidation?.Report?.CreationDateTime.ToAlfrescoDateTimeString());
+            properties.Add(SpisumNames.Properties.VerificationTime, pdfValidation?.Report?.validationProperties?.ValidationTime.ToAlfrescoDateTimeString());
+            properties.Add(SpisumNames.Properties.ValiditySafetyElement, pdfValidation?.Report?.globalStatus switch
+            {
+                SignerNames.Ok => SpisumNames.Signer.Valid,
+                SignerNames.Warning => SpisumNames.Signer.ValidityAssessed,
+                SignerNames.Error => SpisumNames.Signer.NotValid,
+                _ => null
+            });
+            properties.Add(SpisumNames.Properties.AssessmentMoment, signInfo?.DecisiveMoment.ToAlfrescoDateTimeString());
+            properties.Add(SpisumNames.Properties.SignLocation, string.IsNullOrEmpty(signInfo?.Location) ? null : signInfo?.Location);
+            properties.Add(SpisumNames.Properties.SignReason, string.IsNullOrEmpty(signInfo?.Reason) ? null : signInfo?.Reason);
+            properties.Add(SpisumNames.Properties.ValiditySafetyCert, pdfValidation?.Report?.globalStatus switch
+            {
+                SignerNames.Ok => SpisumNames.Signer.Valid,
+                SignerNames.Warning => SpisumNames.Signer.ValidityAssessed,
+                SignerNames.Error => SpisumNames.Signer.NotValid,
+                _ => null
+            });
+            properties.Add(SpisumNames.Properties.RevocationState, certValidation?.certificateValidationInfo?.statusIndication == SignerNames.Revoked);
+            properties.Add(SpisumNames.Properties.ValiditySafetyCertRevocation, null);
+            properties.Add(SpisumNames.Properties.CertValidityPath, certValidation?.certificateValidationInfo?.statusSubindication switch
                 {
                     var x when x == SignerNames.Ok ||
                                x == SignerNames.Expired ||
@@ -230,44 +266,45 @@ namespace ISFG.SpisUm.ClientSide.Services
                     SignerNames.FormatFailure => SpisumNames.Signer.ValidityAssessed,
                     SignerNames.NoCertificateChainFound => SpisumNames.Signer.NotValid,
                     _ => null
-                })
-                .AddProperty(SpisumNames.Properties.CertValidity, certValidation?.certificateValidationInfo?.statusIndication switch
-                {
-                    SignerNames.Valid => SpisumNames.Signer.Valid,
-                    SignerNames.Indeterminate => SpisumNames.Signer.ValidityAssessed,
-                    SignerNames.Invalid => SpisumNames.Signer.NotValid,
-                    _ => null
-                })
-                .AddProperty(SpisumNames.Properties.VerifierName, verifier.GetValue(SpisumNames.Dn.CommonName))
-                .AddProperty(SpisumNames.Properties.VerifierOrgName, verifier.GetValue(SpisumNames.Dn.Organization))
-                .AddProperty(SpisumNames.Properties.VerifierOrgUnit, verifier.GetValue(SpisumNames.Dn.OrganizationalUnit))
-                .AddProperty(SpisumNames.Properties.VerifierOrgAddress, verifier.GetValue(SpisumNames.Dn.Locality))
-                .AddProperty(SpisumNames.Properties.SerialNumber, signInfo?.signCert?.Serial)
-                .AddProperty(SpisumNames.Properties.PublisherAddress, publisher.GetValue(SpisumNames.Dn.Locality))
-                .AddProperty(SpisumNames.Properties.PublisherContact, publisher.GetValue(SpisumNames.Dn.Email))
-                .AddProperty(SpisumNames.Properties.PublisherName, publisher.GetValue(SpisumNames.Dn.CommonName))
-                .AddProperty(SpisumNames.Properties.PublisherOrgName, publisher.GetValue(SpisumNames.Dn.Organization))
-                .AddProperty(SpisumNames.Properties.PublisherOrgUnit, publisher.GetValue(SpisumNames.Dn.OrganizationalUnit))
-                .AddProperty(SpisumNames.Properties.HolderAddress, holder.GetValue(SpisumNames.Dn.Locality))
-                .AddProperty(SpisumNames.Properties.HolderContact, holder.GetValue(SpisumNames.Dn.Email))
-                .AddProperty(SpisumNames.Properties.HolderName, holder.GetValue(SpisumNames.Dn.CommonName))
-                .AddProperty(SpisumNames.Properties.HolderOrgName, holder.GetValue(SpisumNames.Dn.Organization))
-                .AddProperty(SpisumNames.Properties.HolderOrgUnit, holder.GetValue(SpisumNames.Dn.OrganizationalUnit))
-                .AddProperty(SpisumNames.Properties.ValidityFrom, signInfo?.signCert?.NotBefore)
-                .AddProperty(SpisumNames.Properties.ValidityTo, signInfo?.signCert?.NotAfter)
-                .AddProperty(SpisumNames.Properties.QualifiedCertType, certValidation?.certificateValidationInfo?.qualifiedCertType)
-                .AddProperty(SpisumNames.Properties.IsSign, certValidation?.certificateValidationInfo?.qualifiedCertType == SignerNames.ESign)
-                .AddProperty(SpisumNames.Properties.IsSealed, certValidation?.certificateValidationInfo?.qualifiedCertType == SignerNames.ESeal)
-                .AddProperty(SpisumNames.Properties.SecurityType, certValidation?.certificateValidationInfo?.certType switch
+                });
+            properties.Add(SpisumNames.Properties.CertValidity, certValidation?.certificateValidationInfo?.statusIndication switch
+            {
+                SignerNames.Valid => SpisumNames.Signer.Valid,
+                SignerNames.Indeterminate => SpisumNames.Signer.ValidityAssessed,
+                SignerNames.Invalid => SpisumNames.Signer.NotValid,
+                _ => null
+            });
+            properties.Add(SpisumNames.Properties.VerifierName, verifier.GetValue(SpisumNames.Dn.CommonName));
+            properties.Add(SpisumNames.Properties.VerifierOrgName, verifier.GetValue(SpisumNames.Dn.Organization));
+            properties.Add(SpisumNames.Properties.VerifierOrgUnit, verifier.GetValue(SpisumNames.Dn.OrganizationalUnit));
+            properties.Add(SpisumNames.Properties.VerifierOrgAddress, verifier.GetValue(SpisumNames.Dn.Locality));
+            properties.Add(SpisumNames.Properties.SerialNumber, signInfo?.signCert?.Serial);
+            properties.Add(SpisumNames.Properties.PublisherAddress, publisher.GetValue(SpisumNames.Dn.Locality));
+            properties.Add(SpisumNames.Properties.PublisherContact, publisher.GetValue(SpisumNames.Dn.Email));
+            properties.Add(SpisumNames.Properties.PublisherName, publisher.GetValue(SpisumNames.Dn.CommonName));
+            properties.Add(SpisumNames.Properties.PublisherOrgName, publisher.GetValue(SpisumNames.Dn.Organization));
+            properties.Add(SpisumNames.Properties.PublisherOrgUnit, publisher.GetValue(SpisumNames.Dn.OrganizationalUnit));
+            properties.Add(SpisumNames.Properties.HolderAddress, holder.GetValue(SpisumNames.Dn.Locality));
+            properties.Add(SpisumNames.Properties.HolderContact, holder.GetValue(SpisumNames.Dn.Email));
+            properties.Add(SpisumNames.Properties.HolderName, holder.GetValue(SpisumNames.Dn.CommonName));
+            properties.Add(SpisumNames.Properties.HolderOrgName, holder.GetValue(SpisumNames.Dn.Organization));
+            properties.Add(SpisumNames.Properties.HolderOrgUnit, holder.GetValue(SpisumNames.Dn.OrganizationalUnit));
+            properties.Add(SpisumNames.Properties.ValidityFrom, signInfo?.signCert?.NotBefore.ToAlfrescoDateTimeString());
+            properties.Add(SpisumNames.Properties.ValidityTo, signInfo?.signCert?.NotAfter.ToAlfrescoDateTimeString());
+            properties.Add(SpisumNames.Properties.QualifiedCertType, certValidation?.certificateValidationInfo?.qualifiedCertType);
+            properties.Add(SpisumNames.Properties.IsSign, certValidation?.certificateValidationInfo?.qualifiedCertType == SignerNames.ESign);
+            properties.Add(SpisumNames.Properties.IsSealed, certValidation?.certificateValidationInfo?.qualifiedCertType == SignerNames.ESeal);
+            properties.Add(SpisumNames.Properties.SecurityType, certValidation?.certificateValidationInfo?.certType switch
                 {
                     SignerNames.Qualified => SpisumNames.Signer.Qualified,
                     SignerNames.Commercial => SpisumNames.Signer.Commercial,
                     SignerNames.InternalStorage => SpisumNames.Signer.InternalStorage,
                     SignerNames.Unknown => SpisumNames.Signer.Unknown,
                     _ => null
-                });   
-        }
+                });
 
+            return properties;
+        }
         private string GetVerifier(byte[] xmlReport)
         {
             if (xmlReport == null) return string.Empty;

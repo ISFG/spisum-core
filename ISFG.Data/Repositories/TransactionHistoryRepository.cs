@@ -33,7 +33,7 @@ namespace ISFG.Data.Repositories
                 NodeId = nodeId,
                 SslNodeType = nodeType,
                 Pid = pid,
-                OccuredAt = DateTime.Now.ToUniversalTime(),
+                OccuredAt = DateTime.Now,
                 UserId = userId,
                 UserGroupId = userGroup,
                 EventSource = software,

@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using ISFG.Common.Interfaces;
 using ISFG.SpisUm.ClientSide.Interfaces;
 using ISFG.SpisUm.ClientSide.Models;
@@ -39,10 +39,10 @@ namespace ISFG.SpisUm.ClientSide
             services.AddScoped<IConceptService, ConceptService>();
             services.AddScoped<IComponentService, ComponentService>();
             services.AddScoped<IPersonService, PersonService>();
-            services.AddScoped<IRepositoryService, RepositoryService>();
             services.AddScoped<ISignerService, SignerService>();            
             services.AddScoped<IShreddingService, ShreddingService>();
             services.AddScoped<IValidationService, ValidationService>();
+            services.AddScoped<IDataBoxService, DataBoxService>();
             services.AddTransient<ISystemLoginService, SystemLoginService>();
 
             //Signer

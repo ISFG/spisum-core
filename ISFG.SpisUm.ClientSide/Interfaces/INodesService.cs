@@ -16,15 +16,16 @@ namespace ISFG.SpisUm.ClientSide.Interfaces
 
         Task AcceptOwner(string nodeId);
         bool AreNodeTypesValid(List<NodeEntry> nodeEntries, string nodeType);
-        Task CancelNode(string nodeId, string reason);
-        Task<NodeEntry> ComponentUpdate(ComponentUpdate body, IImmutableList<Parameter> parameters = null);
+        Task CancelNode(string nodeId, string reason);        
         Task CreateAssociation(string parentId, string childId, string assocType);
         Task CreateAssociation(string parentId, List<string> childsId, string assocType);
         Task<NodeEntry> CreateFolder(string relativePath);
+        Task<NodeEntry> CreateNodeAsAdmin(string parentNodeId, object body, IImmutableList<Parameter> parameters = null);
         Task<NodeEntry> CreatePermissions(string nodeId, string prefix = null, string owner = null, bool isInheritanceEnabled = false);
+        Task<NodeEntry> CreatePermissionsAsAdmin(string nodeId, string prefix = null, string owner = null, bool isInheritanceEnabled = false);
         Task<NodeEntry> CreatePermissionsWithoutPostfixes(string nodeId, string prefix = null, string owner = null, bool isInheritanceEnabled = false);
         Task CreateSecondaryChildrenAsAdmin(string parentId, ChildAssociationBody body);
-        ImmutableList<Parameter> CloneProperties(Dictionary<string, object> properties, ImmutableList<Parameter> parameters);
+        ImmutableList<Parameter> CloneProperties(Dictionary<string, object> properties, ImmutableList<Parameter> parameters, bool pidToPidRef = false);
         Task DeclineOwner(string nodeId, bool cancelAction);
         Task DeleteNodeAsAdmin(string nodeId);
         Task DeleteNodePermanent(string nodeId, bool permanent = true);
@@ -74,7 +75,9 @@ namespace ISFG.SpisUm.ClientSide.Interfaces
         Task UpdateHandOverPermissionsAll(string nodeId, string nextGroup = null, string nextOwner = null);
         Task<NodeEntry> UpdateHandOverRepositoryPermissions(string nodeId, string nextGroup);
         Task UpdateHandOverRepositoryPermissionsAll(string nodeId, string group);
-        Task<NodeEntry> UpdateNodeAsAdmin(string nodeId, NodeBodyUpdate updateBody);        
+        Task<NodeEntry> UpdateNodeAsAdmin(string nodeId, NodeBodyUpdate updateBody);
+        Task<NodeEntry> CopyNode(string relativePath, string nodeId, string nodeType, bool pidToPidRef = false, List<string> removePropertiesKey = null);
+        Task<NodeEntry> CopyNode(string relativePath, NodeEntry nodeToCopy, string nodeType, bool pidToPidRef = false, List<string> removePropertiesKey = null);
 
         #endregion
     }

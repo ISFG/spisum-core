@@ -1,6 +1,5 @@
 ﻿using ISFG.Alfresco.Api.Interfaces;
 using ISFG.Alfresco.Api.Models.CoreApi.CoreApi;
-using ISFG.Alfresco.Api.Models.GsApi.GsApi;
 using ISFG.Alfresco.Api.Models.Site;
 using ISFG.Alfresco.Api.Models.Sites;
 using ISFG.Alfresco.Api.Services;
@@ -95,29 +94,12 @@ namespace ISFG.SpisUm.Controllers.App.V1
             var configSites = _alfrescoConfig?.Sites != null
                 ? JsonConvert.DeserializeObject<List<SiteARM>>(System.IO.File.ReadAllText(_alfrescoConfig.Sites))
                 : new List<SiteARM>();
-            var configSitesRM = _alfrescoConfig.SiteRM != null
-                ? JsonConvert.DeserializeObject<RMSiteARM>(System.IO.File.ReadAllText(_alfrescoConfig.SiteRM))
-                : null;
 
             var result = new List<PathsModel>();
 
             foreach (var configSite in configSites)
                 FilterChildren(configSite.Childs);
             await GetAllPaths(configSites, result);
-
-            FilterChildren(configSitesRM.Childs);
-
-            if (configSitesRM != null)
-            {
-                var path = "rm/documentLibrary";
-                result.Add(new PathsModel
-                {
-                    Name = "RM",
-                    Childs = await GetAllChilds(configSitesRM.Childs, path, null),
-                    Path = path,
-                    Permissions = configSitesRM?.Permissions?.Select(x => x.Id)?.ToList() ?? new List<string>()
-                });
-            }
 
             return result;
         }
@@ -135,10 +117,6 @@ namespace ISFG.SpisUm.Controllers.App.V1
 
                 if (typeof(T) == typeof(NodeBodyCreate))
                     name = (child as ChildrenARM<NodeBodyCreate, U>)?.Body?.Name;
-                else if (typeof(T) == typeof(RootCategoryBodyCreate))
-                    name = (child as ChildrenARM<RootCategoryBodyCreate, U>)?.Body?.Name;
-                else if (typeof(T) == typeof(RMNodeBodyCreateWithRelativePath))
-                    name = (child as ChildrenARM<RMNodeBodyCreateWithRelativePath, U>)?.Body?.Name;
 
                 if (name == null)
                     continue;

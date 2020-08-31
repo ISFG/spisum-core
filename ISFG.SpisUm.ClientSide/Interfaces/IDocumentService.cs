@@ -29,8 +29,8 @@ namespace ISFG.SpisUm.ClientSide.Interfaces
         Task<NodeEntry> Settle(string nodeId, string settleMethod, DateTime settleDate, string movePath, string customSettleMethod = null, string settleReason = null);
         Task<NodeEntry> SettleCancel(string nodeId, string reason);
 
-        Task<NodeEntry> ShreddingCancelDiscard(string nodeId, string assocType, bool isDocumentInFile = false);
-        Task<NodeEntry> ShreddingDiscard(string nodeId, DateTime date, string reason, DateTime discardDate, string assocType, bool isDocumentInFile = false);
+        Task<NodeEntry> ShreddingCancelDiscard(string nodeId);
+        Task<NodeEntry> ShreddingDiscard(string nodeId, DateTime date, string reason, DateTime discardDate);
         Task ShreddingChange(string nodeId, string retentionMark);
         Task<List<string>> ToRepository(string group, List<string> documents, bool moveDocument = true);
 

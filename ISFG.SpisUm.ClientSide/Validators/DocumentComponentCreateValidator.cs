@@ -68,10 +68,8 @@ namespace ISFG.SpisUm.ClientSide.Validators
 
                             var form = properties.GetNestedValueOrDefault(SpisumNames.Properties.Form)?.ToString();
                             var documentType = properties.GetNestedValueOrDefault(SpisumNames.Properties.DocumentType)?.ToString();
-                        
-                            var isLocked = _nodeEntry?.Entry?.IsLocked;
-
-                            if (isLocked == true)
+                            
+                            if (_nodeEntry?.Entry?.IsLocked == true)
                                 return false;
 
                             if (form == SpisumNames.Form.Analog || documentType == "technicalDataCarries" || form == SpisumNames.Form.Digital && senderType == SpisumNames.SenderType.Own)

@@ -58,7 +58,7 @@ namespace ISFG.Pdf.Services
             result.UsedAlgorithm = PdfNames.Clause.UsedAlgorithm;
             result.UsedAlgorithmValue = "SHA-256";
             result.Organizer = PdfNames.Clause.Organizer;
-            result.OrganizerValue = "ISFG"; //TODO: change this
+            result.OrganizerValue = "ISFG";
             result.NameLastName = PdfNames.Clause.NameLastName;
             result.NameLastNameValue = $"{_identityUser.FirstName} {_identityUser.LastName} ({_identityUser.Id})";
             result.DateOfIssue = PdfNames.Clause.DateOfIssue;

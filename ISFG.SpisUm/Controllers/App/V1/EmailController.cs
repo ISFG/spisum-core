@@ -129,7 +129,7 @@ namespace ISFG.SpisUm.Controllers.App.V1
                 {
                     Properties = new Dictionary<string, object>
                     {
-                        { SpisumNames.Properties.EmailNotRegisteredReason, "EM_VAL_01" }
+                        { SpisumNames.Properties.DigitalDeliveryNotRegisteredReasion, "EM_VAL_01" }
                     }
                 }
             );

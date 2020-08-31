@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using ISFG.Alfresco.Api.Models.CoreApi.CoreApi;
 using ISFG.Common.Extensions;
+using RestSharp;
 
 namespace ISFG.Alfresco.Api.Extensions
 {
@@ -63,7 +65,24 @@ namespace ISFG.Alfresco.Api.Extensions
                 
             return nodeBodyUpdate;
         }
+        public static NodeBodyUpdate AddProperties(this NodeBodyUpdate nodeBodyUpdate, IImmutableList<Parameter> parameters)
+        {
+            if (parameters == null)
+                return nodeBodyUpdate;
 
+            parameters.ForEach(x => nodeBodyUpdate.AddProperty(x.Name, x.Value));
+
+            return nodeBodyUpdate;
+        }
+        public static NodeBodyUpdate AddProperties(this NodeBodyUpdate nodeBodyUpdate, Dictionary<string, object> parameters)
+        {
+            if (parameters == null)
+                return nodeBodyUpdate;
+
+            parameters.ForEach(x => nodeBodyUpdate.AddProperty(x.Key, x.Value));
+
+            return nodeBodyUpdate;
+        }
         public static NodeBodyUpdate AddPropertyIfNotNull(this NodeBodyUpdate nodeBodyUpdate, string key, object value)
         {
             return value == null ? nodeBodyUpdate : nodeBodyUpdate.AddProperty(key, value);

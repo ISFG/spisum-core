@@ -137,6 +137,14 @@
             #endregion
         }
 
+        public static class Versions
+        {
+            #region Fields
+
+            public static readonly string MajorVersion = "majorVersion";            
+
+            #endregion
+        }
         #endregion
     }
 }

@@ -56,9 +56,6 @@ namespace ISFG.SpisUm.ClientSide.Services
 
         public async Task<TransactionHistoryPage<TransactionHistory>> GetEvents(TransactionHistoryQuery transactionHistoryQuery)
         {
-            if (transactionHistoryQuery.From != null) transactionHistoryQuery.From = transactionHistoryQuery.From.Value.ToUniversalTime();
-            if (transactionHistoryQuery.To != null) transactionHistoryQuery.To = transactionHistoryQuery.To.Value.ToUniversalTime();            
-            
             var sorts = new Sorts<Data.Models.TransactionHistory>();
             sorts.Add(true, x => x.OccuredAt, true);
             

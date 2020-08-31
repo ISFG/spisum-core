@@ -135,9 +135,28 @@ namespace ISFG.SpisUm.Controllers.App.V1
         [HttpPost("{nodeId}/component/create")]
         public async Task<NodeEntry> CreateComponent([FromRoute] ConceptComponentCreate input)
         {
-            var componentEntry = await _componentService.CreateVersionedComponent(input.NodeId, input.FileData);
-            var nodeFinal = await _validationService.CheckOutputFormat(componentEntry?.Entry?.Id, input.FileData);
+            var bytes = await input?.FileData.GetBytes();
+
+            var properties = await _validationService.GetCheckOutputFormatProperties(bytes, input?.FileData?.ContentType);
+
+            ImmutableList<Parameter> parameters = ImmutableList.Create<Parameter>();
+            foreach (var property in properties)
+            {
+                parameters = parameters.Add(new Parameter(property.Key, property.Value, ParameterType.GetOrPost));
+            }
+
+            var componentEntry = await _componentService.CreateVersionedComponent(input.NodeId, input.FileData, parameters);
+
             await _validationService.UpdateDocumentOutputFormat(input.NodeId);
+            await _validationService.UpdateDocumentSecurityFeatures(input.NodeId);
+            
+            var fileId = await _documentService.GetDocumentFileId(input.NodeId);
+            if (fileId != null)
+            {
+                await _validationService.UpdateFileOutputFormat(fileId);
+                await _validationService.UpdateFileSecurityFeatures(fileId);
+            }
+            
             try
             {
                 var documentEntry = await _alfrescoHttpClient.GetNodeInfo(input.NodeId);
@@ -146,9 +165,7 @@ namespace ISFG.SpisUm.Controllers.App.V1
 
                 await _auditLogService.Record(documentEntry?.Entry?.Id, SpisumNames.NodeTypes.Component, componentPid, NodeTypeCodes.Komponenta, EventCodes.VlozeniKDokumentu, 
                     string.Format(TransactinoHistoryMessages.ConceptComponentCreate, documentEntry?.GetPid()));
-
-                var fileId = await _documentService.GetDocumentFileId(documentEntry?.Entry?.Id);
-
+                
                 if (fileId != null)
                     await _auditLogService.Record(fileId, SpisumNames.NodeTypes.Component, componentPid, NodeTypeCodes.Komponenta, EventCodes.VlozeniKDokumentu, 
                         string.Format(TransactinoHistoryMessages.ConceptComponentCreateFile, documentEntry?.GetPid()));
@@ -159,7 +176,7 @@ namespace ISFG.SpisUm.Controllers.App.V1
                 Log.Logger?.Error(ex, "Audit log failed");
             }
 
-            return nodeFinal;
+            return componentEntry;
         }
 
         /// <summary>
@@ -169,7 +186,16 @@ namespace ISFG.SpisUm.Controllers.App.V1
         public async Task<List<string>> DeleteComponent([FromRoute] ConceptComponentCancel input)
         {
             var deleted = await _componentService.CancelComponent(input.NodeId, input.ComponentsId);
+            
             await _validationService.UpdateDocumentOutputFormat(input.NodeId);
+            await _validationService.UpdateDocumentSecurityFeatures(input.NodeId);
+            
+            var fileId = await _documentService.GetDocumentFileId(input.NodeId);
+            if (fileId != null)
+            {
+                await _validationService.UpdateFileOutputFormat(fileId);
+                await _validationService.UpdateFileSecurityFeatures(fileId);
+            }
 
             return deleted;
         }
@@ -250,7 +276,7 @@ namespace ISFG.SpisUm.Controllers.App.V1
 
                     var documentParent = await _nodesService.GetParentsByAssociation(componentId, new List<string> { SpisumNames.Associations.Components });
                     var documentEntry = await _alfrescoHttpClient.GetNodeInfo(documentParent?.FirstOrDefault()?.Entry?.Id);
-
+                    
                     var componentPid = componentEntry?.GetPid();
 
                     await _auditLogService.Record(documentEntry?.Entry?.Id, SpisumNames.NodeTypes.Component, componentPid, NodeTypeCodes.Komponenta, EventCodes.Zobrazeni, 
@@ -445,7 +471,19 @@ namespace ISFG.SpisUm.Controllers.App.V1
         [HttpPost("{nodeId}/revert/{versionId}")]
         public async Task<NodeEntry> RevertConcept([FromRoute] ConceptRevert input)
         {
-            return await _documentService.Revert(input.NodeId, input.VersionId);
+            var reverted = await _documentService.Revert(input.NodeId, input.VersionId);
+            
+            await _validationService.UpdateDocumentOutputFormat(input.NodeId);
+            await _validationService.UpdateDocumentSecurityFeatures(input.NodeId);
+            
+            var fileId = await _documentService.GetDocumentFileId(input.NodeId);
+            if (fileId != null)
+            {
+                await _validationService.UpdateFileOutputFormat(fileId);
+                await _validationService.UpdateFileSecurityFeatures(fileId);
+            }            
+
+            return reverted;
         }
 
         /// <summary>
@@ -471,7 +509,7 @@ namespace ISFG.SpisUm.Controllers.App.V1
         public async Task<NodeEntry> UpdateComponent([FromRoute] ComponentUpdate nodeBody, [FromQuery] IncludeFieldsQueryParams queryParams)
         {
             var nodeEntryBeforeUpdate = await _alfrescoHttpClient.GetNodeInfo(nodeBody.ComponentId);
-            var nodeEntryAfterUpdate = await _nodesService.ComponentUpdate(nodeBody, ImmutableList<Parameter>.Empty.AddQueryParams(queryParams));
+            var nodeEntryAfterUpdate = await _componentService.UpdateComponent(nodeBody, ImmutableList<Parameter>.Empty.AddQueryParams(queryParams));            
 
             try
             {
@@ -581,10 +619,28 @@ namespace ISFG.SpisUm.Controllers.App.V1
         [HttpPost("{nodeId}/component/{componentId}/content")]
         public async Task<NodeEntry> UpdateContentComponent([FromRoute] ConceptComponentUpdateContent input)
         {
+            var bytes = await input?.FileData.GetBytes();
+            var properties = await _validationService.GetCheckOutputFormatProperties(bytes, input?.FileData?.ContentType);
+
+            ImmutableList<Parameter> parameters = ImmutableList.Create<Parameter>();
+            foreach (var property in properties)
+            {
+                parameters = parameters.Add(new Parameter(property.Key, property.Value, ParameterType.GetOrPost));
+            }
+
+
             var componentEntryBeforeUpdate = await _alfrescoHttpClient.GetNodeInfo(input.NodeId);
-            var componentEntryAfterUpdate = await _componentService.UploadNewVersionComponent(input.NodeId, input.ComponentId, input.FileData);
+            var componentEntryAfterUpdate = await _componentService.UploadNewVersionComponent(input.NodeId, input.ComponentId, input.FileData, parameters);                        
             
-            await _validationService.CheckOutputFormat(componentEntryAfterUpdate?.Entry?.Id, input.FileData);
+            await _validationService.UpdateDocumentOutputFormat(input.NodeId);
+            await _validationService.UpdateDocumentSecurityFeatures(input.NodeId);
+            
+            var fileId = await _documentService.GetDocumentFileId(input.NodeId);
+            if (fileId != null)
+            {
+                await _validationService.UpdateFileOutputFormat(fileId);
+                await _validationService.UpdateFileSecurityFeatures(fileId);
+            }
 
             try
             {
@@ -596,8 +652,6 @@ namespace ISFG.SpisUm.Controllers.App.V1
                     componentEntryBeforeUpdate?.Entry?.Properties?.As<JObject>().ToDictionary(),
                     componentEntryAfterUpdate?.Entry?.Properties?.As<JObject>().ToDictionary(),
                     TransactinoHistoryMessages.ConceptComponentPostContentDocument);
-
-                var fileId = await _documentService.GetDocumentFileId(input.NodeId);
 
                 if (fileId != null)
                     await _auditLogService.Record(fileId, SpisumNames.NodeTypes.Component, componentPid, NodeTypeCodes.Komponenta, EventCodes.NovaVerze, 

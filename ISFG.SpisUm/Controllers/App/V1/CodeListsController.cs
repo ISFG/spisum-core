@@ -59,39 +59,9 @@ namespace ISFG.SpisUm.Controllers.App.V1
         /// </summary>
         /// <returns>List of all List of Values</returns>
         [HttpGet("all")]
-        public async Task<List<CodeListModel>> GetAllListsOfValues()
+        public List<CodeListModel> GetAllListsOfValues()
         {
-            if (_simpleMemoryCache.IsExist(_cacheKey))
-                return _simpleMemoryCache.Get<List<CodeListModel>>(_cacheKey);
-
-            var codeLists = new List<CodeListModel>();
-
-            var alfrescoResponse = await _alfrescoHttpClient.CodeListGetAll();
-
-            foreach (var list in alfrescoResponse.CodeLists.Where(x => x.Name != "rmc_smList"))
-                codeLists.Add(await GetListValues(list.Name));
-
-            _simpleMemoryCache.Create(_cacheKey, codeLists);
-
-            return codeLists;
-        }
-
-        /// <summary>
-        ///     Get's values of specified List of Values
-        /// </summary>
-        /// <param name="listname">List name (not title) you want values from</param>
-        /// <returns>List with values</returns>
-        [HttpGet("{listname}/values")]
-        public async Task<CodeListModel> GetListValues([FromRoute] string listname)
-        {
-            var alfrescoResponse = await _alfrescoHttpClient.CodeListGetWithValues(listname);
-
-            return new CodeListModel
-            {
-                Name = alfrescoResponse.CodeList.Name,
-                Title = alfrescoResponse.CodeList.Title,
-                Values = alfrescoResponse.CodeList.Values?.Select(x => x.ValueName)?.OrderBy(x => x)?.ToList()
-            };
+            return new List<CodeListModel>();
         }
 
         /// <summary>

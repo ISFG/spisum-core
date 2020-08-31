@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -115,10 +115,6 @@
     </Content>
 
     <Content Update="ConfigurationFiles\Sites\Sites.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-
-    <Content Update="ConfigurationFiles\Sites\RM.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
 

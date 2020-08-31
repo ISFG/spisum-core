@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -33,16 +34,10 @@ namespace ISFG.DataBox.Api.Services
 
         public async Task<DataBoxSendResponse> Send(DataBoxSend input)
         {
-            var accounts = await Accounts();
-
-            var account = accounts.FirstOrDefault(x => x.Id == input.SenderId);
-            if (account == null)
-                return new DataBoxSendResponse(false, "Provided databox was not found in configuration");
-
             return await ExecuteRequest<DataBoxSendResponse>(Method.POST, "databox-message", input.Files, ImmutableList<Parameter>.Empty
             .Add(new Parameter("subject", input.Subject, ParameterType.QueryString))
             .Add(new Parameter("recipientId", input.RecipientId, ParameterType.QueryString))
-            .Add(new Parameter("senderName", account.Username, ParameterType.QueryString))
+            .Add(new Parameter("senderName", input.SenderId, ParameterType.QueryString))
             .Add(new Parameter("body", input.Body, ParameterType.QueryString))
                 );
         }
@@ -64,21 +59,19 @@ namespace ISFG.DataBox.Api.Services
 
             base.BuildContent(request, body);
         }
-
-        protected override object BuildResponse<T>(IRestResponse response)
-        {
-            if (response.Content == "uploaded")
-                return response.Content;
-
-            return base.BuildResponse<T>(response);
-        }
-
         protected override void LogHttpRequest(IRestResponse response)
         {
             if (!Log.IsEnabled(LogEventLevel.Debug))
                 return;
 
-            try { Log.Debug(response.ToMessage()); } catch { }
+            try 
+            {
+                Log.Debug(response?.ToMessage());
+            } 
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Something went with databox log http request message");
+            }
         }
 
         #endregion

@@ -39,7 +39,7 @@ namespace ISFG.SpisUm.InitialScripts
             ISystemLoginService systemLoginService
         )
         {
-            _alfrescoHttpClient = new AlfrescoHttpClient(alfrescoConfiguration, new AdminAuthentification(simpleMemoryCache, alfrescoConfiguration, systemLoginService));;
+            _alfrescoHttpClient = new AlfrescoHttpClient(alfrescoConfiguration, new AdminAuthentification(simpleMemoryCache, alfrescoConfiguration, systemLoginService)); ;
             _alfrescoConfig = alfrescoConfiguration;
             _initialSite = initialSite;
         }
@@ -57,13 +57,6 @@ namespace ISFG.SpisUm.InitialScripts
             var configSites = _alfrescoConfig?.Sites != null
                 ? JsonConvert.DeserializeObject<List<SiteARM>>(File.ReadAllText(_alfrescoConfig.Sites))
                 : null;
-            var configSitesRM = _alfrescoConfig?.SiteRM != null
-                ? JsonConvert.DeserializeObject<RMSiteARM>(File.ReadAllText(_alfrescoConfig.SiteRM))
-                : null;
-            
-            var configShreddingPlan = _alfrescoConfig?.ShreddingPlan != null
-              ? JsonConvert.DeserializeObject<List<ShreddingPlanModel>>(File.ReadAllText(_alfrescoConfig.ShreddingPlan))
-              : null;
 
             var configGroups = _alfrescoConfig?.Groups != null
                 ? JsonConvert.DeserializeObject<List<GroupModel>>(File.ReadAllText(_alfrescoConfig.Groups))
@@ -71,24 +64,15 @@ namespace ISFG.SpisUm.InitialScripts
 
             configGroups.Insert(0, new GroupModel { Body = new GroupBodyCreate { Id = SpisumNames.Groups.MailroomGroup } });
 
-            if (!(configSites?.Count > 0) && configSitesRM == null)
+            if (!(configSites?.Count > 0))
                 return;
-            
+
             var sites = await _alfrescoHttpClient.GetSites(ImmutableList<Parameter>.Empty
                     .Add(new Parameter(AlfrescoNames.Headers.MaxItems, "100", ParameterType.QueryString)));
 
             if (configSites != null)
                 await _initialSite.CreateSitesAndFolders(sites, configSites, configGroups);
 
-            if (configSitesRM != null && configSitesRM.Body != null)
-                await _initialSite.CreateSiteRmAndFolders(sites, configSitesRM, configGroups);
-
-            if (configShreddingPlan?.Count > 0)
-            {
-                foreach (var shreddingPlan in configShreddingPlan)
-                    await _initialSite.CreateRMShreddingPlan(shreddingPlan);
-            }
-            
             // update ROOT permissions for all users because of PID generator script
             if (SpisumNames.Groups.MainGroup != null)
                 await _initialSite.CheckCreatePermissions(AlfrescoNames.Aliases.Root, new List<Permission>
